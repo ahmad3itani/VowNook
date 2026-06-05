@@ -2,7 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AgeGroup;
+use App\Enums\GuestSide;
 use App\Enums\Role;
+use App\Enums\RsvpStatus;
+use App\Models\Guest;
+use App\Models\GuestGroup;
 use App\Models\User;
 use App\Models\Wedding;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -53,5 +58,35 @@ class DatabaseSeeder extends Seeder
 
         $owner->forceFill(['current_wedding_id' => $wedding->id])->save();
         $partner->forceFill(['current_wedding_id' => $wedding->id])->save();
+
+        $this->seedGuests($wedding);
+    }
+
+    /** A small, realistic guest list so the demo workspace feels alive. */
+    protected function seedGuests(Wedding $wedding): void
+    {
+        $hart = GuestGroup::create(['wedding_id' => $wedding->id, 'name' => 'The Hart Family']);
+        $reyes = GuestGroup::create(['wedding_id' => $wedding->id, 'name' => 'The Reyes Family']);
+
+        $people = [
+            ['Eleanor', 'Hart', $hart->id, GuestSide::PartnerOne, RsvpStatus::Attending],
+            ['Thomas', 'Hart', $hart->id, GuestSide::PartnerOne, RsvpStatus::Attending],
+            ['Sofia', 'Reyes', $reyes->id, GuestSide::PartnerTwo, RsvpStatus::Attending],
+            ['Mateo', 'Reyes', $reyes->id, GuestSide::PartnerTwo, RsvpStatus::Pending],
+            ['Grace', 'Lin', null, GuestSide::Both, RsvpStatus::Maybe],
+            ['Daniel', 'Okafor', null, GuestSide::PartnerOne, RsvpStatus::Declined],
+        ];
+
+        foreach ($people as [$first, $last, $groupId, $side, $status]) {
+            Guest::create([
+                'wedding_id' => $wedding->id,
+                'group_id' => $groupId,
+                'first_name' => $first,
+                'last_name' => $last,
+                'side' => $side,
+                'age_group' => AgeGroup::Adult,
+                'rsvp_status' => $status,
+            ]);
+        }
     }
 }

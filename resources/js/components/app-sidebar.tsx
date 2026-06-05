@@ -1,10 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Settings2 } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Settings2, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { WeddingSwitcher } from '@/components/wedding-switcher';
+import { usePermissions } from '@/hooks/use-permissions';
 import {
     Sidebar,
     SidebarContent,
@@ -40,9 +41,19 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     const { auth } = usePage().props;
+    const { canRead } = usePermissions();
 
     const navItems: NavItem[] = [
         ...mainNavItems,
+        ...(canRead('guests')
+            ? [
+                  {
+                      title: 'Guests',
+                      href: '/guests',
+                      icon: Users,
+                  } satisfies NavItem,
+              ]
+            : []),
         ...(auth?.isAdmin
             ? [
                   {

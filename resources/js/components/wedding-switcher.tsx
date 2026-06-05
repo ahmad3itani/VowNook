@@ -32,6 +32,7 @@ export function WeddingSwitcher() {
         if (slug === active.slug) {
             return;
         }
+
         router.post(`/weddings/${slug}/switch`, {}, { preserveScroll: true });
     };
 

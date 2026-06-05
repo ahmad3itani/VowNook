@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -65,6 +66,16 @@ class Wedding extends Model
         return $this->belongsToMany(User::class, 'wedding_user')
             ->withPivot(['role', 'permissions', 'invited_at', 'accepted_at'])
             ->withTimestamps();
+    }
+
+    public function guests(): HasMany
+    {
+        return $this->hasMany(Guest::class);
+    }
+
+    public function guestGroups(): HasMany
+    {
+        return $this->hasMany(GuestGroup::class);
     }
 
     /** The membership role for a given user, or null if not a member. */

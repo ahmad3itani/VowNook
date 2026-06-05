@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\AgeGroup;
+use App\Enums\GuestSide;
+use App\Enums\RsvpStatus;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Guest extends Model
+{
+    /** @use HasFactory<\Database\Factories\GuestFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'wedding_id',
+        'group_id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'side',
+        'age_group',
+        'is_plus_one',
+        'rsvp_status',
+        'meal_choice',
+        'dietary_notes',
+        'invited_at',
+        'notes',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'side' => GuestSide::class,
+            'age_group' => AgeGroup::class,
+            'rsvp_status' => RsvpStatus::class,
+            'is_plus_one' => 'boolean',
+            'invited_at' => 'datetime',
+        ];
+    }
+
+    public function wedding(): BelongsTo
+    {
+        return $this->belongsTo(Wedding::class);
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(GuestGroup::class, 'group_id');
+    }
+
+    /** Scope to a single wedding (the active tenant). */
+    public function scopeForWedding(Builder $query, int $weddingId): Builder
+    {
+        return $query->where('wedding_id', $weddingId);
+    }
+}
