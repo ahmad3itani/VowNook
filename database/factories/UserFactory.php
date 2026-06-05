@@ -49,6 +49,26 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user is a platform administrator.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * Set the user's subscription plan.
+     */
+    public function plan(string $plan): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'plan' => $plan,
+        ]);
+    }
+
+    /**
      * Indicate that the model has two-factor authentication configured.
      */
     public function withTwoFactor(): static

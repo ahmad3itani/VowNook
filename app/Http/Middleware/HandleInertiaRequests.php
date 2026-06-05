@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\PermissionService;
+use App\Support\CurrentWedding;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,11 +37,31 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $current = app(CurrentWedding::class)->get();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'isAdmin' => (bool) $user?->is_admin,
+            ],
+            'wedding' => [
+                'active' => $current ? [
+                    'id' => $current->id,
+                    'name' => $current->name,
+                    'slug' => $current->slug,
+                    'event_date' => $current->event_date?->toDateString(),
+                ] : null,
+                'list' => $user
+                    ? $user->accessibleWeddings()
+                        ->map(fn ($w) => ['id' => $w->id, 'name' => $w->name, 'slug' => $w->slug])
+                        ->values()
+                    : [],
+                'permissions' => ($user && $current)
+                    ? app(PermissionService::class)->mapFor($user, $current)
+                    : (object) [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
