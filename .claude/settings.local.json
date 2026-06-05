@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf wedflow_build)",
+      "Bash(php \"/c/Users/ahmad/.config/herd/bin/laravel.phar\" new wedflow_build --react --database=sqlite --pest --pnpm --git --no-boost --no-interaction)",
+      "Bash(pnpm install:*)",
+      "Bash(echo \"=== EXIT $PIPESTATUS[0] ===\")",
+      "Bash(for i:*)",
+      "Bash(do grep:*)",
+      "Bash(break)",
+      "Bash(done)",
+      "Bash(pnpm run:*)",
+      "Bash(export PATH=/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH php -v)",
+      "Read(//c/Users/ahmad/Wedding/**)",
+      "Bash(1 rmdir:*)",
+      "Bash(cd /c/Users/ahmad/Wedding echo \"=== top-level ===\")",
+      "Bash(grep -vE '^\\\\.$|^\\\\.\\\\.$')",
+      "Bash(export PATH=\"/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH\" cd /c/Users/ahmad/Wedding echo \"=== APP_KEY set? ===\")",
+      "Bash(sed 's/=.*/=<value>/' echo \"=== DB config ===\")",
+      "Bash(ls -la database/*.sqlite 2)",
+      "Bash(1 echo:*)",
+      "Bash(git init:*)",
+      "Bash(export PATH=\"/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH\" cd /c/Users/ahmad/Wedding touch database/database.sqlite echo \"=== migrate ===\" php artisan migrate --force)",
+      "Bash(export PATH=\"/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH\" cd /c/Users/ahmad/Wedding echo \"=== raw APP_KEY line ===\")",
+      "Bash(php artisan:*)",
+      "Bash(export PATH=\"/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH\" cd /c/Users/ahmad/Wedding echo \"=== .gitignore has vendor/node_modules? ===\")",
+      "Bash(export PATH=\"/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH\" cd /c/Users/ahmad/Wedding echo \"=== is sqlite tracked? ===\")",
+      "Bash(export PATH=\"/c/Users/ahmad/.config/herd/bin/php84:/c/Users/ahmad/.config/herd/bin:$PATH\":*)"
+    ]
+  }
+}
