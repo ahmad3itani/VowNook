@@ -6,6 +6,8 @@ use App\Enums\AgeGroup;
 use App\Enums\GuestSide;
 use App\Enums\Role;
 use App\Enums\RsvpStatus;
+use App\Models\BudgetCategory;
+use App\Models\BudgetItem;
 use App\Models\Guest;
 use App\Models\GuestGroup;
 use App\Models\User;
@@ -60,6 +62,7 @@ class DatabaseSeeder extends Seeder
         $partner->forceFill(['current_wedding_id' => $wedding->id])->save();
 
         $this->seedGuests($wedding);
+        $this->seedBudget($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -86,6 +89,40 @@ class DatabaseSeeder extends Seeder
                 'side' => $side,
                 'age_group' => AgeGroup::Adult,
                 'rsvp_status' => $status,
+            ]);
+        }
+    }
+
+    /** A starter budget so the demo workspace shows meaningful totals. */
+    protected function seedBudget(Wedding $wedding): void
+    {
+        $categories = collect(['Venue', 'Catering', 'Attire', 'Flowers', 'Photography'])
+            ->mapWithKeys(fn (string $name, int $i) => [
+                $name => BudgetCategory::create([
+                    'wedding_id' => $wedding->id,
+                    'name' => $name,
+                    'sort_order' => $i,
+                ])->id,
+            ]);
+
+        // [name, category, estimated$, actual$ (null = TBD), paid$]
+        $items = [
+            ['Reception hall', 'Venue', 12000, 12500, 5000],
+            ['Three-course dinner', 'Catering', 9000, null, 0],
+            ['Wedding dress', 'Attire', 2500, 2200, 2200],
+            ['Suit & accessories', 'Attire', 1200, null, 0],
+            ['Ceremony florals', 'Flowers', 1800, 1750, 500],
+            ['Photographer (8h)', 'Photography', 3500, 3500, 1000],
+        ];
+
+        foreach ($items as [$name, $category, $estimated, $actual, $paid]) {
+            BudgetItem::create([
+                'wedding_id' => $wedding->id,
+                'category_id' => $categories[$category],
+                'name' => $name,
+                'estimated_cents' => $estimated * 100,
+                'actual_cents' => $actual !== null ? $actual * 100 : null,
+                'paid_cents' => $paid * 100,
             ]);
         }
     }

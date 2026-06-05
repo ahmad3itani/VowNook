@@ -78,6 +78,16 @@ class Wedding extends Model
         return $this->hasMany(GuestGroup::class);
     }
 
+    public function budgetItems(): HasMany
+    {
+        return $this->hasMany(BudgetItem::class);
+    }
+
+    public function budgetCategories(): HasMany
+    {
+        return $this->hasMany(BudgetCategory::class);
+    }
+
     /** The membership role for a given user, or null if not a member. */
     public function roleFor(User $user): ?Role
     {

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\BudgetCategoryController;
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\SwitchWeddingController;
@@ -27,6 +29,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('guest-groups', [GuestGroupController::class, 'store'])->name('guest-groups.store');
         Route::put('guest-groups/{group}', [GuestGroupController::class, 'update'])->name('guest-groups.update');
         Route::delete('guest-groups/{group}', [GuestGroupController::class, 'destroy'])->name('guest-groups.destroy');
+    });
+
+    // Budget workspace.
+    Route::get('budget', [BudgetController::class, 'index'])
+        ->middleware('permission:budget,read')->name('budget.index');
+
+    Route::middleware('permission:budget,write')->group(function () {
+        Route::post('budget', [BudgetController::class, 'store'])->name('budget.store');
+        Route::put('budget/{item}', [BudgetController::class, 'update'])->name('budget.update');
+        Route::delete('budget/{item}', [BudgetController::class, 'destroy'])->name('budget.destroy');
+
+        Route::post('budget-categories', [BudgetCategoryController::class, 'store'])->name('budget-categories.store');
+        Route::put('budget-categories/{category}', [BudgetCategoryController::class, 'update'])->name('budget-categories.update');
+        Route::delete('budget-categories/{category}', [BudgetCategoryController::class, 'destroy'])->name('budget-categories.destroy');
     });
 
     // Admin panel.
