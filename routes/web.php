@@ -28,6 +28,9 @@ Route::post('w/{wedding}/seats/find', [PublicSeatingController::class, 'find'])-
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
+    // Shareable public links + printable QR codes for the active wedding.
+    Route::inertia('share', 'share/index')->name('share');
+
     // Switch the active wedding (tenant context).
     Route::post('weddings/{wedding}/switch', SwitchWeddingController::class)
         ->name('weddings.switch');
