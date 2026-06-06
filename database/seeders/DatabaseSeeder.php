@@ -8,10 +8,13 @@ use App\Enums\Role;
 use App\Enums\RsvpStatus;
 use App\Models\BudgetCategory;
 use App\Models\BudgetItem;
+use App\Enums\TaskCategory;
+use App\Enums\TaskPriority;
 use App\Enums\VendorCategory;
 use App\Enums\VendorStatus;
 use App\Models\Guest;
 use App\Models\GuestGroup;
+use App\Models\Task;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Wedding;
@@ -67,6 +70,7 @@ class DatabaseSeeder extends Seeder
         $this->seedGuests($wedding);
         $this->seedBudget($wedding);
         $this->seedVendors($wedding);
+        $this->seedChecklist($wedding, $owner);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -153,6 +157,34 @@ class DatabaseSeeder extends Seeder
                 'contact_name' => $contact,
                 'cost_cents' => $cost !== null ? $cost * 100 : null,
                 'paid_cents' => $paid * 100,
+            ]);
+        }
+    }
+
+    /** A starter checklist spanning the planning timeline. */
+    protected function seedChecklist(Wedding $wedding, User $owner): void
+    {
+        // [title, category, priority, due (months from now, null = no date), complete]
+        $tasks = [
+            ['Set the wedding date', TaskCategory::Planning, TaskPriority::High, -3, true],
+            ['Book the venue', TaskCategory::Logistics, TaskPriority::High, -2, true],
+            ['Send save-the-dates', TaskCategory::Stationery, TaskPriority::Medium, -1, false],
+            ['Order wedding attire', TaskCategory::Attire, TaskPriority::Medium, 1, false],
+            ['Finalize the guest list', TaskCategory::Planning, TaskPriority::High, 2, false],
+            ['Plan the ceremony order', TaskCategory::Ceremony, TaskPriority::Medium, 4, false],
+            ['Confirm reception menu', TaskCategory::Reception, TaskPriority::Low, 5, false],
+        ];
+
+        foreach ($tasks as [$title, $category, $priority, $due, $complete]) {
+            Task::create([
+                'wedding_id' => $wedding->id,
+                'assigned_to' => $owner->id,
+                'title' => $title,
+                'category' => $category,
+                'priority' => $priority,
+                'due_date' => $due !== null ? now()->addMonths($due)->toDateString() : null,
+                'is_complete' => $complete,
+                'completed_at' => $complete ? now() : null,
             ]);
         }
     }

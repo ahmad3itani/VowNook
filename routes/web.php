@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\SwitchWeddingController;
@@ -54,6 +55,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('vendors', [VendorController::class, 'store'])->name('vendors.store');
         Route::put('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
         Route::delete('vendors/{vendor}', [VendorController::class, 'destroy'])->name('vendors.destroy');
+    });
+
+    // Checklist workspace.
+    Route::get('checklist', [ChecklistController::class, 'index'])
+        ->middleware('permission:checklist,read')->name('checklist.index');
+
+    Route::middleware('permission:checklist,write')->group(function () {
+        Route::post('checklist', [ChecklistController::class, 'store'])->name('checklist.store');
+        Route::put('checklist/{task}', [ChecklistController::class, 'update'])->name('checklist.update');
+        Route::patch('checklist/{task}/toggle', [ChecklistController::class, 'toggle'])->name('checklist.toggle');
+        Route::delete('checklist/{task}', [ChecklistController::class, 'destroy'])->name('checklist.destroy');
     });
 
     // Admin panel.
