@@ -5,6 +5,7 @@ use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\PublicRsvpController;
@@ -49,6 +50,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('guest-groups/{group}', [GuestGroupController::class, 'update'])->name('guest-groups.update');
         Route::delete('guest-groups/{group}', [GuestGroupController::class, 'destroy'])->name('guest-groups.destroy');
     });
+
+    // CSV exports (gated by each workspace's read permission).
+    Route::get('exports/guests', [ExportController::class, 'guests'])
+        ->middleware('permission:guests,read')->name('exports.guests');
+    Route::get('exports/budget', [ExportController::class, 'budget'])
+        ->middleware('permission:budget,read')->name('exports.budget');
 
     // Budget workspace.
     Route::get('budget', [BudgetController::class, 'index'])

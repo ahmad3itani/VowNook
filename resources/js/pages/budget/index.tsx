@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Layers, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { Download, Layers, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -169,18 +169,26 @@ return items.filter((i) => i.category_id === null);
                         title="Budget"
                         description="Plan estimated costs, track what you actually spend, and stay on target."
                     />
-                    {writable && (
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setCategoriesOpen(true)}>
-                                <Layers className="size-4" />
-                                Categories
-                            </Button>
-                            <Button onClick={openCreate} data-test="add-item">
-                                <Plus className="size-4" />
-                                Add item
-                            </Button>
-                        </div>
-                    )}
+                    <div className="flex gap-2">
+                        <Button variant="outline" asChild>
+                            <a href="/exports/budget">
+                                <Download className="size-4" />
+                                Export CSV
+                            </a>
+                        </Button>
+                        {writable && (
+                            <>
+                                <Button variant="outline" onClick={() => setCategoriesOpen(true)}>
+                                    <Layers className="size-4" />
+                                    Categories
+                                </Button>
+                                <Button onClick={openCreate} data-test="add-item">
+                                    <Plus className="size-4" />
+                                    Add item
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

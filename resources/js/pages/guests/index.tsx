@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Download, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -210,18 +210,26 @@ return;
                         title="Guests"
                         description="Track invitations, RSVPs, and households for your celebration."
                     />
-                    {writable && (
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setGroupsOpen(true)}>
-                                <Users className="size-4" />
-                                Households
-                            </Button>
-                            <Button onClick={openCreate} data-test="add-guest">
-                                <Plus className="size-4" />
-                                Add guest
-                            </Button>
-                        </div>
-                    )}
+                    <div className="flex gap-2">
+                        <Button variant="outline" asChild>
+                            <a href="/exports/guests">
+                                <Download className="size-4" />
+                                Export CSV
+                            </a>
+                        </Button>
+                        {writable && (
+                            <>
+                                <Button variant="outline" onClick={() => setGroupsOpen(true)}>
+                                    <Users className="size-4" />
+                                    Households
+                                </Button>
+                                <Button onClick={openCreate} data-test="add-guest">
+                                    <Plus className="size-4" />
+                                    Add guest
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
