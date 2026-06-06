@@ -52,7 +52,7 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
         e.preventDefault();
         setSelected(null);
         setDone(false);
-        lookup.post(`/w/${wedding.slug}/lookup`, {
+        lookup.post(`/w/${wedding.slug}/rsvp/lookup`, {
             preserveScroll: true,
             preserveState: true,
             only: ['matches', 'searched'],
@@ -72,7 +72,7 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
 
     function submitRespond(e: React.FormEvent) {
         e.preventDefault();
-        respond.post(`/w/${wedding.slug}/respond`, {
+        respond.post(`/w/${wedding.slug}/rsvp/respond`, {
             preserveScroll: true,
             onSuccess: () => {
                 setDone(true);

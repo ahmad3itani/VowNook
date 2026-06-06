@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -106,6 +107,11 @@ class Wedding extends Model
     public function seatingTables(): HasMany
     {
         return $this->hasMany(SeatingTable::class);
+    }
+
+    public function website(): HasOne
+    {
+        return $this->hasOne(WeddingWebsite::class);
     }
 
     /** The membership role for a given user, or null if not a member. */

@@ -15,7 +15,7 @@ class PublicRsvpTest extends TestCase
     {
         $wedding = Wedding::factory()->create();
 
-        $this->get("/w/{$wedding->slug}")
+        $this->get("/w/{$wedding->slug}/rsvp")
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('public/rsvp')
@@ -35,7 +35,7 @@ class PublicRsvpTest extends TestCase
         $other = Wedding::factory()->create();
         Guest::factory()->create(['wedding_id' => $other->id, 'first_name' => 'Amelia', 'last_name' => 'Stone']);
 
-        $this->post("/w/{$wedding->slug}/lookup", ['name' => 'Amelia'])
+        $this->post("/w/{$wedding->slug}/rsvp/lookup", ['name' => 'Amelia'])
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('public/rsvp')
@@ -49,7 +49,7 @@ class PublicRsvpTest extends TestCase
     {
         $wedding = Wedding::factory()->create();
 
-        $this->post("/w/{$wedding->slug}/lookup", ['name' => 'A'])
+        $this->post("/w/{$wedding->slug}/rsvp/lookup", ['name' => 'A'])
             ->assertSessionHasErrors('name');
     }
 
@@ -58,7 +58,7 @@ class PublicRsvpTest extends TestCase
         $wedding = Wedding::factory()->create();
         $guest = Guest::factory()->create(['wedding_id' => $wedding->id]);
 
-        $this->post("/w/{$wedding->slug}/respond", [
+        $this->post("/w/{$wedding->slug}/rsvp/respond", [
             'guest_id' => $guest->id,
             'rsvp_status' => 'attending',
             'meal_choice' => 'Vegetarian',
@@ -78,7 +78,7 @@ class PublicRsvpTest extends TestCase
         $wedding = Wedding::factory()->create();
         $foreignGuest = Guest::factory()->create();
 
-        $this->post("/w/{$wedding->slug}/respond", [
+        $this->post("/w/{$wedding->slug}/rsvp/respond", [
             'guest_id' => $foreignGuest->id,
             'rsvp_status' => 'attending',
         ])->assertNotFound();
@@ -89,7 +89,7 @@ class PublicRsvpTest extends TestCase
         $wedding = Wedding::factory()->create();
         $guest = Guest::factory()->create(['wedding_id' => $wedding->id]);
 
-        $this->post("/w/{$wedding->slug}/respond", [
+        $this->post("/w/{$wedding->slug}/rsvp/respond", [
             'guest_id' => $guest->id,
             'rsvp_status' => 'pending',
         ])->assertSessionHasErrors('rsvp_status');

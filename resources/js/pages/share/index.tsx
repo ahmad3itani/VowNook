@@ -102,10 +102,16 @@ export default function ShareIndex() {
 
     const links: ShareLink[] = [
         {
+            key: 'website',
+            title: 'Wedding website',
+            description: 'Your public front page — story, details, and links to everything below.',
+            path: `/w/${active.slug}`,
+        },
+        {
             key: 'rsvp',
             title: 'RSVP invitation',
             description: 'Share with your guests so they can reply, choose a meal, and add dietary notes.',
-            path: `/w/${active.slug}`,
+            path: `/w/${active.slug}/rsvp`,
         },
         {
             key: 'seats',

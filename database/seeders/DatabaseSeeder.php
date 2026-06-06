@@ -83,6 +83,7 @@ class DatabaseSeeder extends Seeder
         $this->seedSeating($wedding);
         $this->seedInspiration($wedding);
         $this->seedCrew($wedding);
+        $this->seedWebsite($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -307,5 +308,19 @@ class DatabaseSeeder extends Seeder
                 'role' => $role,
             ]);
         }
+    }
+
+    protected function seedWebsite(Wedding $wedding): void
+    {
+        $wedding->website()->create([
+            'is_published' => true,
+            'headline' => 'Together with their families',
+            'welcome_message' => 'We are so excited to celebrate our wedding day with the people we love most. Thank you for being part of our story.',
+            'our_story' => "We met one rainy autumn evening and have been inseparable ever since. After eight wonderful years, a hike, and one very nervous proposal at the lookout, we can't wait to say \"I do\".",
+            'venue_name' => 'Rosewood Estate',
+            'venue_address' => '1200 Orchard Lane, Mont-Tremblant, QC',
+            'ceremony_time' => '4:00 PM',
+            'dress_code' => 'Garden formal',
+        ]);
     }
 }

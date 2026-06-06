@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Armchair, BookOpen, Briefcase, CalendarClock, FolderGit2, HeartHandshake, Images, LayoutGrid, ListChecks, QrCode, Settings2, Sparkles, UserCog, Users, Wallet } from 'lucide-react';
+import { Armchair, BookOpen, Briefcase, CalendarClock, FolderGit2, Globe, HeartHandshake, Images, LayoutGrid, ListChecks, QrCode, Settings2, Sparkles, UserCog, Users, Wallet } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -114,6 +114,15 @@ export function AppSidebar() {
                       title: 'Gallery',
                       href: '/gallery',
                       icon: Images,
+                  } satisfies NavItem,
+              ]
+            : []),
+        ...(canRead('website')
+            ? [
+                  {
+                      title: 'Website',
+                      href: '/website',
+                      icon: Globe,
                   } satisfies NavItem,
               ]
             : []),

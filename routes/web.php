@@ -14,18 +14,23 @@ use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
+use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
-// Public, unauthenticated wedding RSVP site.
-Route::get('w/{wedding}', [PublicRsvpController::class, 'show'])->name('public.rsvp');
-Route::post('w/{wedding}/lookup', [PublicRsvpController::class, 'lookup'])->name('public.rsvp.lookup');
-Route::post('w/{wedding}/respond', [PublicRsvpController::class, 'respond'])->name('public.rsvp.respond');
+// Public, unauthenticated wedding website (the couple's public front door).
+Route::get('w/{wedding}', [PublicWebsiteController::class, 'show'])->name('public.website');
+
+// Public RSVP site.
+Route::get('w/{wedding}/rsvp', [PublicRsvpController::class, 'show'])->name('public.rsvp');
+Route::post('w/{wedding}/rsvp/lookup', [PublicRsvpController::class, 'lookup'])->name('public.rsvp.lookup');
+Route::post('w/{wedding}/rsvp/respond', [PublicRsvpController::class, 'respond'])->name('public.rsvp.respond');
 
 // Public seat finder — backs a printed QR code at the venue.
 Route::get('w/{wedding}/seats', [PublicSeatingController::class, 'show'])->name('public.seats');
@@ -129,6 +134,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('inspiration/{item}', [InspirationController::class, 'update'])->name('inspiration.update');
         Route::delete('inspiration/{item}', [InspirationController::class, 'destroy'])->name('inspiration.destroy');
     });
+
+    // Wedding website editor.
+    Route::get('website', [WebsiteController::class, 'index'])
+        ->middleware('permission:website,read')->name('website.index');
+    Route::put('website', [WebsiteController::class, 'update'])
+        ->middleware('permission:website,write')->name('website.update');
 
     // Collaborators (team access & roles).
     Route::get('collaborators', [CollaboratorController::class, 'index'])
