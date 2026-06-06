@@ -98,6 +98,11 @@ class Wedding extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function timelineEvents(): HasMany
+    {
+        return $this->hasMany(TimelineEvent::class);
+    }
+
     /** The membership role for a given user, or null if not a member. */
     public function roleFor(User $user): ?Role
     {

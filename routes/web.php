@@ -7,6 +7,7 @@ use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\SwitchWeddingController;
+use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,6 +67,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('checklist/{task}', [ChecklistController::class, 'update'])->name('checklist.update');
         Route::patch('checklist/{task}/toggle', [ChecklistController::class, 'toggle'])->name('checklist.toggle');
         Route::delete('checklist/{task}', [ChecklistController::class, 'destroy'])->name('checklist.destroy');
+    });
+
+    // Timeline workspace.
+    Route::get('timeline', [TimelineController::class, 'index'])
+        ->middleware('permission:timeline,read')->name('timeline.index');
+
+    Route::middleware('permission:timeline,write')->group(function () {
+        Route::post('timeline', [TimelineController::class, 'store'])->name('timeline.store');
+        Route::put('timeline/{event}', [TimelineController::class, 'update'])->name('timeline.update');
+        Route::delete('timeline/{event}', [TimelineController::class, 'destroy'])->name('timeline.destroy');
     });
 
     // Admin panel.

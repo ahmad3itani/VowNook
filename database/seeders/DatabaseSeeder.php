@@ -8,6 +8,7 @@ use App\Enums\Role;
 use App\Enums\RsvpStatus;
 use App\Models\BudgetCategory;
 use App\Models\BudgetItem;
+use App\Enums\EventType;
 use App\Enums\TaskCategory;
 use App\Enums\TaskPriority;
 use App\Enums\VendorCategory;
@@ -15,6 +16,7 @@ use App\Enums\VendorStatus;
 use App\Models\Guest;
 use App\Models\GuestGroup;
 use App\Models\Task;
+use App\Models\TimelineEvent;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Wedding;
@@ -71,6 +73,7 @@ class DatabaseSeeder extends Seeder
         $this->seedBudget($wedding);
         $this->seedVendors($wedding);
         $this->seedChecklist($wedding, $owner);
+        $this->seedTimeline($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -185,6 +188,39 @@ class DatabaseSeeder extends Seeder
                 'due_date' => $due !== null ? now()->addMonths($due)->toDateString() : null,
                 'is_complete' => $complete,
                 'completed_at' => $complete ? now() : null,
+            ]);
+        }
+    }
+
+    /** A sample wedding-day run-of-show, linked to seeded vendors. */
+    protected function seedTimeline(Wedding $wedding): void
+    {
+        $vendorFor = fn (VendorCategory $category) => $wedding->vendors()
+            ->where('category', $category->value)->value('id');
+
+        $day = $wedding->event_date?->copy() ?? now()->addMonths(8);
+
+        // [title, type, hour, minute, durationMinutes (null = no end), vendorCategory]
+        $events = [
+            ['Hair & makeup', EventType::Preparation, 9, 0, 150, null],
+            ['First look photos', EventType::Photos, 13, 0, 45, VendorCategory::Photography],
+            ['Ceremony', EventType::Ceremony, 15, 0, 45, VendorCategory::Venue],
+            ['Cocktail hour', EventType::Cocktails, 16, 0, 60, VendorCategory::Catering],
+            ['Reception & dinner', EventType::Reception, 17, 30, 120, VendorCategory::Catering],
+            ['First dance & party', EventType::Party, 20, 0, null, VendorCategory::Music],
+        ];
+
+        foreach ($events as [$title, $type, $hour, $minute, $duration, $category]) {
+            $start = $day->copy()->setTime($hour, $minute);
+
+            TimelineEvent::create([
+                'wedding_id' => $wedding->id,
+                'vendor_id' => $category !== null ? $vendorFor($category) : null,
+                'title' => $title,
+                'type' => $type,
+                'starts_at' => $start,
+                'ends_at' => $duration !== null ? $start->copy()->addMinutes($duration) : null,
+                'location' => 'The Grand Conservatory',
             ]);
         }
     }
