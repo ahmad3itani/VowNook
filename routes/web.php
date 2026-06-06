@@ -6,6 +6,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\SwitchWeddingController;
+use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -43,6 +44,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('budget-categories', [BudgetCategoryController::class, 'store'])->name('budget-categories.store');
         Route::put('budget-categories/{category}', [BudgetCategoryController::class, 'update'])->name('budget-categories.update');
         Route::delete('budget-categories/{category}', [BudgetCategoryController::class, 'destroy'])->name('budget-categories.destroy');
+    });
+
+    // Vendors workspace.
+    Route::get('vendors', [VendorController::class, 'index'])
+        ->middleware('permission:vendors,read')->name('vendors.index');
+
+    Route::middleware('permission:vendors,write')->group(function () {
+        Route::post('vendors', [VendorController::class, 'store'])->name('vendors.store');
+        Route::put('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+        Route::delete('vendors/{vendor}', [VendorController::class, 'destroy'])->name('vendors.destroy');
     });
 
     // Admin panel.

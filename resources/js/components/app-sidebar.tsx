@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Settings2, Users, Wallet } from 'lucide-react';
+import { BookOpen, Briefcase, FolderGit2, LayoutGrid, Settings2, Users, Wallet } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -60,6 +60,15 @@ export function AppSidebar() {
                       title: 'Budget',
                       href: '/budget',
                       icon: Wallet,
+                  } satisfies NavItem,
+              ]
+            : []),
+        ...(canRead('vendors')
+            ? [
+                  {
+                      title: 'Vendors',
+                      href: '/vendors',
+                      icon: Briefcase,
                   } satisfies NavItem,
               ]
             : []),

@@ -8,9 +8,12 @@ use App\Enums\Role;
 use App\Enums\RsvpStatus;
 use App\Models\BudgetCategory;
 use App\Models\BudgetItem;
+use App\Enums\VendorCategory;
+use App\Enums\VendorStatus;
 use App\Models\Guest;
 use App\Models\GuestGroup;
 use App\Models\User;
+use App\Models\Vendor;
 use App\Models\Wedding;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -63,6 +66,7 @@ class DatabaseSeeder extends Seeder
 
         $this->seedGuests($wedding);
         $this->seedBudget($wedding);
+        $this->seedVendors($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -122,6 +126,32 @@ class DatabaseSeeder extends Seeder
                 'name' => $name,
                 'estimated_cents' => $estimated * 100,
                 'actual_cents' => $actual !== null ? $actual * 100 : null,
+                'paid_cents' => $paid * 100,
+            ]);
+        }
+    }
+
+    /** A handful of vendors across the booking lifecycle. */
+    protected function seedVendors(Wedding $wedding): void
+    {
+        // [name, category, status, contact, $cost (null = no quote yet), $paid]
+        $vendors = [
+            ['The Grand Conservatory', VendorCategory::Venue, VendorStatus::Booked, 'Olivia Pearce', 12000, 5000],
+            ['Saffron & Sage Catering', VendorCategory::Catering, VendorStatus::Booked, 'Marcus Bell', 9000, 0],
+            ['Aperture Studios', VendorCategory::Photography, VendorStatus::Quoted, 'Nina Castillo', 3500, 0],
+            ['Wildflower Collective', VendorCategory::Florist, VendorStatus::Contacted, 'Priya Anand', null, 0],
+            ['The Velvet Trio', VendorCategory::Music, VendorStatus::Researching, null, null, 0],
+            ['Sweet Layers Bakery', VendorCategory::Bakery, VendorStatus::Declined, 'Hannah Cole', 800, 0],
+        ];
+
+        foreach ($vendors as [$name, $category, $status, $contact, $cost, $paid]) {
+            Vendor::create([
+                'wedding_id' => $wedding->id,
+                'name' => $name,
+                'category' => $category,
+                'status' => $status,
+                'contact_name' => $contact,
+                'cost_cents' => $cost !== null ? $cost * 100 : null,
                 'paid_cents' => $paid * 100,
             ]);
         }
