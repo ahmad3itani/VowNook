@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\PublicRsvpController;
@@ -26,7 +27,7 @@ Route::get('w/{wedding}/seats', [PublicSeatingController::class, 'show'])->name(
 Route::post('w/{wedding}/seats/find', [PublicSeatingController::class, 'find'])->name('public.seats.find');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Shareable public links + printable QR codes for the active wedding.
     Route::inertia('share', 'share/index')->name('share');
