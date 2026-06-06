@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\BudgetItem;
 use App\Models\Guest;
+use App\Models\TimelineEvent;
 use App\Models\User;
 use App\Models\Wedding;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -59,6 +60,28 @@ class ExportTest extends TestCase
         $body = $response->streamedContent();
         $this->assertStringContainsString('Florist', $body);
         $this->assertStringContainsString('1500.00', $body);
+    }
+
+    public function test_timeline_ics_contains_events_as_vevents(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        TimelineEvent::factory()->create([
+            'wedding_id' => $wedding->id,
+            'title' => 'First Dance',
+            'starts_at' => '2026-09-12 19:30:00',
+            'ends_at' => '2026-09-12 19:45:00',
+        ]);
+
+        $response = $this->actingAs($user)->get('/exports/timeline');
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/calendar; charset=UTF-8');
+
+        $body = $response->getContent();
+        $this->assertStringContainsString('BEGIN:VCALENDAR', $body);
+        $this->assertStringContainsString('BEGIN:VEVENT', $body);
+        $this->assertStringContainsString('SUMMARY:First Dance', $body);
+        $this->assertStringContainsString('DTSTART:', $body);
     }
 
     public function test_viewer_without_budget_read_cannot_export_budget(): void

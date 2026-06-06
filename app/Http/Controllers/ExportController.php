@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\BudgetItem;
 use App\Models\Guest;
+use App\Models\TimelineEvent;
 use App\Support\CurrentWedding;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -68,6 +70,70 @@ class ExportController extends Controller
         return $this->stream('budget', [
             'Item', 'Category', 'Estimated', 'Actual', 'Paid', 'Due date', 'Notes',
         ], $rows->all());
+    }
+
+    public function timeline(): Response
+    {
+        $weddingId = $this->current->id();
+
+        $events = TimelineEvent::query()
+            ->forWedding($weddingId)
+            ->with('vendor:id,name')
+            ->orderBy('starts_at')
+            ->get();
+
+        $weddingName = $this->current->get()?->name ?? 'Wedding';
+
+        $lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//WedFlow Atelier//Timeline//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'X-WR-CALNAME:'.$this->escapeIcs($weddingName.' — Timeline'),
+        ];
+
+        foreach ($events as $event) {
+            $start = $event->starts_at->clone()->utc();
+            $end = ($event->ends_at ?? $event->starts_at->clone()->addHour())->clone()->utc();
+
+            $description = collect([
+                $event->vendor?->name ? 'Vendor: '.$event->vendor->name : null,
+                $event->notes,
+            ])->filter()->implode("\n");
+
+            $lines[] = 'BEGIN:VEVENT';
+            $lines[] = 'UID:timeline-'.$event->id.'@wedflow';
+            $lines[] = 'DTSTAMP:'.now()->utc()->format('Ymd\THis\Z');
+            $lines[] = 'DTSTART:'.$start->format('Ymd\THis\Z');
+            $lines[] = 'DTEND:'.$end->format('Ymd\THis\Z');
+            $lines[] = 'SUMMARY:'.$this->escapeIcs($event->title);
+            if ($event->location) {
+                $lines[] = 'LOCATION:'.$this->escapeIcs($event->location);
+            }
+            if ($description !== '') {
+                $lines[] = 'DESCRIPTION:'.$this->escapeIcs($description);
+            }
+            $lines[] = 'END:VEVENT';
+        }
+
+        $lines[] = 'END:VCALENDAR';
+
+        $filename = Str::slug($weddingName).'-timeline.ics';
+
+        return response(implode("\r\n", $lines), 200, [
+            'Content-Type' => 'text/calendar; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    protected function escapeIcs(string $value): string
+    {
+        return str_replace(
+            ["\\", ';', ',', "\r\n", "\n"],
+            ['\\\\', '\\;', '\\,', '\\n', '\\n'],
+            $value,
+        );
     }
 
     /**

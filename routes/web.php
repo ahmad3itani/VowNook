@@ -56,6 +56,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:guests,read')->name('exports.guests');
     Route::get('exports/budget', [ExportController::class, 'budget'])
         ->middleware('permission:budget,read')->name('exports.budget');
+    Route::get('exports/timeline', [ExportController::class, 'timeline'])
+        ->middleware('permission:timeline,read')->name('exports.timeline');
 
     // Budget workspace.
     Route::get('budget', [BudgetController::class, 'index'])

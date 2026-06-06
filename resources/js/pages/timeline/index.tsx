@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { CalendarClock, Clock, MapPin, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { CalendarClock, Clock, Download, MapPin, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -202,12 +202,20 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                         title="Timeline"
                         description="Build the run-of-show and tie each moment to the vendors who make it happen."
                     />
-                    {writable && (
-                        <Button onClick={openCreate} data-test="add-event">
-                            <Plus className="size-4" />
-                            Add event
+                    <div className="flex gap-2">
+                        <Button variant="outline" asChild>
+                            <a href="/exports/timeline">
+                                <Download className="size-4" />
+                                Add to calendar
+                            </a>
                         </Button>
-                    )}
+                        {writable && (
+                            <Button onClick={openCreate} data-test="add-event">
+                                <Plus className="size-4" />
+                                Add event
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
