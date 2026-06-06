@@ -6,6 +6,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
+use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\VendorController;
@@ -77,6 +78,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('timeline', [TimelineController::class, 'store'])->name('timeline.store');
         Route::put('timeline/{event}', [TimelineController::class, 'update'])->name('timeline.update');
         Route::delete('timeline/{event}', [TimelineController::class, 'destroy'])->name('timeline.destroy');
+    });
+
+    // Seating chart workspace.
+    Route::get('seating', [SeatingController::class, 'index'])
+        ->middleware('permission:seating,read')->name('seating.index');
+
+    Route::middleware('permission:seating,write')->group(function () {
+        Route::post('seating', [SeatingController::class, 'store'])->name('seating.store');
+        Route::put('seating/{table}', [SeatingController::class, 'update'])->name('seating.update');
+        Route::patch('seating/{table}/move', [SeatingController::class, 'move'])->name('seating.move');
+        Route::delete('seating/{table}', [SeatingController::class, 'destroy'])->name('seating.destroy');
+        Route::patch('seating-assign', [SeatingController::class, 'assign'])->name('seating.assign');
     });
 
     // Admin panel.

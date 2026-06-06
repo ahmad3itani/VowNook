@@ -18,6 +18,7 @@ class Guest extends Model
     protected $fillable = [
         'wedding_id',
         'group_id',
+        'table_id',
         'first_name',
         'last_name',
         'email',
@@ -51,6 +52,11 @@ class Guest extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(GuestGroup::class, 'group_id');
+    }
+
+    public function seatingTable(): BelongsTo
+    {
+        return $this->belongsTo(SeatingTable::class, 'table_id');
     }
 
     /** Scope to a single wedding (the active tenant). */

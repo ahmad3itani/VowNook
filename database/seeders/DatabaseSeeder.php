@@ -13,8 +13,10 @@ use App\Enums\TaskCategory;
 use App\Enums\TaskPriority;
 use App\Enums\VendorCategory;
 use App\Enums\VendorStatus;
+use App\Enums\TableShape;
 use App\Models\Guest;
 use App\Models\GuestGroup;
+use App\Models\SeatingTable;
 use App\Models\Task;
 use App\Models\TimelineEvent;
 use App\Models\User;
@@ -74,6 +76,7 @@ class DatabaseSeeder extends Seeder
         $this->seedVendors($wedding);
         $this->seedChecklist($wedding, $owner);
         $this->seedTimeline($wedding);
+        $this->seedSeating($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -223,5 +226,36 @@ class DatabaseSeeder extends Seeder
                 'location' => 'The Grand Conservatory',
             ]);
         }
+    }
+
+    /** A small floor plan with a couple of attending guests already seated. */
+    protected function seedSeating(Wedding $wedding): void
+    {
+        // [name, shape, capacity, x%, y%]
+        $layout = [
+            ['Head Table', TableShape::Rectangle, 6, 50, 20],
+            ['Table 1', TableShape::Round, 8, 25, 55],
+            ['Table 2', TableShape::Round, 8, 50, 70],
+            ['Table 3', TableShape::Round, 8, 75, 55],
+        ];
+
+        $tables = [];
+        foreach ($layout as [$name, $shape, $capacity, $x, $y]) {
+            $tables[] = SeatingTable::create([
+                'wedding_id' => $wedding->id,
+                'name' => $name,
+                'shape' => $shape,
+                'capacity' => $capacity,
+                'position_x' => $x,
+                'position_y' => $y,
+            ]);
+        }
+
+        // Seat the first few attending guests at Table 1 so the chart isn't empty.
+        $wedding->guests()
+            ->where('rsvp_status', \App\Enums\RsvpStatus::Attending->value)
+            ->take(3)
+            ->get()
+            ->each(fn (Guest $guest) => $guest->update(['table_id' => $tables[1]->id]));
     }
 }

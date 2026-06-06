@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Briefcase, CalendarClock, FolderGit2, LayoutGrid, ListChecks, Settings2, Users, Wallet } from 'lucide-react';
+import { Armchair, BookOpen, Briefcase, CalendarClock, FolderGit2, LayoutGrid, ListChecks, Settings2, Users, Wallet } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -51,6 +51,15 @@ export function AppSidebar() {
                       title: 'Guests',
                       href: '/guests',
                       icon: Users,
+                  } satisfies NavItem,
+              ]
+            : []),
+        ...(canRead('seating')
+            ? [
+                  {
+                      title: 'Seating',
+                      href: '/seating',
+                      icon: Armchair,
                   } satisfies NavItem,
               ]
             : []),
