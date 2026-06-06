@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { PlanUsage } from '@/components/plan-usage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,6 +67,7 @@ type PageProps = {
         ageGroups: Option[];
         statuses: Option[];
     };
+    plan: { used: number; limit: number | null };
 };
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -109,7 +111,7 @@ function emptyForm(options: PageProps['options']): GuestFormData {
     };
 }
 
-export default function GuestsIndex({ guests, groups, stats, options }: PageProps) {
+export default function GuestsIndex({ guests, groups, stats, options, plan }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('guests');
 
@@ -238,6 +240,10 @@ return;
                     <StatCard label="Pending" value={stats.pending} accent="text-amber-600" />
                     <StatCard label="Declined" value={stats.declined} accent="text-rose-600" />
                 </div>
+
+                {plan.limit !== null && (
+                    <PlanUsage used={plan.used} limit={plan.limit} noun="guests" />
+                )}
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative max-w-xs flex-1">

@@ -8,13 +8,17 @@ use App\Enums\RsvpStatus;
 use App\Http\Requests\GuestRequest;
 use App\Models\Guest;
 use App\Support\CurrentWedding;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GuestController extends Controller
 {
-    public function __construct(protected CurrentWedding $current) {}
+    public function __construct(
+        protected CurrentWedding $current,
+        protected PlanLimits $limits,
+    ) {}
 
     public function index(): Response
     {
@@ -49,11 +53,17 @@ class GuestController extends Controller
                 ->get(['id', 'name', 'notes']) ?? [],
             'stats' => $this->stats($guests),
             'options' => $this->options(),
+            'plan' => [
+                'used' => $guests->count(),
+                'limit' => $this->limits->limit($this->current->get(), 'max_guests_per_wedding'),
+            ],
         ]);
     }
 
     public function store(GuestRequest $request): RedirectResponse
     {
+        $this->limits->enforceGuests($this->current->get());
+
         $guest = new Guest($request->validated());
         $guest->wedding_id = $this->current->id();
         $guest->save();

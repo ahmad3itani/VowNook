@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\Role;
 use App\Models\User;
 use App\Support\CurrentWedding;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,10 @@ use Inertia\Response;
  */
 class CollaboratorController extends Controller
 {
-    public function __construct(protected CurrentWedding $current) {}
+    public function __construct(
+        protected CurrentWedding $current,
+        protected PlanLimits $limits,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -50,6 +54,10 @@ class CollaboratorController extends Controller
                     Role::assignable(),
                 ),
             ],
+            'plan' => [
+                'used' => $this->limits->collaboratorCount($wedding),
+                'limit' => $this->limits->limit($wedding, 'max_collaborators_per_wedding'),
+            ],
         ]);
     }
 
@@ -75,6 +83,8 @@ class CollaboratorController extends Controller
                 'email' => 'That person already has access to this wedding.',
             ]);
         }
+
+        $this->limits->enforceCollaborators($wedding);
 
         $wedding->members()->attach($user->id, [
             'role' => $data['role'],

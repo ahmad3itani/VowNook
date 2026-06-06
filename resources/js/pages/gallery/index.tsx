@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { PlanUsage } from '@/components/plan-usage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,7 @@ type Stats = { total: number; size: number };
 type PageProps = {
     photos: Photo[];
     stats: Stats;
+    plan: { used: number; limit: number | null };
 };
 
 function formatBytes(bytes: number): string {
@@ -50,7 +52,7 @@ function formatBytes(bytes: number): string {
     return `${value.toFixed(1)} ${units[unit]}`;
 }
 
-export default function GalleryIndex({ photos, stats }: PageProps) {
+export default function GalleryIndex({ photos, stats, plan }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('gallery');
 
@@ -156,6 +158,10 @@ export default function GalleryIndex({ photos, stats }: PageProps) {
                     <StatCard label="Photos" value={String(stats.total)} />
                     <StatCard label="Storage used" value={formatBytes(stats.size)} />
                 </div>
+
+                {plan.limit !== null && (
+                    <PlanUsage used={plan.used} limit={plan.limit} noun="photos" />
+                )}
 
                 {photos.length === 0 ? (
                     <Card>

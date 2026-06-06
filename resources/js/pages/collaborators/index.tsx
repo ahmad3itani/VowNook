@@ -3,6 +3,7 @@ import { Crown, Trash2, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { PlanUsage } from '@/components/plan-usage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,6 +32,7 @@ type Member = {
 type PageProps = {
     members: Member[];
     options: { roles: RoleOption[] };
+    plan: { used: number; limit: number | null };
 };
 
 function initials(name: string): string {
@@ -42,7 +44,7 @@ function initials(name: string): string {
         .join('');
 }
 
-export default function CollaboratorsIndex({ members, options }: PageProps) {
+export default function CollaboratorsIndex({ members, options, plan }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('collaborators');
 
@@ -96,6 +98,10 @@ export default function CollaboratorsIndex({ members, options }: PageProps) {
                     title="Collaborators"
                     description="Decide who can see and help plan this wedding, and what they can do."
                 />
+
+                {plan.limit !== null && (
+                    <PlanUsage used={plan.used} limit={plan.limit} noun="collaborators" />
+                )}
 
                 {writable && (
                     <Card>

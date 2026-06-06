@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GalleryPhoto;
 use App\Support\CurrentWedding;
+use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GalleryController extends Controller
 {
-    public function __construct(protected CurrentWedding $current) {}
+    public function __construct(
+        protected CurrentWedding $current,
+        protected PlanLimits $limits,
+    ) {}
 
     public function index(): Response
     {
@@ -36,11 +40,17 @@ class GalleryController extends Controller
                 'total' => $photos->count(),
                 'size' => $photos->sum('size'),
             ],
+            'plan' => [
+                'used' => $photos->count(),
+                'limit' => $this->limits->limit($this->current->get(), 'max_gallery_photos'),
+            ],
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->limits->enforceGallery($this->current->get());
+
         $data = $request->validate([
             'photo' => ['required', 'image', 'max:10240'], // 10 MB
             'caption' => ['nullable', 'string', 'max:255'],
