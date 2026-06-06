@@ -6,6 +6,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\GuestGroupController;
@@ -125,6 +126,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('inspiration', [InspirationController::class, 'store'])->name('inspiration.store');
         Route::put('inspiration/{item}', [InspirationController::class, 'update'])->name('inspiration.update');
         Route::delete('inspiration/{item}', [InspirationController::class, 'destroy'])->name('inspiration.destroy');
+    });
+
+    // Photo gallery workspace.
+    Route::middleware('permission:gallery,read')->group(function () {
+        Route::get('gallery', [GalleryController::class, 'index'])->name('gallery.index');
+        Route::get('gallery/{photo}/file', [GalleryController::class, 'file'])->name('gallery.file');
+    });
+
+    Route::middleware('permission:gallery,write')->group(function () {
+        Route::post('gallery', [GalleryController::class, 'store'])->name('gallery.store');
+        Route::put('gallery/{photo}', [GalleryController::class, 'update'])->name('gallery.update');
+        Route::delete('gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
     });
 
     // Admin panel.
