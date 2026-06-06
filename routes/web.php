@@ -7,6 +7,7 @@ use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GuestController;
+use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
@@ -114,6 +115,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('seating/{table}/move', [SeatingController::class, 'move'])->name('seating.move');
         Route::delete('seating/{table}', [SeatingController::class, 'destroy'])->name('seating.destroy');
         Route::patch('seating-assign', [SeatingController::class, 'assign'])->name('seating.assign');
+    });
+
+    // Inspiration board workspace.
+    Route::get('inspiration', [InspirationController::class, 'index'])
+        ->middleware('permission:inspiration,read')->name('inspiration.index');
+
+    Route::middleware('permission:inspiration,write')->group(function () {
+        Route::post('inspiration', [InspirationController::class, 'store'])->name('inspiration.store');
+        Route::put('inspiration/{item}', [InspirationController::class, 'update'])->name('inspiration.update');
+        Route::delete('inspiration/{item}', [InspirationController::class, 'destroy'])->name('inspiration.destroy');
     });
 
     // Admin panel.

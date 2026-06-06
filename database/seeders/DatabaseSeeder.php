@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\AgeGroup;
 use App\Enums\GuestSide;
+use App\Enums\InspirationCategory;
 use App\Enums\Role;
 use App\Enums\RsvpStatus;
 use App\Models\BudgetCategory;
@@ -16,6 +17,7 @@ use App\Enums\VendorStatus;
 use App\Enums\TableShape;
 use App\Models\Guest;
 use App\Models\GuestGroup;
+use App\Models\InspirationItem;
 use App\Models\SeatingTable;
 use App\Models\Task;
 use App\Models\TimelineEvent;
@@ -77,6 +79,7 @@ class DatabaseSeeder extends Seeder
         $this->seedChecklist($wedding, $owner);
         $this->seedTimeline($wedding);
         $this->seedSeating($wedding);
+        $this->seedInspiration($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -257,5 +260,28 @@ class DatabaseSeeder extends Seeder
             ->take(3)
             ->get()
             ->each(fn (Guest $guest) => $guest->update(['table_id' => $tables[1]->id]));
+    }
+
+    protected function seedInspiration(Wedding $wedding): void
+    {
+        // [title, category]
+        $ideas = [
+            ['Blush peony centrepieces', InspirationCategory::Flowers],
+            ['Garden ceremony arch', InspirationCategory::Decor],
+            ['Candlelit reception tables', InspirationCategory::Decor],
+            ['Classic three-tier cake', InspirationCategory::Cake],
+            ['Lace-back wedding gown', InspirationCategory::Attire],
+            ['Letterpress invitation suite', InspirationCategory::Stationery],
+        ];
+
+        foreach ($ideas as [$title, $category]) {
+            InspirationItem::create([
+                'wedding_id' => $wedding->id,
+                'title' => $title,
+                'category' => $category,
+                'image_url' => null,
+                'link_url' => null,
+            ]);
+        }
     }
 }

@@ -60,7 +60,8 @@
       "Bash(php --version)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(grep -n 'private function seed\\\\|protected function seed\\\\|seedTimeline\\\\|seedChecklist\\\\|seedSeating\\\\|$this->seed' database/seeders/DatabaseSeeder.php)"
     ]
   }
 }
