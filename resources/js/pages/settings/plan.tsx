@@ -61,7 +61,9 @@ export default function Plan({ current, tiers }: PageProps) {
                                 )}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="font-serif text-lg">{tier.name}</span>
+                                    <span className="font-serif text-lg">
+                                        {tier.name}
+                                    </span>
                                     {isCurrent && (
                                         <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300">
                                             Current
@@ -70,13 +72,21 @@ export default function Plan({ current, tiers }: PageProps) {
                                 </div>
 
                                 <div className="mt-2">
-                                    <span className="text-3xl font-semibold">${tier.price}</span>
-                                    <span className="text-muted-foreground text-sm"> /year</span>
+                                    <span className="text-3xl font-semibold">
+                                        ${tier.price}
+                                    </span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {' '}
+                                        /year
+                                    </span>
                                 </div>
 
                                 <ul className="mt-4 flex flex-col gap-2 text-sm">
                                     {features(tier).map((f) => (
-                                        <li key={f} className="flex items-center gap-2">
+                                        <li
+                                            key={f}
+                                            className="flex items-center gap-2"
+                                        >
                                             <Check className="size-4 text-emerald-500" />
                                             {f}
                                         </li>
@@ -87,9 +97,9 @@ export default function Plan({ current, tiers }: PageProps) {
                     })}
                 </div>
 
-                <p className="text-muted-foreground text-sm">
-                    Online billing is coming soon. To change your plan in the meantime, contact your
-                    administrator.
+                <p className="text-sm text-muted-foreground">
+                    Online billing is coming soon. To change your plan in the
+                    meantime, contact your administrator.
                 </p>
             </div>
         </>

@@ -95,12 +95,12 @@ export default function BudgetIndex({ items, categories, stats }: PageProps) {
 
     const filtered = useMemo(() => {
         if (categoryFilter === 'all') {
-return items;
-}
+            return items;
+        }
 
         if (categoryFilter === NO_CATEGORY) {
-return items.filter((i) => i.category_id === null);
-}
+            return items.filter((i) => i.category_id === null);
+        }
 
         return items.filter((i) => String(i.category_id) === categoryFilter);
     }, [items, categoryFilter]);
@@ -117,7 +117,9 @@ return items.filter((i) => i.category_id === null);
         form.clearErrors();
         form.setData({
             name: item.name,
-            category_id: item.category_id ? String(item.category_id) : NO_CATEGORY,
+            category_id: item.category_id
+                ? String(item.category_id)
+                : NO_CATEGORY,
             estimated_amount: String(item.estimated),
             actual_amount: item.actual !== null ? String(item.actual) : '',
             paid_amount: String(item.paid),
@@ -132,8 +134,12 @@ return items.filter((i) => i.category_id === null);
         e.preventDefault();
         form.transform((data) => ({
             ...data,
-            category_id: data.category_id === NO_CATEGORY ? null : Number(data.category_id),
-            actual_amount: data.actual_amount === '' ? null : data.actual_amount,
+            category_id:
+                data.category_id === NO_CATEGORY
+                    ? null
+                    : Number(data.category_id),
+            actual_amount:
+                data.actual_amount === '' ? null : data.actual_amount,
         }));
 
         const onSuccess = () => {
@@ -142,7 +148,10 @@ return items.filter((i) => i.category_id === null);
         };
 
         if (editingId) {
-            form.put(`/budget/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/budget/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/budget', { preserveScroll: true, onSuccess });
         }
@@ -178,11 +187,17 @@ return items.filter((i) => i.category_id === null);
                         </Button>
                         {writable && (
                             <>
-                                <Button variant="outline" onClick={() => setCategoriesOpen(true)}>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCategoriesOpen(true)}
+                                >
                                     <Layers className="size-4" />
                                     Categories
                                 </Button>
-                                <Button onClick={openCreate} data-test="add-item">
+                                <Button
+                                    onClick={openCreate}
+                                    data-test="add-item"
+                                >
                                     <Plus className="size-4" />
                                     Add item
                                 </Button>
@@ -192,9 +207,19 @@ return items.filter((i) => i.category_id === null);
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard label="Estimated" value={money.format(stats.estimated)} />
-                    <StatCard label="Projected" value={money.format(stats.projected)} />
-                    <StatCard label="Paid" value={money.format(stats.paid)} accent="text-emerald-600" />
+                    <StatCard
+                        label="Estimated"
+                        value={money.format(stats.estimated)}
+                    />
+                    <StatCard
+                        label="Projected"
+                        value={money.format(stats.projected)}
+                    />
+                    <StatCard
+                        label="Paid"
+                        value={money.format(stats.paid)}
+                        accent="text-emerald-600"
+                    />
                     <StatCard
                         label="Outstanding"
                         value={money.format(stats.outstanding)}
@@ -203,13 +228,18 @@ return items.filter((i) => i.category_id === null);
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <Select
+                        value={categoryFilter}
+                        onValueChange={setCategoryFilter}
+                    >
                         <SelectTrigger className="w-56">
                             <SelectValue placeholder="All categories" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All categories</SelectItem>
-                            <SelectItem value={NO_CATEGORY}>Uncategorised</SelectItem>
+                            <SelectItem value={NO_CATEGORY}>
+                                Uncategorised
+                            </SelectItem>
                             {categories.map((c) => (
                                 <SelectItem key={c.id} value={String(c.id)}>
                                     {c.name}
@@ -222,7 +252,7 @@ return items.filter((i) => i.category_id === null);
                 <Card>
                     <CardContent className="p-0">
                         {filtered.length === 0 ? (
-                            <div className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                            <div className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                                 <Wallet className="size-8 opacity-40" />
                                 {items.length === 0
                                     ? 'No budget items yet. Add your first cost to get started.'
@@ -231,28 +261,47 @@ return items.filter((i) => i.category_id === null);
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="text-muted-foreground border-b text-left">
+                                    <thead className="border-b text-left text-muted-foreground">
                                         <tr>
-                                            <th className="px-4 py-3 font-medium">Item</th>
-                                            <th className="px-4 py-3 font-medium">Category</th>
-                                            <th className="px-4 py-3 text-right font-medium">Estimated</th>
-                                            <th className="px-4 py-3 text-right font-medium">Actual</th>
-                                            <th className="px-4 py-3 text-right font-medium">Paid</th>
-                                            {writable && <th className="px-4 py-3" />}
+                                            <th className="px-4 py-3 font-medium">
+                                                Item
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Category
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Estimated
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Actual
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Paid
+                                            </th>
+                                            {writable && (
+                                                <th className="px-4 py-3" />
+                                            )}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map((i) => (
-                                            <tr key={i.id} className="border-b last:border-0">
-                                                <td className="px-4 py-3 font-medium">{i.name}</td>
-                                                <td className="text-muted-foreground px-4 py-3">
+                                            <tr
+                                                key={i.id}
+                                                className="border-b last:border-0"
+                                            >
+                                                <td className="px-4 py-3 font-medium">
+                                                    {i.name}
+                                                </td>
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {i.category_name ?? '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
                                                     {money.format(i.estimated)}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
-                                                    {i.actual !== null ? money.format(i.actual) : '—'}
+                                                    {i.actual !== null
+                                                        ? money.format(i.actual)
+                                                        : '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
                                                     {money.format(i.paid)}
@@ -263,7 +312,9 @@ return items.filter((i) => i.category_id === null);
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => openEdit(i)}
+                                                                onClick={() =>
+                                                                    openEdit(i)
+                                                                }
                                                                 aria-label="Edit item"
                                                             >
                                                                 <Pencil className="size-4" />
@@ -271,7 +322,9 @@ return items.filter((i) => i.category_id === null);
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => destroy(i)}
+                                                                onClick={() =>
+                                                                    destroy(i)
+                                                                }
                                                                 aria-label="Delete item"
                                                             >
                                                                 <Trash2 className="size-4" />
@@ -292,19 +345,27 @@ return items.filter((i) => i.category_id === null);
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit item' : 'Add item'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit item' : 'Add item'}
+                        </SheetTitle>
                         <SheetDescription>
-                            Enter amounts in dollars. Leave actual blank until you know the real cost.
+                            Enter amounts in dollars. Leave actual blank until
+                            you know the real cost.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="name">Item</Label>
                             <Input
                                 id="name"
                                 value={form.data.name}
-                                onChange={(e) => form.setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('name', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.name} />
@@ -314,15 +375,22 @@ return items.filter((i) => i.category_id === null);
                             <Label>Category</Label>
                             <Select
                                 value={form.data.category_id}
-                                onValueChange={(v) => form.setData('category_id', v)}
+                                onValueChange={(v) =>
+                                    form.setData('category_id', v)
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={NO_CATEGORY}>Uncategorised</SelectItem>
+                                    <SelectItem value={NO_CATEGORY}>
+                                        Uncategorised
+                                    </SelectItem>
                                     {categories.map((c) => (
-                                        <SelectItem key={c.id} value={String(c.id)}>
+                                        <SelectItem
+                                            key={c.id}
+                                            value={String(c.id)}
+                                        >
                                             {c.name}
                                         </SelectItem>
                                     ))}
@@ -333,16 +401,25 @@ return items.filter((i) => i.category_id === null);
 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="grid gap-2">
-                                <Label htmlFor="estimated_amount">Estimated</Label>
+                                <Label htmlFor="estimated_amount">
+                                    Estimated
+                                </Label>
                                 <Input
                                     id="estimated_amount"
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     value={form.data.estimated_amount}
-                                    onChange={(e) => form.setData('estimated_amount', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'estimated_amount',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
-                                <InputError message={form.errors.estimated_amount} />
+                                <InputError
+                                    message={form.errors.estimated_amount}
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="actual_amount">Actual</Label>
@@ -352,9 +429,16 @@ return items.filter((i) => i.category_id === null);
                                     step="0.01"
                                     min="0"
                                     value={form.data.actual_amount}
-                                    onChange={(e) => form.setData('actual_amount', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'actual_amount',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
-                                <InputError message={form.errors.actual_amount} />
+                                <InputError
+                                    message={form.errors.actual_amount}
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="paid_amount">Paid</Label>
@@ -364,7 +448,12 @@ return items.filter((i) => i.category_id === null);
                                     step="0.01"
                                     min="0"
                                     value={form.data.paid_amount}
-                                    onChange={(e) => form.setData('paid_amount', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'paid_amount',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
                                 <InputError message={form.errors.paid_amount} />
                             </div>
@@ -376,7 +465,9 @@ return items.filter((i) => i.category_id === null);
                                 id="due_date"
                                 type="date"
                                 value={form.data.due_date}
-                                onChange={(e) => form.setData('due_date', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('due_date', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.due_date} />
                         </div>
@@ -386,7 +477,9 @@ return items.filter((i) => i.category_id === null);
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -422,8 +515,10 @@ function StatCard({
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div
+                    className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}
+                >
                     {value}
                 </div>
             </CardContent>
@@ -454,7 +549,11 @@ function ManageCategories({
     }
 
     function remove(category: Category) {
-        if (!confirm(`Delete the "${category.name}" category? Items stay, but become uncategorised.`)) {
+        if (
+            !confirm(
+                `Delete the "${category.name}" category? Items stay, but become uncategorised.`,
+            )
+        ) {
             return;
         }
 
@@ -469,7 +568,9 @@ function ManageCategories({
             <SheetContent className="overflow-y-auto sm:max-w-md">
                 <SheetHeader>
                     <SheetTitle>Categories</SheetTitle>
-                    <SheetDescription>Group budget items for clearer reporting.</SheetDescription>
+                    <SheetDescription>
+                        Group budget items for clearer reporting.
+                    </SheetDescription>
                 </SheetHeader>
 
                 <form onSubmit={add} className="flex items-end gap-2 px-4">
@@ -478,7 +579,9 @@ function ManageCategories({
                         <Input
                             id="category_name"
                             value={form.data.name}
-                            onChange={(e) => form.setData('name', e.target.value)}
+                            onChange={(e) =>
+                                form.setData('name', e.target.value)
+                            }
                             placeholder="Catering"
                         />
                         <InputError message={form.errors.name} />
@@ -490,7 +593,7 @@ function ManageCategories({
 
                 <div className="flex flex-col gap-2 px-4">
                     {categories.length === 0 ? (
-                        <p className="text-muted-foreground py-6 text-center text-sm">
+                        <p className="py-6 text-center text-sm text-muted-foreground">
                             No categories yet.
                         </p>
                     ) : (

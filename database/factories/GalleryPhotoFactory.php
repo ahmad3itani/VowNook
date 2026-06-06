@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\GalleryPhoto;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\GalleryPhoto>
+ * @extends Factory<GalleryPhoto>
  */
 class GalleryPhotoFactory extends Factory
 {

@@ -4,11 +4,12 @@ namespace Database\Factories;
 
 use App\Enums\VendorCategory;
 use App\Enums\VendorStatus;
+use App\Models\Vendor;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Vendor>
+ * @extends Factory<Vendor>
  */
 class VendorFactory extends Factory
 {

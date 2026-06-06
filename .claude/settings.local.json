@@ -61,7 +61,9 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
       "Bash(pnpm add:*)",
-      "Bash(grep -n 'private function seed\\\\|protected function seed\\\\|seedTimeline\\\\|seedChecklist\\\\|seedSeating\\\\|$this->seed' database/seeders/DatabaseSeeder.php)"
+      "Bash(grep -n 'private function seed\\\\|protected function seed\\\\|seedTimeline\\\\|seedChecklist\\\\|seedSeating\\\\|$this->seed' database/seeders/DatabaseSeeder.php)",
+      "Read(//c/Users/ahmad/.config/herd/bin/**)",
+      "Read(//c/Users/ahmad/.config/herd/**)"
     ]
   }
 }

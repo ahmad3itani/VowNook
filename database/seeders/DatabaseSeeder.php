@@ -4,20 +4,20 @@ namespace Database\Seeders;
 
 use App\Enums\AgeGroup;
 use App\Enums\CrewRole;
+use App\Enums\EventType;
 use App\Enums\GuestSide;
 use App\Enums\InspirationCategory;
 use App\Enums\Role;
 use App\Enums\RsvpStatus;
-use App\Models\BudgetCategory;
-use App\Models\BudgetItem;
-use App\Enums\EventType;
+use App\Enums\TableShape;
 use App\Enums\TaskCategory;
 use App\Enums\TaskPriority;
 use App\Enums\VendorCategory;
 use App\Enums\VendorStatus;
-use App\Enums\TableShape;
-use App\Models\Guest;
+use App\Models\BudgetCategory;
+use App\Models\BudgetItem;
 use App\Models\CrewMember;
+use App\Models\Guest;
 use App\Models\GuestGroup;
 use App\Models\InspirationItem;
 use App\Models\SeatingTable;
@@ -260,7 +260,7 @@ class DatabaseSeeder extends Seeder
 
         // Seat the first few attending guests at Table 1 so the chart isn't empty.
         $wedding->guests()
-            ->where('rsvp_status', \App\Enums\RsvpStatus::Attending->value)
+            ->where('rsvp_status', RsvpStatus::Attending->value)
             ->take(3)
             ->get()
             ->each(fn (Guest $guest) => $guest->update(['table_id' => $tables[1]->id]));

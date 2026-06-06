@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\InspirationCategory;
+use App\Models\InspirationItem;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\InspirationItem>
+ * @extends Factory<InspirationItem>
  */
 class InspirationItemFactory extends Factory
 {

@@ -1,5 +1,12 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Briefcase, ExternalLink, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import {
+    Briefcase,
+    ExternalLink,
+    Pencil,
+    Plus,
+    Search,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -57,7 +64,10 @@ type PageProps = {
     options: { categories: Option[]; statuses: Option[] };
 };
 
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const STATUS_VARIANT: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     booked: 'default',
     quoted: 'secondary',
     contacted: 'secondary',
@@ -117,7 +127,8 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
         const term = search.trim().toLowerCase();
 
         return vendors.filter((v) => {
-            const matchesStatus = statusFilter === 'all' || v.status === statusFilter;
+            const matchesStatus =
+                statusFilter === 'all' || v.status === statusFilter;
             const matchesSearch =
                 term === '' ||
                 v.name.toLowerCase().includes(term) ||
@@ -167,7 +178,10 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
         };
 
         if (editingId) {
-            form.put(`/vendors/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/vendors/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/vendors', { preserveScroll: true, onSuccess });
         }
@@ -204,14 +218,25 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Vendors" value={String(stats.total)} />
-                    <StatCard label="Booked" value={String(stats.booked)} accent="text-emerald-600" />
-                    <StatCard label="Contracted" value={money.format(stats.contracted)} />
-                    <StatCard label="Paid" value={money.format(stats.paid)} accent="text-emerald-600" />
+                    <StatCard
+                        label="Booked"
+                        value={String(stats.booked)}
+                        accent="text-emerald-600"
+                    />
+                    <StatCard
+                        label="Contracted"
+                        value={money.format(stats.contracted)}
+                    />
+                    <StatCard
+                        label="Paid"
+                        value={money.format(stats.paid)}
+                        accent="text-emerald-600"
+                    />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative max-w-xs flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -219,7 +244,10 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                             className="pl-9"
                         />
                     </div>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select
+                        value={statusFilter}
+                        onValueChange={setStatusFilter}
+                    >
                         <SelectTrigger className="w-44">
                             <SelectValue placeholder="All statuses" />
                         </SelectTrigger>
@@ -237,7 +265,7 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                 <Card>
                     <CardContent className="p-0">
                         {filtered.length === 0 ? (
-                            <div className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                            <div className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                                 <Briefcase className="size-8 opacity-40" />
                                 {vendors.length === 0
                                     ? 'No vendors yet. Add your first vendor to get started.'
@@ -246,19 +274,34 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="text-muted-foreground border-b text-left">
+                                    <thead className="border-b text-left text-muted-foreground">
                                         <tr>
-                                            <th className="px-4 py-3 font-medium">Vendor</th>
-                                            <th className="px-4 py-3 font-medium">Category</th>
-                                            <th className="px-4 py-3 font-medium">Status</th>
-                                            <th className="px-4 py-3 text-right font-medium">Cost</th>
-                                            <th className="px-4 py-3 text-right font-medium">Paid</th>
-                                            {writable && <th className="px-4 py-3" />}
+                                            <th className="px-4 py-3 font-medium">
+                                                Vendor
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Category
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Status
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Cost
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Paid
+                                            </th>
+                                            {writable && (
+                                                <th className="px-4 py-3" />
+                                            )}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map((v) => (
-                                            <tr key={v.id} className="border-b last:border-0">
+                                            <tr
+                                                key={v.id}
+                                                className="border-b last:border-0"
+                                            >
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center gap-2 font-medium">
                                                         {v.name}
@@ -274,21 +317,35 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                                         )}
                                                     </div>
                                                     {v.contact_name && (
-                                                        <span className="text-muted-foreground text-xs">
+                                                        <span className="text-xs text-muted-foreground">
                                                             {v.contact_name}
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="text-muted-foreground px-4 py-3">
-                                                    {labelFor(options.categories, v.category)}
+                                                <td className="px-4 py-3 text-muted-foreground">
+                                                    {labelFor(
+                                                        options.categories,
+                                                        v.category,
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <Badge variant={STATUS_VARIANT[v.status] ?? 'secondary'}>
-                                                        {labelFor(options.statuses, v.status)}
+                                                    <Badge
+                                                        variant={
+                                                            STATUS_VARIANT[
+                                                                v.status
+                                                            ] ?? 'secondary'
+                                                        }
+                                                    >
+                                                        {labelFor(
+                                                            options.statuses,
+                                                            v.status,
+                                                        )}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
-                                                    {v.cost !== null ? money.format(v.cost) : '—'}
+                                                    {v.cost !== null
+                                                        ? money.format(v.cost)
+                                                        : '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
                                                     {money.format(v.paid ?? 0)}
@@ -299,7 +356,9 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => openEdit(v)}
+                                                                onClick={() =>
+                                                                    openEdit(v)
+                                                                }
                                                                 aria-label="Edit vendor"
                                                             >
                                                                 <Pencil className="size-4" />
@@ -307,7 +366,9 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => destroy(v)}
+                                                                onClick={() =>
+                                                                    destroy(v)
+                                                                }
                                                                 aria-label="Remove vendor"
                                                             >
                                                                 <Trash2 className="size-4" />
@@ -328,19 +389,27 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit vendor' : 'Add vendor'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit vendor' : 'Add vendor'}
+                        </SheetTitle>
                         <SheetDescription>
-                            Track contact details, booking status, and contract amounts.
+                            Track contact details, booking status, and contract
+                            amounts.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="name">Business name</Label>
                             <Input
                                 id="name"
                                 value={form.data.name}
-                                onChange={(e) => form.setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('name', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.name} />
@@ -351,14 +420,19 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                 <Label>Category</Label>
                                 <Select
                                     value={form.data.category}
-                                    onValueChange={(v) => form.setData('category', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('category', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.categories.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -370,14 +444,19 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                 <Label>Status</Label>
                                 <Select
                                     value={form.data.status}
-                                    onValueChange={(v) => form.setData('status', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('status', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.statuses.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -392,7 +471,9 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                             <Input
                                 id="contact_name"
                                 value={form.data.contact_name}
-                                onChange={(e) => form.setData('contact_name', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('contact_name', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.contact_name} />
                         </div>
@@ -404,7 +485,9 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                     id="email"
                                     type="email"
                                     value={form.data.email}
-                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('email', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.email} />
                             </div>
@@ -413,7 +496,9 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                 <Input
                                     id="phone"
                                     value={form.data.phone}
-                                    onChange={(e) => form.setData('phone', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('phone', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.phone} />
                             </div>
@@ -426,21 +511,30 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                 type="url"
                                 placeholder="https://"
                                 value={form.data.website}
-                                onChange={(e) => form.setData('website', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('website', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.website} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-2">
-                                <Label htmlFor="cost_amount">Contract cost</Label>
+                                <Label htmlFor="cost_amount">
+                                    Contract cost
+                                </Label>
                                 <Input
                                     id="cost_amount"
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     value={form.data.cost_amount}
-                                    onChange={(e) => form.setData('cost_amount', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'cost_amount',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
                                 <InputError message={form.errors.cost_amount} />
                             </div>
@@ -452,7 +546,12 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                     step="0.01"
                                     min="0"
                                     value={form.data.paid_amount}
-                                    onChange={(e) => form.setData('paid_amount', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'paid_amount',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
                                 <InputError message={form.errors.paid_amount} />
                             </div>
@@ -463,7 +562,9 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -493,8 +594,10 @@ function StatCard({
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div
+                    className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}
+                >
                     {value}
                 </div>
             </CardContent>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventType;
+use Database\Factories\TimelineEventFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TimelineEvent extends Model
 {
-    /** @use HasFactory<\Database\Factories\TimelineEventFactory> */
+    /** @use HasFactory<TimelineEventFactory> */
     use HasFactory;
 
     protected $fillable = [

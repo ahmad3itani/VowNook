@@ -1,11 +1,26 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Armchair, BookOpen, Briefcase, CalendarClock, FolderGit2, Globe, HeartHandshake, Images, LayoutGrid, ListChecks, QrCode, Settings2, Sparkles, UserCog, Users, Wallet } from 'lucide-react';
+import {
+    Armchair,
+    BookOpen,
+    Briefcase,
+    CalendarClock,
+    FolderGit2,
+    Globe,
+    HeartHandshake,
+    Images,
+    LayoutGrid,
+    ListChecks,
+    QrCode,
+    Settings2,
+    Sparkles,
+    UserCog,
+    Users,
+    Wallet,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { WeddingSwitcher } from '@/components/wedding-switcher';
-import { usePermissions } from '@/hooks/use-permissions';
 import {
     Sidebar,
     SidebarContent,
@@ -15,6 +30,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { WeddingSwitcher } from '@/components/wedding-switcher';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 

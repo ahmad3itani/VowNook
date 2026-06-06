@@ -11,9 +11,7 @@ import {
     Wallet,
 } from 'lucide-react';
 import { dashboard, login } from '@/routes';
-/* @chisel-registration */
 import { register } from '@/routes';
-/* @end-chisel-registration */
 
 const features = [
     {
@@ -77,14 +75,12 @@ export default function Welcome() {
                                 >
                                     Log in
                                 </Link>
-                                {/* @chisel-registration */}
                                 <Link
                                     href={register()}
                                     className="rounded-full bg-rose-500 px-5 py-2 font-medium text-white transition-colors hover:bg-rose-600"
                                 >
                                     Get started
                                 </Link>
-                                {/* @end-chisel-registration */}
                             </>
                         )}
                     </nav>
@@ -98,19 +94,24 @@ export default function Welcome() {
                         </p>
                         <h1 className="mt-6 font-serif text-5xl leading-[1.1] sm:text-6xl">
                             Plan your wedding,
-                            <span className="block text-rose-500">beautifully.</span>
+                            <span className="block text-rose-500">
+                                beautifully.
+                            </span>
                         </h1>
                         <p className="mx-auto mt-6 max-w-xl text-lg text-stone-500 dark:text-stone-400">
-                            Guests, budget, vendors, timeline, and seating — every detail of your
-                            celebration in one calm, elegant workspace you can share with the people
-                            who matter.
+                            Guests, budget, vendors, timeline, and seating —
+                            every detail of your celebration in one calm,
+                            elegant workspace you can share with the people who
+                            matter.
                         </p>
                         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                             <Link
                                 href={auth.user ? dashboard() : login()}
                                 className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-7 py-3 font-medium text-white transition-colors hover:bg-rose-600"
                             >
-                                {auth.user ? 'Open your dashboard' : 'Start planning'}
+                                {auth.user
+                                    ? 'Open your dashboard'
+                                    : 'Start planning'}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </div>
@@ -127,7 +128,9 @@ export default function Welcome() {
                                     <div className="flex size-11 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
                                         <f.icon className="size-5" />
                                     </div>
-                                    <h3 className="mt-4 font-serif text-xl">{f.title}</h3>
+                                    <h3 className="mt-4 font-serif text-xl">
+                                        {f.title}
+                                    </h3>
                                     <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
                                         {f.body}
                                     </p>
@@ -144,18 +147,23 @@ export default function Welcome() {
                                     Delight your guests, too
                                 </h2>
                                 <p className="mt-4 text-rose-50">
-                                    Share a beautiful RSVP page and a QR seat finder so guests can
-                                    reply and find their table in seconds — no apps, no logins.
+                                    Share a beautiful RSVP page and a QR seat
+                                    finder so guests can reply and find their
+                                    table in seconds — no apps, no logins.
                                 </p>
                             </div>
                             <div className="flex justify-center gap-4">
                                 <div className="flex flex-col items-center gap-3 rounded-2xl bg-white/10 p-6 text-center backdrop-blur">
                                     <Heart className="size-8" />
-                                    <span className="text-sm font-medium">Online RSVP</span>
+                                    <span className="text-sm font-medium">
+                                        Online RSVP
+                                    </span>
                                 </div>
                                 <div className="flex flex-col items-center gap-3 rounded-2xl bg-white/10 p-6 text-center backdrop-blur">
                                     <QrCode className="size-8" />
-                                    <span className="text-sm font-medium">QR seat finder</span>
+                                    <span className="text-sm font-medium">
+                                        QR seat finder
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -163,16 +171,21 @@ export default function Welcome() {
 
                     {/* Closing CTA */}
                     <section className="mx-auto max-w-3xl px-6 py-20 text-center">
-                        <h2 className="font-serif text-4xl">Your big day, beautifully organised.</h2>
+                        <h2 className="font-serif text-4xl">
+                            Your big day, beautifully organised.
+                        </h2>
                         <p className="mx-auto mt-4 max-w-lg text-stone-500 dark:text-stone-400">
-                            Bring every detail together and enjoy the journey to your wedding day.
+                            Bring every detail together and enjoy the journey to
+                            your wedding day.
                         </p>
                         <div className="mt-8">
                             <Link
                                 href={auth.user ? dashboard() : login()}
                                 className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-7 py-3 font-medium text-white transition-colors hover:bg-rose-600"
                             >
-                                {auth.user ? 'Open your dashboard' : 'Start planning'}
+                                {auth.user
+                                    ? 'Open your dashboard'
+                                    : 'Start planning'}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </div>

@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\CrewRole;
+use App\Models\CrewMember;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\CrewMember>
+ * @extends Factory<CrewMember>
  */
 class CrewMemberFactory extends Factory
 {

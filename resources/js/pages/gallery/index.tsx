@@ -147,7 +147,11 @@ export default function GalleryIndex({ photos, stats, plan }: PageProps) {
                                 disabled={upload.processing}
                                 data-test="upload-photo"
                             >
-                                {upload.processing ? <Spinner /> : <Upload className="size-4" />}
+                                {upload.processing ? (
+                                    <Spinner />
+                                ) : (
+                                    <Upload className="size-4" />
+                                )}
                                 Upload photo
                             </Button>
                         </>
@@ -156,16 +160,23 @@ export default function GalleryIndex({ photos, stats, plan }: PageProps) {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <StatCard label="Photos" value={String(stats.total)} />
-                    <StatCard label="Storage used" value={formatBytes(stats.size)} />
+                    <StatCard
+                        label="Storage used"
+                        value={formatBytes(stats.size)}
+                    />
                 </div>
 
                 {plan.limit !== null && (
-                    <PlanUsage used={plan.used} limit={plan.limit} noun="photos" />
+                    <PlanUsage
+                        used={plan.used}
+                        limit={plan.limit}
+                        noun="photos"
+                    />
                 )}
 
                 {photos.length === 0 ? (
                     <Card>
-                        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                        <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                             <Images className="size-8 opacity-40" />
                             {writable
                                 ? 'No photos yet. Upload your first shot.'
@@ -187,7 +198,7 @@ export default function GalleryIndex({ photos, stats, plan }: PageProps) {
                         {photos.map((photo) => (
                             <div
                                 key={photo.id}
-                                className="group bg-muted relative aspect-square overflow-hidden rounded-xl"
+                                className="group relative aspect-square overflow-hidden rounded-xl bg-muted"
                             >
                                 <button
                                     type="button"
@@ -196,7 +207,9 @@ export default function GalleryIndex({ photos, stats, plan }: PageProps) {
                                 >
                                     <img
                                         src={photo.url}
-                                        alt={photo.caption ?? photo.original_name}
+                                        alt={
+                                            photo.caption ?? photo.original_name
+                                        }
                                         className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                                         loading="lazy"
                                     />
@@ -258,26 +271,40 @@ export default function GalleryIndex({ photos, stats, plan }: PageProps) {
                 </div>
             )}
 
-            <Sheet open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+            <Sheet
+                open={editing !== null}
+                onOpenChange={(open) => !open && setEditing(null)}
+            >
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
                         <SheetTitle>Edit caption</SheetTitle>
                     </SheetHeader>
 
-                    <form onSubmit={submitCaption} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submitCaption}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="caption">Caption</Label>
                             <Input
                                 id="caption"
                                 value={captionForm.data.caption}
-                                onChange={(e) => captionForm.setData('caption', e.target.value)}
+                                onChange={(e) =>
+                                    captionForm.setData(
+                                        'caption',
+                                        e.target.value,
+                                    )
+                                }
                                 autoFocus
                             />
                             <InputError message={captionForm.errors.caption} />
                         </div>
 
                         <SheetFooter className="px-0">
-                            <Button type="submit" disabled={captionForm.processing}>
+                            <Button
+                                type="submit"
+                                disabled={captionForm.processing}
+                            >
                                 {captionForm.processing && <Spinner />}
                                 Save caption
                             </Button>
@@ -293,8 +320,10 @@ function StatCard({ label, value }: { label: string; value: string }) {
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">
+                    {value}
+                </div>
             </CardContent>
         </Card>
     );

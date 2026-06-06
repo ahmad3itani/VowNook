@@ -4,7 +4,13 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 
 type ShareLink = {
     key: string;
@@ -21,7 +27,9 @@ function downloadQr(elementId: string, filename: string) {
     }
 
     const serialized = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
+    const blob = new Blob([serialized], {
+        type: 'image/svg+xml;charset=utf-8',
+    });
     const url = URL.createObjectURL(blob);
 
     const anchor = document.createElement('a');
@@ -52,7 +60,13 @@ function LinkCard({ link, url }: { link: ShareLink; url: string }) {
             </CardHeader>
             <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center">
                 <div className="flex shrink-0 items-center justify-center rounded-xl border bg-white p-3">
-                    <QRCodeSVG id={qrId} value={url} size={140} level="M" marginSize={1} />
+                    <QRCodeSVG
+                        id={qrId}
+                        value={url}
+                        size={140}
+                        level="M"
+                        marginSize={1}
+                    />
                 </div>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -61,11 +75,19 @@ function LinkCard({ link, url }: { link: ShareLink; url: string }) {
                     </code>
                     <div className="flex flex-wrap gap-2">
                         <Button variant="outline" size="sm" onClick={copy}>
-                            {copied ? <Check className="text-emerald-500" /> : <Copy />}
+                            {copied ? (
+                                <Check className="text-emerald-500" />
+                            ) : (
+                                <Copy />
+                            )}
                             {copied ? 'Copied' : 'Copy link'}
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                            <a href={url} target="_blank" rel="noopener noreferrer">
+                            <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
                                 <ExternalLink />
                                 Open
                             </a>
@@ -73,7 +95,9 @@ function LinkCard({ link, url }: { link: ShareLink; url: string }) {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => downloadQr(qrId, `${link.key}-qr.svg`)}
+                            onClick={() =>
+                                downloadQr(qrId, `${link.key}-qr.svg`)
+                            }
                         >
                             <QrCode />
                             Download QR
@@ -93,7 +117,9 @@ export default function ShareIndex() {
         return (
             <>
                 <Head title="Share" />
-                <div className="p-8 text-muted-foreground">No active wedding selected.</div>
+                <div className="p-8 text-muted-foreground">
+                    No active wedding selected.
+                </div>
             </>
         );
     }
@@ -104,19 +130,22 @@ export default function ShareIndex() {
         {
             key: 'website',
             title: 'Wedding website',
-            description: 'Your public front page — story, details, and links to everything below.',
+            description:
+                'Your public front page — story, details, and links to everything below.',
             path: `/w/${active.slug}`,
         },
         {
             key: 'rsvp',
             title: 'RSVP invitation',
-            description: 'Share with your guests so they can reply, choose a meal, and add dietary notes.',
+            description:
+                'Share with your guests so they can reply, choose a meal, and add dietary notes.',
             path: `/w/${active.slug}/rsvp`,
         },
         {
             key: 'seats',
             title: 'Seat finder',
-            description: 'Print this QR code for the venue — guests scan it to find their table.',
+            description:
+                'Print this QR code for the venue — guests scan it to find their table.',
             path: `/w/${active.slug}/seats`,
         },
     ];
@@ -126,7 +155,9 @@ export default function ShareIndex() {
             <Head title="Share" />
             <div className="flex flex-col gap-6 p-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">Share your wedding</h1>
+                    <h1 className="text-2xl font-semibold">
+                        Share your wedding
+                    </h1>
                     <p className="text-muted-foreground">
                         Public links and printable QR codes for {active.name}.
                     </p>
@@ -134,7 +165,11 @@ export default function ShareIndex() {
 
                 <div className="grid gap-4">
                     {links.map((link) => (
-                        <LinkCard key={link.key} link={link} url={`${origin}${link.path}`} />
+                        <LinkCard
+                            key={link.key}
+                            link={link}
+                            url={`${origin}${link.path}`}
+                        />
                     ))}
                 </div>
             </div>

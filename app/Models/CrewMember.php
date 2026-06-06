@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CrewRole;
+use Database\Factories\CrewMemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CrewMember extends Model
 {
-    /** @use HasFactory<\Database\Factories\CrewMemberFactory> */
+    /** @use HasFactory<CrewMemberFactory> */
     use HasFactory;
 
     protected $fillable = [

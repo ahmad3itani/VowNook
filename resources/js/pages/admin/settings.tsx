@@ -48,7 +48,8 @@ export default function AdminSettings({
                     <CardHeader>
                         <CardTitle>Branding</CardTitle>
                         <CardDescription>
-                            Control how the product presents itself to couples and guests.
+                            Control how the product presents itself to couples
+                            and guests.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -61,23 +62,32 @@ export default function AdminSettings({
                             {({ processing, errors }) => (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="app_name">Application name</Label>
+                                        <Label htmlFor="app_name">
+                                            Application name
+                                        </Label>
                                         <Input
                                             id="app_name"
                                             name="app_name"
-                                            defaultValue={settings.app_name ?? ''}
+                                            defaultValue={
+                                                settings.app_name ?? ''
+                                            }
                                             placeholder="WedFlow Atelier"
                                         />
                                         <InputError message={errors.app_name} />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="brand_primary">Primary color</Label>
+                                        <Label htmlFor="brand_primary">
+                                            Primary color
+                                        </Label>
                                         <div className="flex items-center gap-3">
                                             <Input
                                                 id="brand_primary"
                                                 name="brand_primary"
-                                                defaultValue={settings.brand_primary ?? '#9a7b4f'}
+                                                defaultValue={
+                                                    settings.brand_primary ??
+                                                    '#9a7b4f'
+                                                }
                                                 placeholder="#9a7b4f"
                                                 className="max-w-40"
                                             />
@@ -85,26 +95,38 @@ export default function AdminSettings({
                                                 className="size-9 rounded-md border"
                                                 style={{
                                                     backgroundColor:
-                                                        settings.brand_primary ?? '#9a7b4f',
+                                                        settings.brand_primary ??
+                                                        '#9a7b4f',
                                                 }}
                                                 aria-hidden
                                             />
                                         </div>
-                                        <InputError message={errors.brand_primary} />
+                                        <InputError
+                                            message={errors.brand_primary}
+                                        />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="brand_tagline">Tagline</Label>
+                                        <Label htmlFor="brand_tagline">
+                                            Tagline
+                                        </Label>
                                         <Input
                                             id="brand_tagline"
                                             name="brand_tagline"
-                                            defaultValue={settings.brand_tagline ?? ''}
+                                            defaultValue={
+                                                settings.brand_tagline ?? ''
+                                            }
                                             placeholder="A wedding, composed."
                                         />
-                                        <InputError message={errors.brand_tagline} />
+                                        <InputError
+                                            message={errors.brand_tagline}
+                                        />
                                     </div>
 
-                                    <Button disabled={processing} data-test="save-settings">
+                                    <Button
+                                        disabled={processing}
+                                        data-test="save-settings"
+                                    >
                                         {processing && <Spinner />}
                                         Save changes
                                     </Button>

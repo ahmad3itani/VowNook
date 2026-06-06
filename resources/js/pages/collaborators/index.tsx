@@ -44,7 +44,11 @@ function initials(name: string): string {
         .join('');
 }
 
-export default function CollaboratorsIndex({ members, options, plan }: PageProps) {
+export default function CollaboratorsIndex({
+    members,
+    options,
+    plan,
+}: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('collaborators');
 
@@ -54,7 +58,9 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
     });
 
     const labelFor = (value: string) =>
-        value === 'owner' ? 'Owner' : (options.roles.find((o) => o.value === value)?.label ?? value);
+        value === 'owner'
+            ? 'Owner'
+            : (options.roles.find((o) => o.value === value)?.label ?? value);
 
     function submitInvite(e: React.FormEvent) {
         e.preventDefault();
@@ -73,7 +79,8 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
             { role },
             {
                 preserveScroll: true,
-                onSuccess: () => toast.success(`${member.name} is now a ${labelFor(role)}.`),
+                onSuccess: () =>
+                    toast.success(`${member.name} is now a ${labelFor(role)}.`),
             },
         );
     }
@@ -100,7 +107,11 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                 />
 
                 {plan.limit !== null && (
-                    <PlanUsage used={plan.used} limit={plan.limit} noun="collaborators" />
+                    <PlanUsage
+                        used={plan.used}
+                        limit={plan.limit}
+                        noun="collaborators"
+                    />
                 )}
 
                 {writable && (
@@ -116,7 +127,12 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                                         id="email"
                                         type="email"
                                         value={invite.data.email}
-                                        onChange={(e) => invite.setData('email', e.target.value)}
+                                        onChange={(e) =>
+                                            invite.setData(
+                                                'email',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="name@example.com"
                                     />
                                     <InputError message={invite.errors.email} />
@@ -125,21 +141,29 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                                     <Label>Role</Label>
                                     <Select
                                         value={invite.data.role}
-                                        onValueChange={(v) => invite.setData('role', v)}
+                                        onValueChange={(v) =>
+                                            invite.setData('role', v)
+                                        }
                                     >
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {options.roles.map((o) => (
-                                                <SelectItem key={o.value} value={o.value}>
+                                                <SelectItem
+                                                    key={o.value}
+                                                    value={o.value}
+                                                >
                                                     {o.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <Button type="submit" disabled={invite.processing}>
+                                <Button
+                                    type="submit"
+                                    disabled={invite.processing}
+                                >
                                     <UserPlus className="size-4" />
                                     Add
                                 </Button>
@@ -160,12 +184,16 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="truncate font-medium">{member.name}</span>
+                                        <span className="truncate font-medium">
+                                            {member.name}
+                                        </span>
                                         {member.is_self && (
-                                            <span className="text-muted-foreground text-xs">(you)</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                (you)
+                                            </span>
                                         )}
                                     </div>
-                                    <div className="text-muted-foreground truncate text-sm">
+                                    <div className="truncate text-sm text-muted-foreground">
                                         {member.email}
                                     </div>
                                 </div>
@@ -179,14 +207,19 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                                     <div className="flex items-center gap-2">
                                         <Select
                                             value={member.role}
-                                            onValueChange={(v) => changeRole(member, v)}
+                                            onValueChange={(v) =>
+                                                changeRole(member, v)
+                                            }
                                         >
                                             <SelectTrigger className="w-40">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {options.roles.map((o) => (
-                                                    <SelectItem key={o.value} value={o.value}>
+                                                    <SelectItem
+                                                        key={o.value}
+                                                        value={o.value}
+                                                    >
                                                         {o.label}
                                                     </SelectItem>
                                                 ))}
@@ -202,7 +235,9 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                                         </Button>
                                     </div>
                                 ) : (
-                                    <Badge variant="secondary">{labelFor(member.role)}</Badge>
+                                    <Badge variant="secondary">
+                                        {labelFor(member.role)}
+                                    </Badge>
                                 )}
                             </div>
                         ))}
@@ -210,11 +245,13 @@ export default function CollaboratorsIndex({ members, options, plan }: PageProps
                 </Card>
 
                 {writable && (
-                    <div className="text-muted-foreground grid gap-2 text-sm">
+                    <div className="grid gap-2 text-sm text-muted-foreground">
                         {options.roles.map((o) => (
                             <div key={o.value}>
-                                <span className="text-foreground font-medium">{o.label}</span> —{' '}
-                                {o.description}
+                                <span className="font-medium text-foreground">
+                                    {o.label}
+                                </span>{' '}
+                                — {o.description}
                             </div>
                         ))}
                     </div>

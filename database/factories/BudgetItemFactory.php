@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\BudgetItem;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\BudgetItem>
+ * @extends Factory<BudgetItem>
  */
 class BudgetItemFactory extends Factory
 {

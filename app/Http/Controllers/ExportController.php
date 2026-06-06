@@ -6,6 +6,7 @@ use App\Models\BudgetItem;
 use App\Models\Guest;
 use App\Models\TimelineEvent;
 use App\Support\CurrentWedding;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -45,6 +46,52 @@ class ExportController extends Controller
             'First name', 'Last name', 'Email', 'Phone', 'Side', 'Age group',
             'Plus one', 'RSVP', 'Meal choice', 'Dietary notes', 'Group', 'Table', 'Notes',
         ], $rows->all());
+    }
+
+    public function guestsPdf(): Response
+    {
+        $weddingId = $this->current->id();
+        $wedding = $this->current->get();
+
+        $guests = Guest::query()
+            ->forWedding($weddingId)
+            ->with('seatingTable:id,name')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.guests', [
+            'wedding' => $wedding,
+            'guests' => $guests,
+            'counts' => [
+                'total' => $guests->count(),
+                'attending' => $guests->where('rsvp_status', \App\Enums\RsvpStatus::Attending)->count(),
+                'declined' => $guests->where('rsvp_status', \App\Enums\RsvpStatus::Declined)->count(),
+                'pending' => $guests->where('rsvp_status', \App\Enums\RsvpStatus::Pending)->count(),
+            ],
+        ])->setPaper('a4');
+
+        return $pdf->download(Str::slug($wedding->name).'-guest-list.pdf');
+    }
+
+    public function timelinePdf(): Response
+    {
+        $weddingId = $this->current->id();
+        $wedding = $this->current->get();
+
+        $events = TimelineEvent::query()
+            ->forWedding($weddingId)
+            ->with('vendor:id,name')
+            ->orderBy('starts_at')
+            ->get()
+            ->groupBy(fn (TimelineEvent $e) => $e->starts_at->toDateString());
+
+        $pdf = Pdf::loadView('pdf.timeline', [
+            'wedding' => $wedding,
+            'days' => $events,
+        ])->setPaper('a4');
+
+        return $pdf->download(Str::slug($wedding->name).'-timeline.pdf');
     }
 
     public function budget(): StreamedResponse
@@ -130,7 +177,7 @@ class ExportController extends Controller
     protected function escapeIcs(string $value): string
     {
         return str_replace(
-            ["\\", ';', ',', "\r\n", "\n"],
+            ['\\', ';', ',', "\r\n", "\n"],
             ['\\\\', '\\;', '\\,', '\\n', '\\n'],
             $value,
         );

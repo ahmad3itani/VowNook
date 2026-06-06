@@ -50,7 +50,9 @@ export function WeddingSwitcher() {
                                 <Heart className="size-4" />
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{active.name}</span>
+                                <span className="truncate font-medium">
+                                    {active.name}
+                                </span>
                                 <span className="truncate text-xs text-muted-foreground">
                                     {active.event_date ?? 'Date to be set'}
                                 </span>
@@ -61,7 +63,13 @@ export function WeddingSwitcher() {
                     <DropdownMenuContent
                         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                         align="start"
-                        side={isMobile ? 'bottom' : state === 'collapsed' ? 'right' : 'bottom'}
+                        side={
+                            isMobile
+                                ? 'bottom'
+                                : state === 'collapsed'
+                                  ? 'right'
+                                  : 'bottom'
+                        }
                     >
                         <DropdownMenuLabel className="text-xs text-muted-foreground">
                             Weddings
@@ -73,13 +81,17 @@ export function WeddingSwitcher() {
                                 className="gap-2"
                             >
                                 <span className="truncate">{w.name}</span>
-                                {w.slug === active.slug && <Check className="ml-auto size-4" />}
+                                {w.slug === active.slug && (
+                                    <Check className="ml-auto size-4" />
+                                )}
                             </DropdownMenuItem>
                         ))}
                         {list.length === 0 && (
                             <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem disabled>No other weddings</DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    No other weddings
+                                </DropdownMenuItem>
                             </>
                         )}
                     </DropdownMenuContent>

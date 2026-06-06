@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\PermissionLevel;
 use App\Enums\Section;
 use App\Models\User;
 use App\Models\Wedding;

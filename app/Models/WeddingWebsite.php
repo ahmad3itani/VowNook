@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\WeddingWebsiteFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WeddingWebsite extends Model
 {
-    /** @use HasFactory<\Database\Factories\WeddingWebsiteFactory> */
+    /** @use HasFactory<WeddingWebsiteFactory> */
     use HasFactory;
 
     protected $fillable = [

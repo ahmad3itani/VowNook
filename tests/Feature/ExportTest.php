@@ -84,6 +84,34 @@ class ExportTest extends TestCase
         $this->assertStringContainsString('DTSTART:', $body);
     }
 
+    public function test_guest_pdf_is_downloadable(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        Guest::factory()->create(['wedding_id' => $wedding->id, 'first_name' => 'Amelia']);
+
+        $response = $this->actingAs($user)->get('/exports/guests/pdf');
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
+    public function test_timeline_pdf_is_downloadable(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        TimelineEvent::factory()->create([
+            'wedding_id' => $wedding->id,
+            'title' => 'First Dance',
+            'starts_at' => '2026-09-12 19:30:00',
+        ]);
+
+        $response = $this->actingAs($user)->get('/exports/timeline/pdf');
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
     public function test_viewer_without_budget_read_cannot_export_budget(): void
     {
         $owner = User::factory()->create();

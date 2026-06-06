@@ -67,7 +67,9 @@ export default function PublicSeats({ wedding, matches, searched }: PageProps) {
                             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" />
                             <Input
                                 value={lookup.data.name}
-                                onChange={(e) => lookup.setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    lookup.setData('name', e.target.value)
+                                }
                                 placeholder="Your name"
                                 className="pl-9"
                                 autoFocus
@@ -82,8 +84,9 @@ export default function PublicSeats({ wedding, matches, searched }: PageProps) {
                         <div className="mt-5 flex flex-col gap-3">
                             {matches.length === 0 ? (
                                 <p className="py-4 text-center text-sm text-stone-500 dark:text-stone-400">
-                                    No seat found under that name yet. Try another spelling, or ask
-                                    a member of the wedding party.
+                                    No seat found under that name yet. Try
+                                    another spelling, or ask a member of the
+                                    wedding party.
                                 </p>
                             ) : (
                                 matches.map((m) => (
@@ -99,7 +102,9 @@ export default function PublicSeats({ wedding, matches, searched }: PageProps) {
                                                 <p className="text-sm text-stone-500 dark:text-stone-400">
                                                     {m.name}, you are seated at
                                                 </p>
-                                                <p className="font-serif text-xl">{m.table}</p>
+                                                <p className="font-serif text-xl">
+                                                    {m.table}
+                                                </p>
                                             </div>
                                         </div>
 
@@ -110,14 +115,16 @@ export default function PublicSeats({ wedding, matches, searched }: PageProps) {
                                                     Sharing your table
                                                 </p>
                                                 <div className="mt-2 flex flex-wrap gap-2">
-                                                    {m.tablemates.map((name) => (
-                                                        <span
-                                                            key={name}
-                                                            className="rounded-full bg-white px-3 py-1 text-sm text-stone-600 shadow-sm dark:bg-stone-900 dark:text-stone-300"
-                                                        >
-                                                            {name}
-                                                        </span>
-                                                    ))}
+                                                    {m.tablemates.map(
+                                                        (name) => (
+                                                            <span
+                                                                key={name}
+                                                                className="rounded-full bg-white px-3 py-1 text-sm text-stone-600 shadow-sm dark:bg-stone-900 dark:text-stone-300"
+                                                            >
+                                                                {name}
+                                                            </span>
+                                                        ),
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
@@ -128,7 +135,9 @@ export default function PublicSeats({ wedding, matches, searched }: PageProps) {
                     )}
                 </div>
 
-                <p className="mt-10 text-xs text-stone-400">Powered by WedFlow Atelier</p>
+                <p className="mt-10 text-xs text-stone-400">
+                    Powered by WedFlow Atelier
+                </p>
             </div>
         </div>
     );

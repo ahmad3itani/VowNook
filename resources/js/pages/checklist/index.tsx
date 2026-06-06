@@ -58,7 +58,10 @@ type PageProps = {
     members: Member[];
 };
 
-const PRIORITY_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const PRIORITY_VARIANT: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     high: 'destructive',
     medium: 'secondary',
     low: 'outline',
@@ -94,7 +97,12 @@ function emptyForm(options: PageProps['options']): TaskFormData {
     };
 }
 
-export default function ChecklistIndex({ tasks, stats, options, members }: PageProps) {
+export default function ChecklistIndex({
+    tasks,
+    stats,
+    options,
+    members,
+}: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('checklist');
 
@@ -113,9 +121,11 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
         const term = search.trim().toLowerCase();
 
         return tasks.filter((t) => {
-            const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
+            const matchesCategory =
+                categoryFilter === 'all' || t.category === categoryFilter;
             const matchesComplete = !hideComplete || !t.is_complete;
-            const matchesSearch = term === '' || t.title.toLowerCase().includes(term);
+            const matchesSearch =
+                term === '' || t.title.toLowerCase().includes(term);
 
             return matchesCategory && matchesComplete && matchesSearch;
         });
@@ -136,7 +146,10 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
             category: task.category,
             priority: task.priority,
             due_date: task.due_date ?? '',
-            assigned_to: task.assigned_to !== null ? String(task.assigned_to) : UNASSIGNED,
+            assigned_to:
+                task.assigned_to !== null
+                    ? String(task.assigned_to)
+                    : UNASSIGNED,
             notes: task.notes ?? '',
         });
         setEditingId(task.id);
@@ -148,7 +161,8 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
         form.transform((data) => ({
             ...data,
             due_date: data.due_date === '' ? null : data.due_date,
-            assigned_to: data.assigned_to === UNASSIGNED ? null : data.assigned_to,
+            assigned_to:
+                data.assigned_to === UNASSIGNED ? null : data.assigned_to,
         }));
 
         const onSuccess = () => {
@@ -157,14 +171,21 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
         };
 
         if (editingId) {
-            form.put(`/checklist/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/checklist/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/checklist', { preserveScroll: true, onSuccess });
         }
     }
 
     function toggle(task: Task) {
-        router.patch(`/checklist/${task.id}/toggle`, {}, { preserveScroll: true });
+        router.patch(
+            `/checklist/${task.id}/toggle`,
+            {},
+            { preserveScroll: true },
+        );
     }
 
     function destroy(task: Task) {
@@ -203,17 +224,22 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                         value={String(stats.completed)}
                         accent="text-emerald-600"
                     />
-                    <StatCard label="Outstanding" value={String(stats.outstanding)} />
+                    <StatCard
+                        label="Outstanding"
+                        value={String(stats.outstanding)}
+                    />
                     <StatCard
                         label="Overdue"
                         value={String(stats.overdue)}
-                        accent={stats.overdue > 0 ? 'text-destructive' : undefined}
+                        accent={
+                            stats.overdue > 0 ? 'text-destructive' : undefined
+                        }
                     />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative max-w-xs flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -221,7 +247,10 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                             className="pl-9"
                         />
                     </div>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <Select
+                        value={categoryFilter}
+                        onValueChange={setCategoryFilter}
+                    >
                         <SelectTrigger className="w-44">
                             <SelectValue placeholder="All categories" />
                         </SelectTrigger>
@@ -234,7 +263,7 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                             ))}
                         </SelectContent>
                     </Select>
-                    <label className="text-muted-foreground flex items-center gap-2 text-sm">
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Checkbox
                             checked={hideComplete}
                             onCheckedChange={(v) => setHideComplete(v === true)}
@@ -246,7 +275,7 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                 <Card>
                     <CardContent className="p-0">
                         {filtered.length === 0 ? (
-                            <div className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                            <div className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                                 <CheckSquare className="size-8 opacity-40" />
                                 {tasks.length === 0
                                     ? 'No tasks yet. Add your first task to get started.'
@@ -255,24 +284,41 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="text-muted-foreground border-b text-left">
+                                    <thead className="border-b text-left text-muted-foreground">
                                         <tr>
                                             <th className="w-10 px-4 py-3" />
-                                            <th className="px-4 py-3 font-medium">Task</th>
-                                            <th className="px-4 py-3 font-medium">Category</th>
-                                            <th className="px-4 py-3 font-medium">Priority</th>
-                                            <th className="px-4 py-3 font-medium">Due</th>
-                                            <th className="px-4 py-3 font-medium">Assignee</th>
-                                            {writable && <th className="px-4 py-3" />}
+                                            <th className="px-4 py-3 font-medium">
+                                                Task
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Category
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Priority
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Due
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Assignee
+                                            </th>
+                                            {writable && (
+                                                <th className="px-4 py-3" />
+                                            )}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map((t) => (
-                                            <tr key={t.id} className="border-b last:border-0">
+                                            <tr
+                                                key={t.id}
+                                                className="border-b last:border-0"
+                                            >
                                                 <td className="px-4 py-3">
                                                     <Checkbox
                                                         checked={t.is_complete}
-                                                        onCheckedChange={() => toggle(t)}
+                                                        onCheckedChange={() =>
+                                                            toggle(t)
+                                                        }
                                                         disabled={!writable}
                                                         aria-label="Toggle complete"
                                                     />
@@ -288,12 +334,24 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                                         {t.title}
                                                     </span>
                                                 </td>
-                                                <td className="text-muted-foreground px-4 py-3">
-                                                    {labelFor(options.categories, t.category)}
+                                                <td className="px-4 py-3 text-muted-foreground">
+                                                    {labelFor(
+                                                        options.categories,
+                                                        t.category,
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <Badge variant={PRIORITY_VARIANT[t.priority] ?? 'secondary'}>
-                                                        {labelFor(options.priorities, t.priority)}
+                                                    <Badge
+                                                        variant={
+                                                            PRIORITY_VARIANT[
+                                                                t.priority
+                                                            ] ?? 'secondary'
+                                                        }
+                                                    >
+                                                        {labelFor(
+                                                            options.priorities,
+                                                            t.priority,
+                                                        )}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-4 py-3">
@@ -301,17 +359,19 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                                         <span
                                                             className={
                                                                 isOverdue(t)
-                                                                    ? 'text-destructive font-medium'
+                                                                    ? 'font-medium text-destructive'
                                                                     : 'text-muted-foreground'
                                                             }
                                                         >
                                                             {t.due_date}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-muted-foreground">—</span>
+                                                        <span className="text-muted-foreground">
+                                                            —
+                                                        </span>
                                                     )}
                                                 </td>
-                                                <td className="text-muted-foreground px-4 py-3">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {t.assignee_name ?? '—'}
                                                 </td>
                                                 {writable && (
@@ -320,7 +380,9 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => openEdit(t)}
+                                                                onClick={() =>
+                                                                    openEdit(t)
+                                                                }
                                                                 aria-label="Edit task"
                                                             >
                                                                 <Pencil className="size-4" />
@@ -328,7 +390,9 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => destroy(t)}
+                                                                onClick={() =>
+                                                                    destroy(t)
+                                                                }
                                                                 aria-label="Delete task"
                                                             >
                                                                 <Trash2 className="size-4" />
@@ -349,19 +413,26 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit task' : 'Add task'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit task' : 'Add task'}
+                        </SheetTitle>
                         <SheetDescription>
                             Set a due date, priority, and who is responsible.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="title">Task</Label>
                             <Input
                                 id="title"
                                 value={form.data.title}
-                                onChange={(e) => form.setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('title', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.title} />
@@ -372,14 +443,19 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                 <Label>Category</Label>
                                 <Select
                                     value={form.data.category}
-                                    onValueChange={(v) => form.setData('category', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('category', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.categories.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -391,14 +467,19 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                 <Label>Priority</Label>
                                 <Select
                                     value={form.data.priority}
-                                    onValueChange={(v) => form.setData('priority', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('priority', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.priorities.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -415,7 +496,9 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                     id="due_date"
                                     type="date"
                                     value={form.data.due_date}
-                                    onChange={(e) => form.setData('due_date', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('due_date', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.due_date} />
                             </div>
@@ -423,15 +506,22 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                 <Label>Assignee</Label>
                                 <Select
                                     value={form.data.assigned_to}
-                                    onValueChange={(v) => form.setData('assigned_to', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('assigned_to', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+                                        <SelectItem value={UNASSIGNED}>
+                                            Unassigned
+                                        </SelectItem>
                                         {members.map((m) => (
-                                            <SelectItem key={m.id} value={String(m.id)}>
+                                            <SelectItem
+                                                key={m.id}
+                                                value={String(m.id)}
+                                            >
                                                 {m.name}
                                             </SelectItem>
                                         ))}
@@ -446,7 +536,9 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -476,8 +568,10 @@ function StatCard({
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div
+                    className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}
+                >
                     {value}
                 </div>
             </CardContent>

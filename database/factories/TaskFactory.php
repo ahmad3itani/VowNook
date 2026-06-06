@@ -4,11 +4,12 @@ namespace Database\Factories;
 
 use App\Enums\TaskCategory;
 use App\Enums\TaskPriority;
+use App\Models\Task;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Task>
+ * @extends Factory<Task>
  */
 class TaskFactory extends Factory
 {

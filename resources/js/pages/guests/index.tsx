@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Download, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Download, FileText, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -70,7 +70,10 @@ type PageProps = {
     plan: { used: number; limit: number | null };
 };
 
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const STATUS_VARIANT: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     attending: 'default',
     pending: 'secondary',
     maybe: 'outline',
@@ -111,7 +114,13 @@ function emptyForm(options: PageProps['options']): GuestFormData {
     };
 }
 
-export default function GuestsIndex({ guests, groups, stats, options, plan }: PageProps) {
+export default function GuestsIndex({
+    guests,
+    groups,
+    stats,
+    options,
+    plan,
+}: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('guests');
 
@@ -130,7 +139,8 @@ export default function GuestsIndex({ guests, groups, stats, options, plan }: Pa
         const term = search.trim().toLowerCase();
 
         return guests.filter((g) => {
-            const matchesStatus = statusFilter === 'all' || g.rsvp_status === statusFilter;
+            const matchesStatus =
+                statusFilter === 'all' || g.rsvp_status === statusFilter;
             const name = `${g.first_name} ${g.last_name ?? ''}`.toLowerCase();
             const matchesSearch =
                 term === '' ||
@@ -185,7 +195,10 @@ export default function GuestsIndex({ guests, groups, stats, options, plan }: Pa
         form.transform(transform);
 
         if (editingId) {
-            form.put(`/guests/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/guests/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/guests', { preserveScroll: true, onSuccess });
         }
@@ -193,8 +206,8 @@ export default function GuestsIndex({ guests, groups, stats, options, plan }: Pa
 
     function destroy(guest: Guest) {
         if (!confirm(`Remove ${guest.first_name} from the guest list?`)) {
-return;
-}
+            return;
+        }
 
         router.delete(`/guests/${guest.id}`, {
             preserveScroll: true,
@@ -216,16 +229,28 @@ return;
                         <Button variant="outline" asChild>
                             <a href="/exports/guests">
                                 <Download className="size-4" />
-                                Export CSV
+                                CSV
+                            </a>
+                        </Button>
+                        <Button variant="outline" asChild>
+                            <a href="/exports/guests/pdf">
+                                <FileText className="size-4" />
+                                PDF
                             </a>
                         </Button>
                         {writable && (
                             <>
-                                <Button variant="outline" onClick={() => setGroupsOpen(true)}>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setGroupsOpen(true)}
+                                >
                                     <Users className="size-4" />
                                     Households
                                 </Button>
-                                <Button onClick={openCreate} data-test="add-guest">
+                                <Button
+                                    onClick={openCreate}
+                                    data-test="add-guest"
+                                >
                                     <Plus className="size-4" />
                                     Add guest
                                 </Button>
@@ -236,18 +261,34 @@ return;
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Total invited" value={stats.total} />
-                    <StatCard label="Attending" value={stats.attending} accent="text-emerald-600" />
-                    <StatCard label="Pending" value={stats.pending} accent="text-amber-600" />
-                    <StatCard label="Declined" value={stats.declined} accent="text-rose-600" />
+                    <StatCard
+                        label="Attending"
+                        value={stats.attending}
+                        accent="text-emerald-600"
+                    />
+                    <StatCard
+                        label="Pending"
+                        value={stats.pending}
+                        accent="text-amber-600"
+                    />
+                    <StatCard
+                        label="Declined"
+                        value={stats.declined}
+                        accent="text-rose-600"
+                    />
                 </div>
 
                 {plan.limit !== null && (
-                    <PlanUsage used={plan.used} limit={plan.limit} noun="guests" />
+                    <PlanUsage
+                        used={plan.used}
+                        limit={plan.limit}
+                        noun="guests"
+                    />
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative max-w-xs flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -255,7 +296,10 @@ return;
                             className="pl-9"
                         />
                     </div>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select
+                        value={statusFilter}
+                        onValueChange={setStatusFilter}
+                    >
                         <SelectTrigger className="w-44">
                             <SelectValue placeholder="All RSVPs" />
                         </SelectTrigger>
@@ -273,7 +317,7 @@ return;
                 <Card>
                     <CardContent className="p-0">
                         {filtered.length === 0 ? (
-                            <div className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                            <div className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                                 <Users className="size-8 opacity-40" />
                                 {guests.length === 0
                                     ? 'No guests yet. Add your first guest to get started.'
@@ -282,41 +326,69 @@ return;
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="text-muted-foreground border-b text-left">
+                                    <thead className="border-b text-left text-muted-foreground">
                                         <tr>
-                                            <th className="px-4 py-3 font-medium">Name</th>
-                                            <th className="px-4 py-3 font-medium">Household</th>
-                                            <th className="px-4 py-3 font-medium">Side</th>
-                                            <th className="px-4 py-3 font-medium">RSVP</th>
-                                            <th className="px-4 py-3 font-medium">Contact</th>
-                                            {writable && <th className="px-4 py-3" />}
+                                            <th className="px-4 py-3 font-medium">
+                                                Name
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Household
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Side
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                RSVP
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Contact
+                                            </th>
+                                            {writable && (
+                                                <th className="px-4 py-3" />
+                                            )}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map((g) => (
-                                            <tr key={g.id} className="border-b last:border-0">
+                                            <tr
+                                                key={g.id}
+                                                className="border-b last:border-0"
+                                            >
                                                 <td className="px-4 py-3">
                                                     <div className="font-medium">
-                                                        {g.first_name} {g.last_name}
+                                                        {g.first_name}{' '}
+                                                        {g.last_name}
                                                     </div>
                                                     {g.is_plus_one && (
-                                                        <span className="text-muted-foreground text-xs">
+                                                        <span className="text-xs text-muted-foreground">
                                                             Plus-one
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="text-muted-foreground px-4 py-3">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {g.group_name ?? '—'}
                                                 </td>
-                                                <td className="text-muted-foreground px-4 py-3">
-                                                    {labelFor(options.sides, g.side)}
+                                                <td className="px-4 py-3 text-muted-foreground">
+                                                    {labelFor(
+                                                        options.sides,
+                                                        g.side,
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <Badge variant={STATUS_VARIANT[g.rsvp_status] ?? 'secondary'}>
-                                                        {labelFor(options.statuses, g.rsvp_status)}
+                                                    <Badge
+                                                        variant={
+                                                            STATUS_VARIANT[
+                                                                g.rsvp_status
+                                                            ] ?? 'secondary'
+                                                        }
+                                                    >
+                                                        {labelFor(
+                                                            options.statuses,
+                                                            g.rsvp_status,
+                                                        )}
                                                     </Badge>
                                                 </td>
-                                                <td className="text-muted-foreground px-4 py-3">
+                                                <td className="px-4 py-3 text-muted-foreground">
                                                     {g.email ?? g.phone ?? '—'}
                                                 </td>
                                                 {writable && (
@@ -325,7 +397,9 @@ return;
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => openEdit(g)}
+                                                                onClick={() =>
+                                                                    openEdit(g)
+                                                                }
                                                                 aria-label="Edit guest"
                                                             >
                                                                 <Pencil className="size-4" />
@@ -333,7 +407,9 @@ return;
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => destroy(g)}
+                                                                onClick={() =>
+                                                                    destroy(g)
+                                                                }
                                                                 aria-label="Remove guest"
                                                             >
                                                                 <Trash2 className="size-4" />
@@ -354,20 +430,30 @@ return;
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit guest' : 'Add guest'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit guest' : 'Add guest'}
+                        </SheetTitle>
                         <SheetDescription>
                             Capture contact details and their RSVP status.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-2">
                                 <Label htmlFor="first_name">First name</Label>
                                 <Input
                                     id="first_name"
                                     value={form.data.first_name}
-                                    onChange={(e) => form.setData('first_name', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'first_name',
+                                            e.target.value,
+                                        )
+                                    }
                                     autoFocus
                                 />
                                 <InputError message={form.errors.first_name} />
@@ -377,7 +463,12 @@ return;
                                 <Input
                                     id="last_name"
                                     value={form.data.last_name}
-                                    onChange={(e) => form.setData('last_name', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'last_name',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
                                 <InputError message={form.errors.last_name} />
                             </div>
@@ -389,7 +480,9 @@ return;
                                 id="email"
                                 type="email"
                                 value={form.data.email}
-                                onChange={(e) => form.setData('email', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('email', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.email} />
                         </div>
@@ -399,7 +492,9 @@ return;
                             <Input
                                 id="phone"
                                 value={form.data.phone}
-                                onChange={(e) => form.setData('phone', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('phone', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.phone} />
                         </div>
@@ -409,14 +504,19 @@ return;
                                 <Label>Side</Label>
                                 <Select
                                     value={form.data.side}
-                                    onValueChange={(v) => form.setData('side', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('side', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.sides.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -427,14 +527,19 @@ return;
                                 <Label>Age group</Label>
                                 <Select
                                     value={form.data.age_group}
-                                    onValueChange={(v) => form.setData('age_group', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('age_group', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.ageGroups.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -448,14 +553,19 @@ return;
                                 <Label>RSVP status</Label>
                                 <Select
                                     value={form.data.rsvp_status}
-                                    onValueChange={(v) => form.setData('rsvp_status', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('rsvp_status', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.statuses.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -466,15 +576,22 @@ return;
                                 <Label>Household</Label>
                                 <Select
                                     value={form.data.group_id}
-                                    onValueChange={(v) => form.setData('group_id', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('group_id', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value={NO_GROUP}>None</SelectItem>
+                                        <SelectItem value={NO_GROUP}>
+                                            None
+                                        </SelectItem>
                                         {groups.map((g) => (
-                                            <SelectItem key={g.id} value={String(g.id)}>
+                                            <SelectItem
+                                                key={g.id}
+                                                value={String(g.id)}
+                                            >
                                                 {g.name}
                                             </SelectItem>
                                         ))}
@@ -489,7 +606,12 @@ return;
                                 type="checkbox"
                                 className="size-4 rounded border"
                                 checked={form.data.is_plus_one}
-                                onChange={(e) => form.setData('is_plus_one', e.target.checked)}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'is_plus_one',
+                                        e.target.checked,
+                                    )
+                                }
                             />
                             This guest is a plus-one
                         </label>
@@ -499,7 +621,9 @@ return;
                             <Input
                                 id="meal_choice"
                                 value={form.data.meal_choice}
-                                onChange={(e) => form.setData('meal_choice', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('meal_choice', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.meal_choice} />
                         </div>
@@ -509,7 +633,12 @@ return;
                             <Textarea
                                 id="dietary_notes"
                                 value={form.data.dietary_notes}
-                                onChange={(e) => form.setData('dietary_notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'dietary_notes',
+                                        e.target.value,
+                                    )
+                                }
                             />
                             <InputError message={form.errors.dietary_notes} />
                         </div>
@@ -519,7 +648,9 @@ return;
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -534,7 +665,11 @@ return;
                 </SheetContent>
             </Sheet>
 
-            <ManageGroups open={groupsOpen} onOpenChange={setGroupsOpen} groups={groups} />
+            <ManageGroups
+                open={groupsOpen}
+                onOpenChange={setGroupsOpen}
+                groups={groups}
+            />
         </>
     );
 }
@@ -551,8 +686,10 @@ function StatCard({
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className={`mt-1 text-3xl font-semibold ${accent ?? ''}`}>{value}</div>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div className={`mt-1 text-3xl font-semibold ${accent ?? ''}`}>
+                    {value}
+                </div>
             </CardContent>
         </Card>
     );
@@ -581,9 +718,13 @@ function ManageGroups({
     }
 
     function remove(group: Group) {
-        if (!confirm(`Delete the "${group.name}" household? Guests stay, but lose this grouping.`)) {
-return;
-}
+        if (
+            !confirm(
+                `Delete the "${group.name}" household? Guests stay, but lose this grouping.`,
+            )
+        ) {
+            return;
+        }
 
         router.delete(`/guest-groups/${group.id}`, {
             preserveScroll: true,
@@ -597,7 +738,8 @@ return;
                 <SheetHeader>
                     <SheetTitle>Households</SheetTitle>
                     <SheetDescription>
-                        Group guests who share an invitation and should be seated together.
+                        Group guests who share an invitation and should be
+                        seated together.
                     </SheetDescription>
                 </SheetHeader>
 
@@ -607,7 +749,9 @@ return;
                         <Input
                             id="group_name"
                             value={form.data.name}
-                            onChange={(e) => form.setData('name', e.target.value)}
+                            onChange={(e) =>
+                                form.setData('name', e.target.value)
+                            }
                             placeholder="The Cole Family"
                         />
                         <InputError message={form.errors.name} />
@@ -619,7 +763,7 @@ return;
 
                 <div className="flex flex-col gap-2 px-4">
                     {groups.length === 0 ? (
-                        <p className="text-muted-foreground py-6 text-center text-sm">
+                        <p className="py-6 text-center text-sm text-muted-foreground">
                             No households yet.
                         </p>
                     ) : (

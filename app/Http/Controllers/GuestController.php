@@ -10,6 +10,7 @@ use App\Models\Guest;
 use App\Support\CurrentWedding;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -95,7 +96,7 @@ class GuestController extends Controller
         abort_unless($guest->wedding_id === $this->current->id(), 404);
     }
 
-    /** @param \Illuminate\Support\Collection<int, Guest> $guests */
+    /** @param Collection<int, Guest> $guests */
     protected function stats($guests): array
     {
         return [

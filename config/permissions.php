@@ -13,7 +13,6 @@ use App\Enums\Section;
  *
  * Any Section not listed for a Role falls back to PermissionLevel::None.
  */
-
 $w = PermissionLevel::Write->value;
 $r = PermissionLevel::Read->value;
 $n = PermissionLevel::None->value;

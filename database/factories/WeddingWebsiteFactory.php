@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Wedding;
+use App\Models\WeddingWebsite;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\WeddingWebsite>
+ * @extends Factory<WeddingWebsite>
  */
 class WeddingWebsiteFactory extends Factory
 {

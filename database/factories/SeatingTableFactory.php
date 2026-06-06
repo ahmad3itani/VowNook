@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\TableShape;
+use App\Models\SeatingTable;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\SeatingTable>
+ * @extends Factory<SeatingTable>
  */
 class SeatingTableFactory extends Factory
 {

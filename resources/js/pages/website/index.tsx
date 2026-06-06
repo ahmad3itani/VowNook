@@ -76,7 +76,11 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                         description="Craft the public page your guests see at your wedding's link."
                     />
                     <Button variant="outline" asChild>
-                        <a href={public_url} target="_blank" rel="noopener noreferrer">
+                        <a
+                            href={public_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             <ExternalLink className="size-4" />
                             View site
                         </a>
@@ -89,16 +93,22 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                             <Checkbox
                                 id="is_published"
                                 checked={form.data.is_published}
-                                onCheckedChange={(v) => form.setData('is_published', v === true)}
+                                onCheckedChange={(v) =>
+                                    form.setData('is_published', v === true)
+                                }
                                 disabled={!writable}
                             />
                             <div>
-                                <Label htmlFor="is_published" className="flex items-center gap-2">
+                                <Label
+                                    htmlFor="is_published"
+                                    className="flex items-center gap-2"
+                                >
                                     <Globe className="size-4" />
                                     Publish website
                                 </Label>
-                                <p className="text-muted-foreground text-sm">
-                                    When off, visitors see a simple page with an RSVP link only.
+                                <p className="text-sm text-muted-foreground">
+                                    When off, visitors see a simple page with an
+                                    RSVP link only.
                                 </p>
                             </div>
                         </CardContent>
@@ -109,25 +119,46 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                             <CardTitle>Welcome</CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
-                            <Field label="Headline" error={form.errors.headline}>
+                            <Field
+                                label="Headline"
+                                error={form.errors.headline}
+                            >
                                 <Input
                                     value={form.data.headline}
-                                    onChange={(e) => form.setData('headline', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('headline', e.target.value)
+                                    }
                                     placeholder="We're getting married!"
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Welcome message" error={form.errors.welcome_message}>
+                            <Field
+                                label="Welcome message"
+                                error={form.errors.welcome_message}
+                            >
                                 <Textarea
                                     value={form.data.welcome_message}
-                                    onChange={(e) => form.setData('welcome_message', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'welcome_message',
+                                            e.target.value,
+                                        )
+                                    }
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Hero image URL" error={form.errors.hero_image_url}>
+                            <Field
+                                label="Hero image URL"
+                                error={form.errors.hero_image_url}
+                            >
                                 <Input
                                     value={form.data.hero_image_url}
-                                    onChange={(e) => form.setData('hero_image_url', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'hero_image_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://…"
                                     disabled={!writable}
                                 />
@@ -140,10 +171,18 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                             <CardTitle>Our story</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Field label="Tell your story" error={form.errors.our_story}>
+                            <Field
+                                label="Tell your story"
+                                error={form.errors.our_story}
+                            >
                                 <Textarea
                                     value={form.data.our_story}
-                                    onChange={(e) => form.setData('our_story', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'our_story',
+                                            e.target.value,
+                                        )
+                                    }
                                     rows={6}
                                     disabled={!writable}
                                 />
@@ -156,32 +195,64 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                             <CardTitle>Details</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Venue name" error={form.errors.venue_name}>
+                            <Field
+                                label="Venue name"
+                                error={form.errors.venue_name}
+                            >
                                 <Input
                                     value={form.data.venue_name}
-                                    onChange={(e) => form.setData('venue_name', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'venue_name',
+                                            e.target.value,
+                                        )
+                                    }
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Venue address" error={form.errors.venue_address}>
+                            <Field
+                                label="Venue address"
+                                error={form.errors.venue_address}
+                            >
                                 <Input
                                     value={form.data.venue_address}
-                                    onChange={(e) => form.setData('venue_address', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'venue_address',
+                                            e.target.value,
+                                        )
+                                    }
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Ceremony time" error={form.errors.ceremony_time}>
+                            <Field
+                                label="Ceremony time"
+                                error={form.errors.ceremony_time}
+                            >
                                 <Input
                                     value={form.data.ceremony_time}
-                                    onChange={(e) => form.setData('ceremony_time', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'ceremony_time',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="4:00 PM"
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Dress code" error={form.errors.dress_code}>
+                            <Field
+                                label="Dress code"
+                                error={form.errors.dress_code}
+                            >
                                 <Input
                                     value={form.data.dress_code}
-                                    onChange={(e) => form.setData('dress_code', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'dress_code',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="Garden formal"
                                     disabled={!writable}
                                 />

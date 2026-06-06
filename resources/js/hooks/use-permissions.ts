@@ -13,7 +13,9 @@ export function usePermissions() {
     const isAdmin = Boolean(auth?.isAdmin);
 
     const levelOf = (section: Section): PermissionLevel =>
-        isAdmin ? 'write' : ((map as Record<string, PermissionLevel>)[section] ?? 'none');
+        isAdmin
+            ? 'write'
+            : ((map as Record<string, PermissionLevel>)[section] ?? 'none');
 
     const allows = (section: Section, required: PermissionLevel): boolean =>
         RANK[levelOf(section)] >= RANK[required];

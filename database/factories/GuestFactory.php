@@ -5,11 +5,12 @@ namespace Database\Factories;
 use App\Enums\AgeGroup;
 use App\Enums\GuestSide;
 use App\Enums\RsvpStatus;
+use App\Models\Guest;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Guest>
+ * @extends Factory<Guest>
  */
 class GuestFactory extends Factory
 {

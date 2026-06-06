@@ -10,8 +10,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\GuestGroupController;
+use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
 use App\Http\Controllers\PublicWebsiteController;
@@ -63,10 +63,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // CSV exports (gated by each workspace's read permission).
     Route::get('exports/guests', [ExportController::class, 'guests'])
         ->middleware('permission:guests,read')->name('exports.guests');
+    Route::get('exports/guests/pdf', [ExportController::class, 'guestsPdf'])
+        ->middleware('permission:guests,read')->name('exports.guests.pdf');
     Route::get('exports/budget', [ExportController::class, 'budget'])
         ->middleware('permission:budget,read')->name('exports.budget');
     Route::get('exports/timeline', [ExportController::class, 'timeline'])
         ->middleware('permission:timeline,read')->name('exports.timeline');
+    Route::get('exports/timeline/pdf', [ExportController::class, 'timelinePdf'])
+        ->middleware('permission:timeline,read')->name('exports.timeline.pdf');
 
     // Budget workspace.
     Route::get('budget', [BudgetController::class, 'index'])

@@ -1,5 +1,12 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { HeartHandshake, Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
+import {
+    HeartHandshake,
+    Mail,
+    Pencil,
+    Phone,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -88,7 +95,10 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
         options.roles.find((o) => o.value === value)?.label ?? value;
 
     const filtered = useMemo(
-        () => members.filter((m) => roleFilter === 'all' || m.role === roleFilter),
+        () =>
+            members.filter(
+                (m) => roleFilter === 'all' || m.role === roleFilter,
+            ),
         [members, roleFilter],
     );
 
@@ -122,7 +132,9 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
         }));
 
         const onSuccess = () => {
-            toast.success(editingId ? 'Crew member updated.' : 'Crew member added.');
+            toast.success(
+                editingId ? 'Crew member updated.' : 'Crew member added.',
+            );
             setSheetOpen(false);
         };
 
@@ -165,7 +177,10 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                 <div className="grid gap-4 sm:grid-cols-3">
                     <StatCard label="Crew" value={String(stats.total)} />
                     <StatCard label="Roles" value={String(stats.roles)} />
-                    <StatCard label="With contact" value={String(stats.with_contact)} />
+                    <StatCard
+                        label="With contact"
+                        value={String(stats.with_contact)}
+                    />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -186,7 +201,7 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
 
                 {filtered.length === 0 ? (
                     <Card>
-                        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                        <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                             <HeartHandshake className="size-8 opacity-40" />
                             {members.length === 0
                                 ? 'No crew yet. Add your wedding party and helpers.'
@@ -203,8 +218,13 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                             {initials(member.name)}
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <div className="truncate font-medium">{member.name}</div>
-                                            <Badge variant="secondary" className="mt-1">
+                                            <div className="truncate font-medium">
+                                                {member.name}
+                                            </div>
+                                            <Badge
+                                                variant="secondary"
+                                                className="mt-1"
+                                            >
                                                 {labelFor(member.role)}
                                             </Badge>
                                         </div>
@@ -213,7 +233,9 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => openEdit(member)}
+                                                    onClick={() =>
+                                                        openEdit(member)
+                                                    }
                                                     aria-label="Edit crew member"
                                                 >
                                                     <Pencil className="size-4" />
@@ -221,7 +243,9 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => destroy(member)}
+                                                    onClick={() =>
+                                                        destroy(member)
+                                                    }
                                                     aria-label="Remove crew member"
                                                 >
                                                     <Trash2 className="size-4" />
@@ -235,16 +259,18 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                             {member.email && (
                                                 <a
                                                     href={`mailto:${member.email}`}
-                                                    className="text-muted-foreground hover:text-primary inline-flex items-center gap-2"
+                                                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary"
                                                 >
                                                     <Mail className="size-3.5" />
-                                                    <span className="truncate">{member.email}</span>
+                                                    <span className="truncate">
+                                                        {member.email}
+                                                    </span>
                                                 </a>
                                             )}
                                             {member.phone && (
                                                 <a
                                                     href={`tel:${member.phone}`}
-                                                    className="text-muted-foreground hover:text-primary inline-flex items-center gap-2"
+                                                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary"
                                                 >
                                                     <Phone className="size-3.5" />
                                                     {member.phone}
@@ -254,7 +280,7 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                     )}
 
                                     {member.notes && (
-                                        <p className="text-muted-foreground line-clamp-2 text-sm">
+                                        <p className="line-clamp-2 text-sm text-muted-foreground">
                                             {member.notes}
                                         </p>
                                     )}
@@ -268,19 +294,27 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit crew member' : 'Add crew member'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit crew member' : 'Add crew member'}
+                        </SheetTitle>
                         <SheetDescription>
-                            Track who is in your wedding party and how to reach them.
+                            Track who is in your wedding party and how to reach
+                            them.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="name">Name</Label>
                             <Input
                                 id="name"
                                 value={form.data.name}
-                                onChange={(e) => form.setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('name', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.name} />
@@ -297,7 +331,10 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {options.roles.map((o) => (
-                                        <SelectItem key={o.value} value={o.value}>
+                                        <SelectItem
+                                            key={o.value}
+                                            value={o.value}
+                                        >
                                             {o.label}
                                         </SelectItem>
                                     ))}
@@ -313,7 +350,9 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                     id="email"
                                     type="email"
                                     value={form.data.email}
-                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('email', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.email} />
                             </div>
@@ -322,7 +361,9 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                                 <Input
                                     id="phone"
                                     value={form.data.phone}
-                                    onChange={(e) => form.setData('phone', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('phone', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.phone} />
                             </div>
@@ -333,7 +374,9 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -355,8 +398,10 @@ function StatCard({ label, value }: { label: string; value: string }) {
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">
+                    {value}
+                </div>
             </CardContent>
         </Card>
     );

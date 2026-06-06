@@ -1,5 +1,12 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { ExternalLink, ImageOff, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
+import {
+    ExternalLink,
+    ImageOff,
+    Pencil,
+    Plus,
+    Sparkles,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -79,7 +86,11 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
         options.categories.find((o) => o.value === value)?.label ?? value;
 
     const filtered = useMemo(
-        () => items.filter((i) => categoryFilter === 'all' || i.category === categoryFilter),
+        () =>
+            items.filter(
+                (i) =>
+                    categoryFilter === 'all' || i.category === categoryFilter,
+            ),
         [items, categoryFilter],
     );
 
@@ -118,7 +129,10 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
         };
 
         if (editingId) {
-            form.put(`/inspiration/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/inspiration/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/inspiration', { preserveScroll: true, onSuccess });
         }
@@ -155,12 +169,18 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
 
                 <div className="grid gap-4 sm:grid-cols-3">
                     <StatCard label="Ideas" value={String(stats.total)} />
-                    <StatCard label="With image" value={String(stats.with_image)} />
+                    <StatCard
+                        label="With image"
+                        value={String(stats.with_image)}
+                    />
                     <StatCard label="Themes" value={String(stats.categories)} />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <Select
+                        value={categoryFilter}
+                        onValueChange={setCategoryFilter}
+                    >
                         <SelectTrigger className="w-44">
                             <SelectValue placeholder="All themes" />
                         </SelectTrigger>
@@ -177,7 +197,7 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
 
                 {filtered.length === 0 ? (
                     <Card>
-                        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                        <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                             <Sparkles className="size-8 opacity-40" />
                             {items.length === 0
                                 ? 'No ideas yet. Pin your first piece of inspiration.'
@@ -187,8 +207,11 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                 ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {filtered.map((item) => (
-                            <Card key={item.id} className="group overflow-hidden pt-0">
-                                <div className="bg-muted aspect-square w-full overflow-hidden">
+                            <Card
+                                key={item.id}
+                                className="group overflow-hidden pt-0"
+                            >
+                                <div className="aspect-square w-full overflow-hidden bg-muted">
                                     {item.image_url ? (
                                         <img
                                             src={item.image_url}
@@ -197,18 +220,22 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                                             loading="lazy"
                                         />
                                     ) : (
-                                        <div className="text-muted-foreground flex size-full items-center justify-center">
+                                        <div className="flex size-full items-center justify-center text-muted-foreground">
                                             <ImageOff className="size-8 opacity-40" />
                                         </div>
                                     )}
                                 </div>
                                 <CardContent className="flex flex-col gap-2">
                                     <div className="flex items-start justify-between gap-2">
-                                        <span className="leading-tight font-medium">{item.title}</span>
-                                        <Badge variant="secondary">{labelFor(item.category)}</Badge>
+                                        <span className="leading-tight font-medium">
+                                            {item.title}
+                                        </span>
+                                        <Badge variant="secondary">
+                                            {labelFor(item.category)}
+                                        </Badge>
                                     </div>
                                     {item.notes && (
-                                        <p className="text-muted-foreground line-clamp-2 text-sm">
+                                        <p className="line-clamp-2 text-sm text-muted-foreground">
                                             {item.notes}
                                         </p>
                                     )}
@@ -218,7 +245,7 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                                                 href={item.link_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-primary inline-flex items-center gap-1 text-sm hover:underline"
+                                                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                                             >
                                                 <ExternalLink className="size-3.5" />
                                                 Source
@@ -231,7 +258,9 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => openEdit(item)}
+                                                    onClick={() =>
+                                                        openEdit(item)
+                                                    }
                                                     aria-label="Edit idea"
                                                 >
                                                     <Pencil className="size-4" />
@@ -239,7 +268,9 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => destroy(item)}
+                                                    onClick={() =>
+                                                        destroy(item)
+                                                    }
                                                     aria-label="Delete idea"
                                                 >
                                                     <Trash2 className="size-4" />
@@ -257,19 +288,27 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit idea' : 'Add idea'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit idea' : 'Add idea'}
+                        </SheetTitle>
                         <SheetDescription>
-                            Paste an image and a source link to build your mood board.
+                            Paste an image and a source link to build your mood
+                            board.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title</Label>
                             <Input
                                 id="title"
                                 value={form.data.title}
-                                onChange={(e) => form.setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('title', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.title} />
@@ -279,14 +318,19 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                             <Label>Theme</Label>
                             <Select
                                 value={form.data.category}
-                                onValueChange={(v) => form.setData('category', v)}
+                                onValueChange={(v) =>
+                                    form.setData('category', v)
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {options.categories.map((o) => (
-                                        <SelectItem key={o.value} value={o.value}>
+                                        <SelectItem
+                                            key={o.value}
+                                            value={o.value}
+                                        >
                                             {o.label}
                                         </SelectItem>
                                     ))}
@@ -300,7 +344,9 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                             <Input
                                 id="image_url"
                                 value={form.data.image_url}
-                                onChange={(e) => form.setData('image_url', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('image_url', e.target.value)
+                                }
                                 placeholder="https://…"
                             />
                             <InputError message={form.errors.image_url} />
@@ -311,7 +357,9 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                             <Input
                                 id="link_url"
                                 value={form.data.link_url}
-                                onChange={(e) => form.setData('link_url', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('link_url', e.target.value)
+                                }
                                 placeholder="https://…"
                             />
                             <InputError message={form.errors.link_url} />
@@ -322,7 +370,9 @@ export default function InspirationIndex({ items, stats, options }: PageProps) {
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -344,8 +394,10 @@ function StatCard({ label, value }: { label: string; value: string }) {
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">
+                    {value}
+                </div>
             </CardContent>
         </Card>
     );

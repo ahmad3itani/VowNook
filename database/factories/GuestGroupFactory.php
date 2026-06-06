@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\GuestGroup;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\GuestGroup>
+ * @extends Factory<GuestGroup>
  */
 class GuestGroupFactory extends Factory
 {

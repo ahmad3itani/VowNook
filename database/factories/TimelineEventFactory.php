@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\EventType;
+use App\Models\TimelineEvent;
 use App\Models\Wedding;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\TimelineEvent>
+ * @extends Factory<TimelineEvent>
  */
 class TimelineEventFactory extends Factory
 {

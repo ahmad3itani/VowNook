@@ -1,5 +1,12 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Armchair, GripVertical, Pencil, Plus, Trash2, UserMinus } from 'lucide-react';
+import {
+    Armchair,
+    GripVertical,
+    Pencil,
+    Plus,
+    Trash2,
+    UserMinus,
+} from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -88,15 +95,24 @@ function emptyForm(options: PageProps['options']): TableFormData {
     };
 }
 
-export default function SeatingIndex({ tables, guests, stats, options }: PageProps) {
+export default function SeatingIndex({
+    tables,
+    guests,
+    stats,
+    options,
+}: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('seating');
 
     const canvasRef = useRef<HTMLDivElement>(null);
-    const [positions, setPositions] = useState<Record<number, { x: number; y: number }>>({});
+    const [positions, setPositions] = useState<
+        Record<number, { x: number; y: number }>
+    >({});
     const [movingId, setMovingId] = useState<number | null>(null);
     const [dragGuestId, setDragGuestId] = useState<number | null>(null);
-    const [dropTarget, setDropTarget] = useState<number | 'unseated' | null>(null);
+    const [dropTarget, setDropTarget] = useState<number | 'unseated' | null>(
+        null,
+    );
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -104,7 +120,8 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
     const form = useForm<TableFormData>(emptyForm(options));
 
     const unseated = guests.filter((g) => g.table_id === null);
-    const guestsByTable = (tableId: number) => guests.filter((g) => g.table_id === tableId);
+    const guestsByTable = (tableId: number) =>
+        guests.filter((g) => g.table_id === tableId);
 
     const posFor = (table: Table) =>
         positions[table.id] ?? { x: table.position_x, y: table.position_y };
@@ -131,8 +148,16 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                 return;
             }
 
-            const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 3, 95);
-            const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 3, 92);
+            const x = clamp(
+                ((e.clientX - rect.left) / rect.width) * 100,
+                3,
+                95,
+            );
+            const y = clamp(
+                ((e.clientY - rect.top) / rect.height) * 100,
+                3,
+                92,
+            );
             setPositions((prev) => ({ ...prev, [id]: { x, y } }));
         }
 
@@ -165,7 +190,8 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
             { guest_id: guestId, table_id: tableId },
             {
                 preserveScroll: true,
-                onError: (errors) => toast.error(errors.table_id ?? 'Could not seat guest.'),
+                onError: (errors) =>
+                    toast.error(errors.table_id ?? 'Could not seat guest.'),
             },
         );
     }
@@ -208,7 +234,10 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
         };
 
         if (editingId) {
-            form.put(`/seating/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/seating/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/seating', { preserveScroll: true, onSuccess });
         }
@@ -246,11 +275,17 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Tables" value={String(stats.tables)} />
                     <StatCard label="Seats" value={String(stats.capacity)} />
-                    <StatCard label="Seated" value={String(stats.seated)} accent="text-emerald-600" />
+                    <StatCard
+                        label="Seated"
+                        value={String(stats.seated)}
+                        accent="text-emerald-600"
+                    />
                     <StatCard
                         label="Unseated"
                         value={String(stats.unseated)}
-                        accent={stats.unseated > 0 ? 'text-amber-600' : undefined}
+                        accent={
+                            stats.unseated > 0 ? 'text-amber-600' : undefined
+                        }
                     />
                 </div>
 
@@ -258,10 +293,10 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                     {/* Floor plan */}
                     <div
                         ref={canvasRef}
-                        className="bg-muted/30 relative min-h-[28rem] flex-1 overflow-hidden rounded-xl border bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:24px_24px]"
+                        className="relative min-h-[28rem] flex-1 overflow-hidden rounded-xl border bg-muted/30 bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:24px_24px]"
                     >
                         {tables.length === 0 && (
-                            <div className="text-muted-foreground absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-sm">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
                                 <Armchair className="size-8 opacity-40" />
                                 Add a table to start building your floor plan.
                             </div>
@@ -277,29 +312,39 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                 <div
                                     key={table.id}
                                     className="absolute -translate-x-1/2 -translate-y-1/2"
-                                    style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                                    style={{
+                                        left: `${pos.x}%`,
+                                        top: `${pos.y}%`,
+                                    }}
                                     onDragOver={(e) => {
                                         if (dragGuestId !== null) {
                                             e.preventDefault();
                                             setDropTarget(table.id);
                                         }
                                     }}
-                                    onDragLeave={() => setDropTarget((t) => (t === table.id ? null : t))}
+                                    onDragLeave={() =>
+                                        setDropTarget((t) =>
+                                            t === table.id ? null : t,
+                                        )
+                                    }
                                     onDrop={() => onGuestDrop(table.id)}
                                 >
                                     <div
-                                        className={`bg-card flex w-44 flex-col gap-2 border p-3 shadow-sm transition-colors ${
-                                            SHAPE_CLASS[table.shape] ?? 'rounded-lg'
-                                        } ${isTarget ? 'border-primary ring-primary/40 ring-2' : ''}`}
+                                        className={`flex w-44 flex-col gap-2 border bg-card p-3 shadow-sm transition-colors ${
+                                            SHAPE_CLASS[table.shape] ??
+                                            'rounded-lg'
+                                        } ${isTarget ? 'border-primary ring-2 ring-primary/40' : ''}`}
                                     >
                                         <div className="flex items-center justify-between gap-1">
                                             <div className="flex min-w-0 items-center gap-1">
                                                 {writable && (
                                                     <span
-                                                        className="text-muted-foreground hover:text-foreground cursor-grab touch-none active:cursor-grabbing"
+                                                        className="cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
                                                         onPointerDown={(e) => {
                                                             e.preventDefault();
-                                                            setMovingId(table.id);
+                                                            setMovingId(
+                                                                table.id,
+                                                            );
                                                         }}
                                                         aria-label="Move table"
                                                     >
@@ -310,8 +355,15 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                                     {table.name}
                                                 </span>
                                             </div>
-                                            <Badge variant={full ? 'default' : 'secondary'}>
-                                                {seatedGuests.length}/{table.capacity}
+                                            <Badge
+                                                variant={
+                                                    full
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                }
+                                            >
+                                                {seatedGuests.length}/
+                                                {table.capacity}
                                             </Badge>
                                         </div>
 
@@ -320,16 +372,27 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                                 <div
                                                     key={g.id}
                                                     draggable={writable}
-                                                    onDragStart={() => setDragGuestId(g.id)}
-                                                    onDragEnd={() => setDragGuestId(null)}
-                                                    className="bg-muted flex items-center justify-between gap-1 rounded px-2 py-1 text-xs"
+                                                    onDragStart={() =>
+                                                        setDragGuestId(g.id)
+                                                    }
+                                                    onDragEnd={() =>
+                                                        setDragGuestId(null)
+                                                    }
+                                                    className="flex items-center justify-between gap-1 rounded bg-muted px-2 py-1 text-xs"
                                                 >
-                                                    <span className="truncate">{g.name}</span>
+                                                    <span className="truncate">
+                                                        {g.name}
+                                                    </span>
                                                     {writable && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => assign(g.id, null)}
-                                                            className="text-muted-foreground hover:text-foreground shrink-0"
+                                                            onClick={() =>
+                                                                assign(
+                                                                    g.id,
+                                                                    null,
+                                                                )
+                                                            }
+                                                            className="shrink-0 text-muted-foreground hover:text-foreground"
                                                             aria-label={`Unseat ${g.name}`}
                                                         >
                                                             <UserMinus className="size-3" />
@@ -338,7 +401,7 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                                 </div>
                                             ))}
                                             {seatedGuests.length === 0 && (
-                                                <span className="text-muted-foreground py-1 text-center text-xs">
+                                                <span className="py-1 text-center text-xs text-muted-foreground">
                                                     Drop guests here
                                                 </span>
                                             )}
@@ -350,7 +413,9 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                                     variant="ghost"
                                                     size="icon"
                                                     className="size-7"
-                                                    onClick={() => openEdit(table)}
+                                                    onClick={() =>
+                                                        openEdit(table)
+                                                    }
                                                     aria-label="Edit table"
                                                 >
                                                     <Pencil className="size-3.5" />
@@ -359,7 +424,9 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                                     variant="ghost"
                                                     size="icon"
                                                     className="size-7"
-                                                    onClick={() => destroy(table)}
+                                                    onClick={() =>
+                                                        destroy(table)
+                                                    }
                                                     aria-label="Delete table"
                                                 >
                                                     <Trash2 className="size-3.5" />
@@ -374,14 +441,16 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
 
                     {/* Unseated guests */}
                     <Card
-                        className={`lg:w-72 ${dropTarget === 'unseated' ? 'border-primary ring-primary/40 ring-2' : ''}`}
+                        className={`lg:w-72 ${dropTarget === 'unseated' ? 'border-primary ring-2 ring-primary/40' : ''}`}
                         onDragOver={(e) => {
                             if (dragGuestId !== null) {
                                 e.preventDefault();
                                 setDropTarget('unseated');
                             }
                         }}
-                        onDragLeave={() => setDropTarget((t) => (t === 'unseated' ? null : t))}
+                        onDragLeave={() =>
+                            setDropTarget((t) => (t === 'unseated' ? null : t))
+                        }
                         onDrop={() => onGuestDrop(null)}
                     >
                         <CardContent className="flex flex-col gap-2 px-4">
@@ -389,7 +458,7 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                 Unseated guests ({unseated.length})
                             </div>
                             {unseated.length === 0 ? (
-                                <p className="text-muted-foreground py-6 text-center text-xs">
+                                <p className="py-6 text-center text-xs text-muted-foreground">
                                     Everyone has a seat.
                                 </p>
                             ) : (
@@ -399,7 +468,7 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                         draggable={writable}
                                         onDragStart={() => setDragGuestId(g.id)}
                                         onDragEnd={() => setDragGuestId(null)}
-                                        className="bg-muted hover:bg-muted/70 cursor-grab rounded px-3 py-2 text-sm active:cursor-grabbing"
+                                        className="cursor-grab rounded bg-muted px-3 py-2 text-sm hover:bg-muted/70 active:cursor-grabbing"
                                     >
                                         {g.name}
                                     </div>
@@ -413,17 +482,26 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit table' : 'Add table'}</SheetTitle>
-                        <SheetDescription>Name the table, pick a shape, and set its capacity.</SheetDescription>
+                        <SheetTitle>
+                            {editingId ? 'Edit table' : 'Add table'}
+                        </SheetTitle>
+                        <SheetDescription>
+                            Name the table, pick a shape, and set its capacity.
+                        </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="name">Table name</Label>
                             <Input
                                 id="name"
                                 value={form.data.name}
-                                onChange={(e) => form.setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('name', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.name} />
@@ -434,14 +512,19 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                 <Label>Shape</Label>
                                 <Select
                                     value={form.data.shape}
-                                    onValueChange={(v) => form.setData('shape', v)}
+                                    onValueChange={(v) =>
+                                        form.setData('shape', v)
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.shapes.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
+                                            <SelectItem
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -457,7 +540,9 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                                     min="1"
                                     max="50"
                                     value={form.data.capacity}
-                                    onChange={(e) => form.setData('capacity', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('capacity', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.capacity} />
                             </div>
@@ -468,7 +553,9 @@ export default function SeatingIndex({ tables, guests, stats, options }: PagePro
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -498,8 +585,10 @@ function StatCard({
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div
+                    className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}
+                >
                     {value}
                 </div>
             </CardContent>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use Database\Factories\WeddingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
 
 class Wedding extends Model
 {
-    /** @use HasFactory<\Database\Factories\WeddingFactory> */
+    /** @use HasFactory<WeddingFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [

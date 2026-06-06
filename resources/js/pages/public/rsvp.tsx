@@ -64,7 +64,10 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
         setDone(false);
         respond.setData({
             guest_id: match.id,
-            rsvp_status: match.rsvp_status === 'pending' ? 'attending' : match.rsvp_status,
+            rsvp_status:
+                match.rsvp_status === 'pending'
+                    ? 'attending'
+                    : match.rsvp_status,
             meal_choice: match.meal_choice ?? '',
             dietary_notes: match.dietary_notes ?? '',
         });
@@ -105,9 +108,12 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                             <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                                 <Check className="size-6" />
                             </div>
-                            <h2 className="text-xl font-medium">Reply received</h2>
+                            <h2 className="text-xl font-medium">
+                                Reply received
+                            </h2>
                             <p className="text-sm text-stone-500 dark:text-stone-400">
-                                Thank you, {selected?.name}. You can update your response any time.
+                                Thank you, {selected?.name}. You can update your
+                                response any time.
                             </p>
                             <Button
                                 variant="outline"
@@ -121,9 +127,14 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                             </Button>
                         </div>
                     ) : selected ? (
-                        <form onSubmit={submitRespond} className="flex flex-col gap-5">
+                        <form
+                            onSubmit={submitRespond}
+                            className="flex flex-col gap-5"
+                        >
                             <div>
-                                <h2 className="text-lg font-medium">Hello, {selected.name}</h2>
+                                <h2 className="text-lg font-medium">
+                                    Hello, {selected.name}
+                                </h2>
                                 <p className="text-sm text-stone-500 dark:text-stone-400">
                                     Will you be joining us?
                                 </p>
@@ -131,13 +142,19 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
 
                             <div className="grid gap-2">
                                 {REPLIES.map((r) => {
-                                    const active = respond.data.rsvp_status === r.value;
+                                    const active =
+                                        respond.data.rsvp_status === r.value;
 
                                     return (
                                         <button
                                             type="button"
                                             key={r.value}
-                                            onClick={() => respond.setData('rsvp_status', r.value)}
+                                            onClick={() =>
+                                                respond.setData(
+                                                    'rsvp_status',
+                                                    r.value,
+                                                )
+                                            }
                                             className={`rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
                                                 active
                                                     ? 'border-rose-400 bg-rose-50 font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-200'
@@ -153,20 +170,34 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                             {respond.data.rsvp_status === 'attending' && (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="meal_choice">Meal preference</Label>
+                                        <Label htmlFor="meal_choice">
+                                            Meal preference
+                                        </Label>
                                         <Input
                                             id="meal_choice"
                                             value={respond.data.meal_choice}
-                                            onChange={(e) => respond.setData('meal_choice', e.target.value)}
+                                            onChange={(e) =>
+                                                respond.setData(
+                                                    'meal_choice',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="Beef, fish, vegetarian…"
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="dietary_notes">Dietary notes</Label>
+                                        <Label htmlFor="dietary_notes">
+                                            Dietary notes
+                                        </Label>
                                         <Textarea
                                             id="dietary_notes"
                                             value={respond.data.dietary_notes}
-                                            onChange={(e) => respond.setData('dietary_notes', e.target.value)}
+                                            onChange={(e) =>
+                                                respond.setData(
+                                                    'dietary_notes',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="Allergies or restrictions"
                                         />
                                     </div>
@@ -174,11 +205,19 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                             )}
 
                             <div className="flex gap-2">
-                                <Button type="submit" disabled={respond.processing} className="flex-1">
+                                <Button
+                                    type="submit"
+                                    disabled={respond.processing}
+                                    className="flex-1"
+                                >
                                     {respond.processing && <Spinner />}
                                     Send reply
                                 </Button>
-                                <Button type="button" variant="ghost" onClick={() => setSelected(null)}>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setSelected(null)}
+                                >
                                     Back
                                 </Button>
                             </div>
@@ -192,18 +231,29 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                                 </p>
                             </div>
 
-                            <form onSubmit={submitLookup} className="flex gap-2">
+                            <form
+                                onSubmit={submitLookup}
+                                className="flex gap-2"
+                            >
                                 <div className="relative flex-1">
                                     <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" />
                                     <Input
                                         value={lookup.data.name}
-                                        onChange={(e) => lookup.setData('name', e.target.value)}
+                                        onChange={(e) =>
+                                            lookup.setData(
+                                                'name',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Your name"
                                         className="pl-9"
                                         autoFocus
                                     />
                                 </div>
-                                <Button type="submit" disabled={lookup.processing}>
+                                <Button
+                                    type="submit"
+                                    disabled={lookup.processing}
+                                >
                                     {lookup.processing ? <Spinner /> : 'Find'}
                                 </Button>
                             </form>
@@ -212,7 +262,8 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                                 <div className="flex flex-col gap-2">
                                     {matches.length === 0 ? (
                                         <p className="py-4 text-center text-sm text-stone-500 dark:text-stone-400">
-                                            No matches found. Try another spelling, or contact the couple.
+                                            No matches found. Try another
+                                            spelling, or contact the couple.
                                         </p>
                                     ) : (
                                         matches.map((m) => (
@@ -232,7 +283,9 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
                     )}
                 </div>
 
-                <p className="mt-10 text-xs text-stone-400">Powered by WedFlow Atelier</p>
+                <p className="mt-10 text-xs text-stone-400">
+                    Powered by WedFlow Atelier
+                </p>
             </div>
         </div>
     );

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Enums\VendorStatus;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Wedding;
@@ -111,7 +112,7 @@ class VendorWorkspaceTest extends TestCase
         ]);
         Vendor::factory()->create([
             'wedding_id' => $wedding->id,
-            'status' => \App\Enums\VendorStatus::Quoted,
+            'status' => VendorStatus::Quoted,
             'cost_cents' => 50000,
             'paid_cents' => 0,
         ]);

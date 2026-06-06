@@ -1,5 +1,15 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { CalendarClock, Clock, Download, MapPin, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import {
+    CalendarClock,
+    Clock,
+    Download,
+    FileText,
+    MapPin,
+    Pencil,
+    Plus,
+    Search,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -97,7 +107,12 @@ function emptyForm(options: PageProps['options']): EventFormData {
     };
 }
 
-export default function TimelineIndex({ events, stats, options, vendors }: PageProps) {
+export default function TimelineIndex({
+    events,
+    stats,
+    options,
+    vendors,
+}: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('timeline');
 
@@ -154,7 +169,8 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
             starts_at: toLocalInput(event.starts_at),
             ends_at: toLocalInput(event.ends_at),
             location: event.location ?? '',
-            vendor_id: event.vendor_id !== null ? String(event.vendor_id) : NO_VENDOR,
+            vendor_id:
+                event.vendor_id !== null ? String(event.vendor_id) : NO_VENDOR,
             notes: event.notes ?? '',
         });
         setEditingId(event.id);
@@ -175,7 +191,10 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
         };
 
         if (editingId) {
-            form.put(`/timeline/${editingId}`, { preserveScroll: true, onSuccess });
+            form.put(`/timeline/${editingId}`, {
+                preserveScroll: true,
+                onSuccess,
+            });
         } else {
             form.post('/timeline', { preserveScroll: true, onSuccess });
         }
@@ -206,7 +225,13 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                         <Button variant="outline" asChild>
                             <a href="/exports/timeline">
                                 <Download className="size-4" />
-                                Add to calendar
+                                Calendar
+                            </a>
+                        </Button>
+                        <Button variant="outline" asChild>
+                            <a href="/exports/timeline/pdf">
+                                <FileText className="size-4" />
+                                PDF
                             </a>
                         </Button>
                         {writable && (
@@ -220,14 +245,20 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Events" value={String(stats.total)} />
-                    <StatCard label="Vendor-linked" value={String(stats.linked)} />
-                    <StatCard label="Locations" value={String(stats.locations)} />
+                    <StatCard
+                        label="Vendor-linked"
+                        value={String(stats.linked)}
+                    />
+                    <StatCard
+                        label="Locations"
+                        value={String(stats.locations)}
+                    />
                     <StatCard label="Days" value={String(stats.days)} />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative max-w-xs flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -252,7 +283,7 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
 
                 {grouped.length === 0 ? (
                     <Card>
-                        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-16 text-center text-sm">
+                        <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
                             <CalendarClock className="size-8 opacity-40" />
                             {events.length === 0
                                 ? 'No events yet. Add your first moment to start the run-of-show.'
@@ -263,7 +294,7 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                     <div className="flex flex-col gap-6">
                         {grouped.map(([day, dayEvents]) => (
                             <div key={day} className="flex flex-col gap-3">
-                                <h2 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+                                <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                                     {dayFormat.format(new Date(day))}
                                 </h2>
                                 <Card>
@@ -273,25 +304,38 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                                 key={event.id}
                                                 className="flex items-start gap-4 p-4"
                                             >
-                                                <div className="text-muted-foreground flex w-20 shrink-0 flex-col text-sm tabular-nums">
-                                                    <span className="text-foreground flex items-center gap-1 font-medium">
+                                                <div className="flex w-20 shrink-0 flex-col text-sm text-muted-foreground tabular-nums">
+                                                    <span className="flex items-center gap-1 font-medium text-foreground">
                                                         <Clock className="size-3.5" />
-                                                        {timeFormat.format(new Date(event.starts_at))}
+                                                        {timeFormat.format(
+                                                            new Date(
+                                                                event.starts_at,
+                                                            ),
+                                                        )}
                                                     </span>
                                                     {event.ends_at && (
                                                         <span className="pl-[1.125rem] text-xs">
-                                                            {timeFormat.format(new Date(event.ends_at))}
+                                                            {timeFormat.format(
+                                                                new Date(
+                                                                    event.ends_at,
+                                                                ),
+                                                            )}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="font-medium">{event.title}</span>
+                                                        <span className="font-medium">
+                                                            {event.title}
+                                                        </span>
                                                         <Badge variant="secondary">
-                                                            {labelFor(options.types, event.type)}
+                                                            {labelFor(
+                                                                options.types,
+                                                                event.type,
+                                                            )}
                                                         </Badge>
                                                     </div>
-                                                    <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                                         {event.location && (
                                                             <span className="flex items-center gap-1">
                                                                 <MapPin className="size-3" />
@@ -299,7 +343,11 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                                             </span>
                                                         )}
                                                         {event.vendor_name && (
-                                                            <span>{event.vendor_name}</span>
+                                                            <span>
+                                                                {
+                                                                    event.vendor_name
+                                                                }
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -308,7 +356,9 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => openEdit(event)}
+                                                            onClick={() =>
+                                                                openEdit(event)
+                                                            }
                                                             aria-label="Edit event"
                                                         >
                                                             <Pencil className="size-4" />
@@ -316,7 +366,9 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => destroy(event)}
+                                                            onClick={() =>
+                                                                destroy(event)
+                                                            }
                                                             aria-label="Delete event"
                                                         >
                                                             <Trash2 className="size-4" />
@@ -336,19 +388,27 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>{editingId ? 'Edit event' : 'Add event'}</SheetTitle>
+                        <SheetTitle>
+                            {editingId ? 'Edit event' : 'Add event'}
+                        </SheetTitle>
                         <SheetDescription>
-                            Set the time, place, and the vendor responsible for this moment.
+                            Set the time, place, and the vendor responsible for
+                            this moment.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label htmlFor="title">Event</Label>
                             <Input
                                 id="title"
                                 value={form.data.title}
-                                onChange={(e) => form.setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('title', e.target.value)
+                                }
                                 autoFocus
                             />
                             <InputError message={form.errors.title} />
@@ -365,7 +425,10 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                 </SelectTrigger>
                                 <SelectContent>
                                     {options.types.map((o) => (
-                                        <SelectItem key={o.value} value={o.value}>
+                                        <SelectItem
+                                            key={o.value}
+                                            value={o.value}
+                                        >
                                             {o.label}
                                         </SelectItem>
                                     ))}
@@ -381,7 +444,12 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                     id="starts_at"
                                     type="datetime-local"
                                     value={form.data.starts_at}
-                                    onChange={(e) => form.setData('starts_at', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'starts_at',
+                                            e.target.value,
+                                        )
+                                    }
                                 />
                                 <InputError message={form.errors.starts_at} />
                             </div>
@@ -391,7 +459,9 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                                     id="ends_at"
                                     type="datetime-local"
                                     value={form.data.ends_at}
-                                    onChange={(e) => form.setData('ends_at', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('ends_at', e.target.value)
+                                    }
                                 />
                                 <InputError message={form.errors.ends_at} />
                             </div>
@@ -402,7 +472,9 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                             <Input
                                 id="location"
                                 value={form.data.location}
-                                onChange={(e) => form.setData('location', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('location', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.location} />
                         </div>
@@ -411,15 +483,22 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                             <Label>Vendor</Label>
                             <Select
                                 value={form.data.vendor_id}
-                                onValueChange={(v) => form.setData('vendor_id', v)}
+                                onValueChange={(v) =>
+                                    form.setData('vendor_id', v)
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={NO_VENDOR}>No vendor</SelectItem>
+                                    <SelectItem value={NO_VENDOR}>
+                                        No vendor
+                                    </SelectItem>
                                     {vendors.map((v) => (
-                                        <SelectItem key={v.id} value={String(v.id)}>
+                                        <SelectItem
+                                            key={v.id}
+                                            value={String(v.id)}
+                                        >
                                             {v.name}
                                         </SelectItem>
                                     ))}
@@ -433,7 +512,9 @@ export default function TimelineIndex({ events, stats, options, vendors }: PageP
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) => form.setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('notes', e.target.value)
+                                }
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -463,8 +544,10 @@ function StatCard({
     return (
         <Card>
             <CardContent className="px-5">
-                <div className="text-muted-foreground text-sm">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>
+                <div className="text-sm text-muted-foreground">{label}</div>
+                <div
+                    className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}
+                >
                     {value}
                 </div>
             </CardContent>
