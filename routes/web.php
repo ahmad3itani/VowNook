@@ -7,6 +7,7 @@ use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\PublicRsvpController;
+use App\Http\Controllers\PublicSeatingController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
@@ -19,6 +20,10 @@ Route::inertia('/', 'welcome')->name('home');
 Route::get('w/{wedding}', [PublicRsvpController::class, 'show'])->name('public.rsvp');
 Route::post('w/{wedding}/lookup', [PublicRsvpController::class, 'lookup'])->name('public.rsvp.lookup');
 Route::post('w/{wedding}/respond', [PublicRsvpController::class, 'respond'])->name('public.rsvp.respond');
+
+// Public seat finder — backs a printed QR code at the venue.
+Route::get('w/{wedding}/seats', [PublicSeatingController::class, 'show'])->name('public.seats');
+Route::post('w/{wedding}/seats/find', [PublicSeatingController::class, 'find'])->name('public.seats.find');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
