@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
+use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\CrewController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
@@ -127,6 +128,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('inspiration', [InspirationController::class, 'store'])->name('inspiration.store');
         Route::put('inspiration/{item}', [InspirationController::class, 'update'])->name('inspiration.update');
         Route::delete('inspiration/{item}', [InspirationController::class, 'destroy'])->name('inspiration.destroy');
+    });
+
+    // Collaborators (team access & roles).
+    Route::get('collaborators', [CollaboratorController::class, 'index'])
+        ->middleware('permission:collaborators,read')->name('collaborators.index');
+
+    Route::middleware('permission:collaborators,write')->group(function () {
+        Route::post('collaborators', [CollaboratorController::class, 'store'])->name('collaborators.store');
+        Route::put('collaborators/{user}', [CollaboratorController::class, 'update'])->name('collaborators.update');
+        Route::delete('collaborators/{user}', [CollaboratorController::class, 'destroy'])->name('collaborators.destroy');
     });
 
     // Wedding party / crew workspace.
