@@ -6,6 +6,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
+use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
@@ -13,6 +14,11 @@ use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
+
+// Public, unauthenticated wedding RSVP site.
+Route::get('w/{wedding}', [PublicRsvpController::class, 'show'])->name('public.rsvp');
+Route::post('w/{wedding}/lookup', [PublicRsvpController::class, 'lookup'])->name('public.rsvp.lookup');
+Route::post('w/{wedding}/respond', [PublicRsvpController::class, 'respond'])->name('public.rsvp.respond');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
