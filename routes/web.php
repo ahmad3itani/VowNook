@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
+use App\Http\Controllers\CrewController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GalleryController;
@@ -126,6 +127,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('inspiration', [InspirationController::class, 'store'])->name('inspiration.store');
         Route::put('inspiration/{item}', [InspirationController::class, 'update'])->name('inspiration.update');
         Route::delete('inspiration/{item}', [InspirationController::class, 'destroy'])->name('inspiration.destroy');
+    });
+
+    // Wedding party / crew workspace.
+    Route::get('crew', [CrewController::class, 'index'])
+        ->middleware('permission:crew,read')->name('crew.index');
+
+    Route::middleware('permission:crew,write')->group(function () {
+        Route::post('crew', [CrewController::class, 'store'])->name('crew.store');
+        Route::put('crew/{member}', [CrewController::class, 'update'])->name('crew.update');
+        Route::delete('crew/{member}', [CrewController::class, 'destroy'])->name('crew.destroy');
     });
 
     // Photo gallery workspace.

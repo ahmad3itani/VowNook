@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\AgeGroup;
+use App\Enums\CrewRole;
 use App\Enums\GuestSide;
 use App\Enums\InspirationCategory;
 use App\Enums\Role;
@@ -16,6 +17,7 @@ use App\Enums\VendorCategory;
 use App\Enums\VendorStatus;
 use App\Enums\TableShape;
 use App\Models\Guest;
+use App\Models\CrewMember;
 use App\Models\GuestGroup;
 use App\Models\InspirationItem;
 use App\Models\SeatingTable;
@@ -80,6 +82,7 @@ class DatabaseSeeder extends Seeder
         $this->seedTimeline($wedding);
         $this->seedSeating($wedding);
         $this->seedInspiration($wedding);
+        $this->seedCrew($wedding);
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */
@@ -281,6 +284,27 @@ class DatabaseSeeder extends Seeder
                 'category' => $category,
                 'image_url' => null,
                 'link_url' => null,
+            ]);
+        }
+    }
+
+    protected function seedCrew(Wedding $wedding): void
+    {
+        // [name, role]
+        $crew = [
+            ['Sophie Tremblay', CrewRole::MaidOfHonour],
+            ['Daniel Roy', CrewRole::BestMan],
+            ['Olivia Gagnon', CrewRole::Bridesmaid],
+            ['Liam Bouchard', CrewRole::Groomsman],
+            ['Rev. Marie Lefebvre', CrewRole::Officiant],
+            ['Marc Pelletier', CrewRole::Host],
+        ];
+
+        foreach ($crew as [$name, $role]) {
+            CrewMember::create([
+                'wedding_id' => $wedding->id,
+                'name' => $name,
+                'role' => $role,
             ]);
         }
     }
