@@ -35,7 +35,7 @@ class PublicRsvpTest extends TestCase
         $other = Wedding::factory()->create();
         Guest::factory()->create(['wedding_id' => $other->id, 'first_name' => 'Amelia', 'last_name' => 'Stone']);
 
-        $this->post("/w/{$wedding->slug}/rsvp/lookup", ['name' => 'Amelia'])
+        $this->get("/w/{$wedding->slug}/rsvp?name=Amelia")
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('public/rsvp')
@@ -45,12 +45,16 @@ class PublicRsvpTest extends TestCase
             );
     }
 
-    public function test_lookup_requires_a_name(): void
+    public function test_a_short_query_does_not_search(): void
     {
         $wedding = Wedding::factory()->create();
 
-        $this->post("/w/{$wedding->slug}/rsvp/lookup", ['name' => 'A'])
-            ->assertSessionHasErrors('name');
+        $this->get("/w/{$wedding->slug}/rsvp?name=A")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('searched', false)
+                ->has('matches', 0)
+            );
     }
 
     public function test_respond_updates_the_guest_reply(): void

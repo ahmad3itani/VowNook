@@ -27,14 +27,12 @@ Route::inertia('/', 'welcome')->name('home');
 // Public, unauthenticated wedding website (the couple's public front door).
 Route::get('w/{wedding}', [PublicWebsiteController::class, 'show'])->name('public.website');
 
-// Public RSVP site.
+// Public RSVP site (name search is a ?name= query on the show route).
 Route::get('w/{wedding}/rsvp', [PublicRsvpController::class, 'show'])->name('public.rsvp');
-Route::post('w/{wedding}/rsvp/lookup', [PublicRsvpController::class, 'lookup'])->name('public.rsvp.lookup');
 Route::post('w/{wedding}/rsvp/respond', [PublicRsvpController::class, 'respond'])->name('public.rsvp.respond');
 
 // Public seat finder — backs a printed QR code at the venue.
 Route::get('w/{wedding}/seats', [PublicSeatingController::class, 'show'])->name('public.seats');
-Route::post('w/{wedding}/seats/find', [PublicSeatingController::class, 'find'])->name('public.seats.find');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

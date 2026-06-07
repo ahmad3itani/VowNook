@@ -20,6 +20,7 @@ type PageProps = {
     wedding: { name: string; slug: string; event_date: string | null };
     matches: Match[];
     searched: boolean;
+    query: string;
 };
 
 const REPLIES: { value: string; label: string }[] = [
@@ -35,11 +36,11 @@ const dateFormat = new Intl.DateTimeFormat('en-CA', {
     day: 'numeric',
 });
 
-export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
+export default function PublicRsvp({ wedding, matches, searched, query }: PageProps) {
     const [selected, setSelected] = useState<Match | null>(null);
     const [done, setDone] = useState(false);
 
-    const lookup = useForm({ name: '' });
+    const lookup = useForm({ name: query ?? '' });
 
     const respond = useForm({
         guest_id: 0,
@@ -52,10 +53,10 @@ export default function PublicRsvp({ wedding, matches, searched }: PageProps) {
         e.preventDefault();
         setSelected(null);
         setDone(false);
-        lookup.post(`/w/${wedding.slug}/rsvp/lookup`, {
+        lookup.get(`/w/${wedding.slug}/rsvp`, {
             preserveScroll: true,
             preserveState: true,
-            only: ['matches', 'searched'],
+            only: ['matches', 'searched', 'query'],
         });
     }
 

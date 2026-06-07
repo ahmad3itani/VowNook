@@ -44,7 +44,7 @@ class PublicSeatingTest extends TestCase
             'table_id' => $table->id,
         ]);
 
-        $this->post("/w/{$wedding->slug}/seats/find", ['name' => 'Amelia'])
+        $this->get("/w/{$wedding->slug}/seats?name=Amelia")
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('public/seats')
@@ -65,7 +65,7 @@ class PublicSeatingTest extends TestCase
             'table_id' => null,
         ]);
 
-        $this->post("/w/{$wedding->slug}/seats/find", ['name' => 'Unseated'])
+        $this->get("/w/{$wedding->slug}/seats?name=Unseated")
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('searched', true)
@@ -84,16 +84,20 @@ class PublicSeatingTest extends TestCase
             'table_id' => $table->id,
         ]);
 
-        $this->post("/w/{$wedding->slug}/seats/find", ['name' => 'Amelia'])
+        $this->get("/w/{$wedding->slug}/seats?name=Amelia")
             ->assertOk()
             ->assertInertia(fn ($page) => $page->has('matches', 0));
     }
 
-    public function test_find_requires_a_name(): void
+    public function test_a_short_query_does_not_search(): void
     {
         $wedding = Wedding::factory()->create();
 
-        $this->post("/w/{$wedding->slug}/seats/find", ['name' => 'A'])
-            ->assertSessionHasErrors('name');
+        $this->get("/w/{$wedding->slug}/seats?name=A")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('searched', false)
+                ->has('matches', 0)
+            );
     }
 }

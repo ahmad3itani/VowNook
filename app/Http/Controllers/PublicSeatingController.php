@@ -16,57 +16,55 @@ use Inertia\Response;
  */
 class PublicSeatingController extends Controller
 {
-    public function show(Wedding $wedding): Response
+    /**
+     * The seat finder. Search is a GET query (?name=) on this same route so the
+     * URL stays refresh-safe — there is no separate POST endpoint that would
+     * rewrite the browser URL to a non-navigable path.
+     */
+    public function show(Wedding $wedding, Request $request): Response
     {
-        return Inertia::render('public/seats', [
-            'wedding' => $this->weddingPayload($wedding),
-            'matches' => [],
-            'searched' => false,
-        ]);
-    }
+        $term = trim((string) $request->query('name', ''));
+        $searched = mb_strlen($term) >= 2;
 
-    public function find(Wedding $wedding, Request $request): Response
-    {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-        ]);
+        $matches = collect();
 
-        $term = trim($data['name']);
-
-        $guests = Guest::query()
-            ->forWedding($wedding->id)
-            ->whereNotNull('table_id')
-            ->where(function ($query) use ($term) {
-                $query->where('first_name', 'like', "%{$term}%")
-                    ->orWhere('last_name', 'like', "%{$term}%");
-            })
-            ->with('seatingTable:id,name')
-            ->orderBy('first_name')
-            ->limit(15)
-            ->get(['id', 'first_name', 'last_name', 'table_id']);
-
-        $matches = $guests->map(function (Guest $g) use ($wedding) {
-            $tablemates = Guest::query()
+        if ($searched) {
+            $guests = Guest::query()
                 ->forWedding($wedding->id)
-                ->where('table_id', $g->table_id)
-                ->where('id', '!=', $g->id)
+                ->whereNotNull('table_id')
+                ->where(function ($query) use ($term) {
+                    $query->where('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%");
+                })
+                ->with('seatingTable:id,name')
                 ->orderBy('first_name')
-                ->get(['first_name', 'last_name'])
-                ->map(fn (Guest $m) => trim($m->first_name.' '.($m->last_name ?? '')))
-                ->values();
+                ->limit(15)
+                ->get(['id', 'first_name', 'last_name', 'table_id']);
 
-            return [
-                'id' => $g->id,
-                'name' => trim($g->first_name.' '.($g->last_name ?? '')),
-                'table' => $g->seatingTable?->name,
-                'tablemates' => $tablemates,
-            ];
-        });
+            $matches = $guests->map(function (Guest $g) use ($wedding) {
+                $tablemates = Guest::query()
+                    ->forWedding($wedding->id)
+                    ->where('table_id', $g->table_id)
+                    ->where('id', '!=', $g->id)
+                    ->orderBy('first_name')
+                    ->get(['first_name', 'last_name'])
+                    ->map(fn (Guest $m) => trim($m->first_name.' '.($m->last_name ?? '')))
+                    ->values();
+
+                return [
+                    'id' => $g->id,
+                    'name' => trim($g->first_name.' '.($g->last_name ?? '')),
+                    'table' => $g->seatingTable?->name,
+                    'tablemates' => $tablemates,
+                ];
+            });
+        }
 
         return Inertia::render('public/seats', [
             'wedding' => $this->weddingPayload($wedding),
-            'matches' => $matches,
-            'searched' => true,
+            'matches' => $matches->values(),
+            'searched' => $searched,
+            'query' => $term,
         ]);
     }
 

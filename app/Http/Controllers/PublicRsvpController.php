@@ -18,43 +18,42 @@ use Inertia\Response;
  */
 class PublicRsvpController extends Controller
 {
-    public function show(Wedding $wedding): Response
+    /**
+     * The RSVP page. Search is a GET query (?name=) on this same route so the
+     * URL stays refresh-safe and shareable — no separate POST endpoint that
+     * would rewrite the browser URL to a non-navigable path.
+     */
+    public function show(Wedding $wedding, Request $request): Response
     {
+        $term = trim((string) $request->query('name', ''));
+        $searched = mb_strlen($term) >= 2;
+
+        $matches = collect();
+
+        if ($searched) {
+            $matches = Guest::query()
+                ->forWedding($wedding->id)
+                ->where(function ($query) use ($term) {
+                    $query->where('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%");
+                })
+                ->orderBy('first_name')
+                ->limit(15)
+                ->get(['id', 'first_name', 'last_name', 'rsvp_status', 'meal_choice', 'dietary_notes'])
+                ->map(fn (Guest $g) => [
+                    'id' => $g->id,
+                    'name' => trim($g->first_name.' '.($g->last_name ?? '')),
+                    'rsvp_status' => $g->rsvp_status->value,
+                    'meal_choice' => $g->meal_choice,
+                    'dietary_notes' => $g->dietary_notes,
+                ]);
+        }
+
         return Inertia::render('public/rsvp', [
             'wedding' => $this->weddingPayload($wedding),
-            'matches' => [],
-            'searched' => false,
-        ]);
-    }
-
-    public function lookup(Wedding $wedding, Request $request): Response
-    {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-        ]);
-
-        $term = trim($data['name']);
-
-        $matches = Guest::query()
-            ->forWedding($wedding->id)
-            ->where(function ($query) use ($term) {
-                $query->where('first_name', 'like', "%{$term}%")
-                    ->orWhere('last_name', 'like', "%{$term}%");
-            })
-            ->orderBy('first_name')
-            ->limit(15)
-            ->get(['id', 'first_name', 'last_name', 'rsvp_status', 'meal_choice', 'dietary_notes']);
-
-        return Inertia::render('public/rsvp', [
-            'wedding' => $this->weddingPayload($wedding),
-            'matches' => $matches->map(fn (Guest $g) => [
-                'id' => $g->id,
-                'name' => trim($g->first_name.' '.($g->last_name ?? '')),
-                'rsvp_status' => $g->rsvp_status->value,
-                'meal_choice' => $g->meal_choice,
-                'dietary_notes' => $g->dietary_notes,
-            ]),
-            'searched' => true,
+            'matches' => $matches->values(),
+            'searched' => $searched,
+            'query' => $term,
         ]);
     }
 

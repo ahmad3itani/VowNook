@@ -15,6 +15,7 @@ type PageProps = {
     wedding: { name: string; slug: string; event_date: string | null };
     matches: Match[];
     searched: boolean;
+    query: string;
 };
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -24,15 +25,15 @@ const dateFormat = new Intl.DateTimeFormat('en-CA', {
     day: 'numeric',
 });
 
-export default function PublicSeats({ wedding, matches, searched }: PageProps) {
-    const lookup = useForm({ name: '' });
+export default function PublicSeats({ wedding, matches, searched, query }: PageProps) {
+    const lookup = useForm({ name: query ?? '' });
 
     function submitLookup(e: React.FormEvent) {
         e.preventDefault();
-        lookup.post(`/w/${wedding.slug}/seats/find`, {
+        lookup.get(`/w/${wedding.slug}/seats`, {
             preserveScroll: true,
             preserveState: true,
-            only: ['matches', 'searched'],
+            only: ['matches', 'searched', 'query'],
         });
     }
 
