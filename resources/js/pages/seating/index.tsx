@@ -106,10 +106,10 @@ const ELEMENT_ICON: Record<string, LucideIcon> = {
 };
 
 const RSVP_RING: Record<string, string> = {
-    attending: 'ring-emerald-400',
-    maybe: 'ring-amber-400',
-    declined: 'ring-rose-400',
-    pending: 'ring-stone-300',
+    attending: 'ring-[#775a19]',
+    maybe: 'ring-[#c5a059]',
+    declined: 'ring-[#c1b6a8]',
+    pending: 'ring-[#e0d6c9]',
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -486,11 +486,11 @@ return;
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Tables" value={String(stats.tables)} />
                     <StatCard label="Seats" value={String(stats.capacity)} />
-                    <StatCard label="Seated" value={String(stats.seated)} accent="text-emerald-600" />
+                    <StatCard label="Seated" value={String(stats.seated)} accent="text-[#775a19]" />
                     <StatCard
                         label="Unseated"
                         value={String(stats.unseated)}
-                        accent={stats.unseated > 0 ? 'text-amber-600' : undefined}
+                        accent={stats.unseated > 0 ? 'text-[#b08d3e]' : undefined}
                     />
                 </div>
 
@@ -564,7 +564,7 @@ return;
                         <div
                             ref={canvasRef}
                             onPointerDown={() => setSelectedElement(null)}
-                            className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-stone-300 bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:22px_22px] dark:border-stone-700"
+                            className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-border bg-card bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:22px_22px]"
                             style={{ aspectRatio: aspect }}
                         >
                             <span className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 rounded bg-background/70 px-2 text-[10px] text-muted-foreground">
@@ -608,7 +608,7 @@ return;
                                             className={`flex size-full flex-col items-center justify-center gap-1 rounded-lg border text-center text-xs font-medium transition-colors ${
                                                 selected
                                                     ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-                                                    : 'border-stone-300 bg-stone-100/80 text-stone-600 dark:border-stone-600 dark:bg-stone-800/70 dark:text-stone-300'
+                                                    : 'border-border bg-muted text-muted-foreground'
                                             }`}
                                         >
                                             <Icon className="size-4 shrink-0" />
@@ -731,8 +731,8 @@ return;
                                                         title={who ? `Seat ${seat.n}: ${who.name}` : `Seat ${seat.n}`}
                                                         className={`flex items-center justify-center rounded-full border text-[9px] font-semibold transition-all ${
                                                             who
-                                                                ? `cursor-grab bg-rose-500 text-white ring-2 active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
-                                                                : 'border-dashed border-stone-400 bg-background text-stone-400 dark:border-stone-600'
+                                                                ? `cursor-grab bg-[#775a19] text-white ring-2 ring-offset-1 ring-offset-card active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
+                                                                : 'border-dashed border-[#c1b6a8] bg-background text-muted-foreground'
                                                         } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''}`}
                                                         style={{ width: geo.chair, height: geo.chair }}
                                                     >
@@ -853,10 +853,10 @@ free++;
                                         <span
                                             className={`size-2 shrink-0 rounded-full ${
                                                 g.rsvp_status === 'attending'
-                                                    ? 'bg-emerald-400'
+                                                    ? 'bg-[#775a19]'
                                                     : g.rsvp_status === 'declined'
-                                                      ? 'bg-rose-400'
-                                                      : 'bg-stone-300'
+                                                      ? 'bg-[#c1b6a8]'
+                                                      : 'bg-[#e0d6c9]'
                                             }`}
                                         />
                                         <span className="truncate">{g.name}</span>
