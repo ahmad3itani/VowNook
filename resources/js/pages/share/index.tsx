@@ -76,7 +76,7 @@ function LinkCard({ link, url }: { link: ShareLink; url: string }) {
                     <div className="flex flex-wrap gap-2">
                         <Button variant="outline" size="sm" onClick={copy}>
                             {copied ? (
-                                <Check className="text-emerald-500" />
+                                <Check className="text-[#775a19]" />
                             ) : (
                                 <Copy />
                             )}

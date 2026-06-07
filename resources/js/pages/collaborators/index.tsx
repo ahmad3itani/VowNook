@@ -179,7 +179,7 @@ export default function CollaboratorsIndex({
                                 key={member.id}
                                 className="flex flex-wrap items-center gap-4 p-4"
                             >
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-sm font-medium text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#fed488]/40 text-sm font-medium text-[#775a19] dark:bg-[#fed488]/15 dark:text-[#c5a059]">
                                     {initials(member.name)}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -199,7 +199,7 @@ export default function CollaboratorsIndex({
                                 </div>
 
                                 {member.is_owner ? (
-                                    <Badge className="gap-1 bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300">
+                                    <Badge className="gap-1 bg-[#fed488]/40 text-[#775a19] hover:bg-[#fed488]/40 dark:bg-[#fed488]/15 dark:text-[#c5a059]">
                                         <Crown className="size-3.5" />
                                         Owner
                                     </Badge>

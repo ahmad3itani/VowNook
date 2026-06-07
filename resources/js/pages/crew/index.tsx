@@ -214,7 +214,7 @@ export default function CrewIndex({ members, stats, options }: PageProps) {
                             <Card key={member.id} className="group">
                                 <CardContent className="flex flex-col gap-3">
                                     <div className="flex items-start gap-3">
-                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-rose-100 font-medium text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#fed488]/40 font-medium text-[#775a19] dark:bg-[#fed488]/15 dark:text-[#c5a059]">
                                             {initials(member.name)}
                                         </div>
                                         <div className="min-w-0 flex-1">

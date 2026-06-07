@@ -218,12 +218,12 @@ export default function BudgetIndex({ items, categories, stats }: PageProps) {
                     <StatCard
                         label="Paid"
                         value={money.format(stats.paid)}
-                        accent="text-emerald-600"
+                        accent="text-[#775a19]"
                     />
                     <StatCard
                         label="Outstanding"
                         value={money.format(stats.outstanding)}
-                        accent="text-amber-600"
+                        accent="text-[#b08d3e]"
                     />
                 </div>
 

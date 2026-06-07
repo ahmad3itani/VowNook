@@ -222,7 +222,7 @@ export default function ChecklistIndex({
                     <StatCard
                         label="Completed"
                         value={String(stats.completed)}
-                        accent="text-emerald-600"
+                        accent="text-[#775a19]"
                     />
                     <StatCard
                         label="Outstanding"

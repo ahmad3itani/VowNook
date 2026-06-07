@@ -221,7 +221,7 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                     <StatCard
                         label="Booked"
                         value={String(stats.booked)}
-                        accent="text-emerald-600"
+                        accent="text-[#775a19]"
                     />
                     <StatCard
                         label="Contracted"
@@ -230,7 +230,7 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                     <StatCard
                         label="Paid"
                         value={money.format(stats.paid)}
-                        accent="text-emerald-600"
+                        accent="text-[#775a19]"
                     />
                 </div>
 

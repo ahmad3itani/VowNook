@@ -56,7 +56,7 @@ export default function Plan({ current, tiers }: PageProps) {
                                 className={cn(
                                     'flex flex-col rounded-xl border p-5',
                                     isCurrent
-                                        ? 'border-rose-400 ring-1 ring-rose-400'
+                                        ? 'border-[#775a19] ring-1 ring-[#775a19]'
                                         : 'border-border',
                                 )}
                             >
@@ -65,7 +65,7 @@ export default function Plan({ current, tiers }: PageProps) {
                                         {tier.name}
                                     </span>
                                     {isCurrent && (
-                                        <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300">
+                                        <Badge className="bg-[#fed488]/40 text-[#775a19] hover:bg-[#fed488]/40 dark:bg-[#fed488]/15 dark:text-[#c5a059]">
                                             Current
                                         </Badge>
                                     )}
@@ -87,7 +87,7 @@ export default function Plan({ current, tiers }: PageProps) {
                                             key={f}
                                             className="flex items-center gap-2"
                                         >
-                                            <Check className="size-4 text-emerald-500" />
+                                            <Check className="size-4 text-[#775a19]" />
                                             {f}
                                         </li>
                                     ))}

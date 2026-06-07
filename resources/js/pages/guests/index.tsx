@@ -264,17 +264,17 @@ export default function GuestsIndex({
                     <StatCard
                         label="Attending"
                         value={stats.attending}
-                        accent="text-emerald-600"
+                        accent="text-[#775a19]"
                     />
                     <StatCard
                         label="Pending"
                         value={stats.pending}
-                        accent="text-amber-600"
+                        accent="text-[#b08d3e]"
                     />
                     <StatCard
                         label="Declined"
                         value={stats.declined}
-                        accent="text-rose-600"
+                        accent="text-[#775a19]"
                     />
                 </div>
 
