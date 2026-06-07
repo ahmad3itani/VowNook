@@ -1,7 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { Armchair, ChevronDown, Clock, Heart, MapPin, Shirt } from 'lucide-react';
-import { Countdown } from '@/components/countdown';
+import { useEffect, useState } from 'react';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 
 type Content = {
@@ -24,7 +23,6 @@ type PageProps = {
 const IMG = {
     hero: '/images/wedding/hero.jpg',
     story: '/images/wedding/story.jpg',
-    celebration: '/images/wedding/celebration.jpg',
 };
 
 const GALLERY = [
@@ -36,219 +34,269 @@ const GALLERY = [
     { src: '/images/wedding/ceremony.jpg', label: 'Ceremony' },
 ];
 
-const dateFormat = new Intl.DateTimeFormat('en-CA', {
+const serif = "font-['Playfair_Display']";
+
+const longDate = new Intl.DateTimeFormat('en-CA', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
 });
+const shortDate = new Intl.DateTimeFormat('en-CA', { month: 'long', day: 'numeric', year: 'numeric' });
 
-const heroText = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.18, delayChildren: 0.2 } },
-};
-const heroItem = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const } },
-};
+/** Render "Amelia & Julian" with the ampersand set in italic Playfair. */
+function CoupleName({ name, className }: { name: string; className?: string }) {
+    const parts = name.split(/\s*&\s*/);
 
-export default function PublicWebsite({ wedding, published, content }: PageProps) {
-    const eventDate = wedding.event_date ? dateFormat.format(new Date(wedding.event_date)) : null;
-    const heroImage = content?.hero_image_url || IMG.hero;
+    if (parts.length < 2) {
+        return <span className={className}>{name}</span>;
+    }
 
     return (
-        <div className="bg-white text-stone-800 dark:bg-stone-950 dark:text-stone-100">
+        <span className={className}>
+            {parts[0]} <span className="italic font-normal text-[#775a19]">&amp;</span> {parts.slice(1).join(' & ')}
+        </span>
+    );
+}
+
+function useCountdown(date: string | null) {
+    const [parts, setParts] = useState({ days: 0, hours: 0, minutes: 0 });
+    useEffect(() => {
+        if (!date) {
+return;
+}
+
+        const tick = () => {
+            const ms = new Date(date).getTime() - Date.now();
+
+            if (ms <= 0) {
+                setParts({ days: 0, hours: 0, minutes: 0 });
+
+                return;
+            }
+
+            const s = Math.floor(ms / 1000);
+            setParts({
+                days: Math.floor(s / 86400),
+                hours: Math.floor((s % 86400) / 3600),
+                minutes: Math.floor((s % 3600) / 60),
+            });
+        };
+        tick();
+        const id = setInterval(tick, 1000 * 30);
+
+        return () => clearInterval(id);
+    }, [date]);
+
+    return parts;
+}
+
+export default function PublicWebsite({ wedding, published, content }: PageProps) {
+    const heroImage = content?.hero_image_url || IMG.hero;
+    const eventLong = wedding.event_date ? longDate.format(new Date(wedding.event_date)) : null;
+    const eventShort = wedding.event_date ? shortDate.format(new Date(wedding.event_date)) : null;
+    const cd = useCountdown(wedding.event_date);
+
+    return (
+        <div className="min-h-screen bg-[#fff8f3] font-['DM_Sans'] text-[#1e1b17] antialiased">
             <Head title={wedding.name} />
 
+            {/* Header */}
+            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#cec5bd]/30 bg-[#fff8f3]/80 backdrop-blur-md">
+                <nav className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 md:px-16">
+                    <span className={`${serif} text-2xl tracking-tight`}>
+                        <CoupleName name={wedding.name} />
+                    </span>
+                    <div className="hidden items-center gap-10 md:flex">
+                        <a href="#story" className="text-sm tracking-wide text-[#4c4640] transition-colors hover:text-[#775a19]">
+                            The Story
+                        </a>
+                        <a href="#details" className="text-sm tracking-wide text-[#4c4640] transition-colors hover:text-[#775a19]">
+                            Details
+                        </a>
+                        <a href="#gallery" className="text-sm tracking-wide text-[#4c4640] transition-colors hover:text-[#775a19]">
+                            Gallery
+                        </a>
+                    </div>
+                    <Link
+                        href={`/w/${wedding.slug}/rsvp`}
+                        className="bg-[#1e1b18] px-7 py-2.5 text-xs font-medium tracking-[0.2em] text-white uppercase transition-opacity hover:opacity-80"
+                    >
+                        RSVP
+                    </Link>
+                </nav>
+            </header>
+
             {/* Hero */}
-            <section className="relative flex h-screen min-h-[600px] items-center justify-center overflow-hidden">
+            <section className="relative flex min-h-screen flex-col justify-end overflow-hidden pt-24">
                 <motion.div
-                    className="absolute inset-0 bg-cover bg-center"
+                    className="absolute inset-0 z-0 bg-cover bg-center"
                     style={{ backgroundImage: `url(${heroImage})` }}
-                    initial={{ scale: 1.18 }}
+                    initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
-                    transition={{ duration: 12, ease: 'easeOut' }}
+                    transition={{ duration: 14, ease: 'easeOut' }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+                <div className="absolute inset-0 z-0 bg-gradient-to-t from-[#fff8f3] via-[#1e1b18]/20 to-[#1e1b18]/30" />
 
                 <motion.div
-                    className="relative z-10 px-6 text-center text-white"
-                    variants={heroText}
-                    initial="hidden"
-                    animate="visible"
+                    className="relative z-10 mx-auto w-full max-w-[1440px] px-5 pb-24 text-center md:px-16 md:text-left"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <motion.div variants={heroItem}>
-                        <Heart className="mx-auto size-9" />
-                    </motion.div>
-                    <motion.p
-                        variants={heroItem}
-                        className="mt-6 text-sm tracking-[0.4em] uppercase opacity-90"
-                    >
-                        {content?.headline || 'Together with their families'}
-                    </motion.p>
-                    <motion.h1
-                        variants={heroItem}
-                        className="mt-4 font-serif text-6xl leading-[1.05] sm:text-7xl md:text-8xl"
-                    >
-                        {wedding.name}
-                    </motion.h1>
-                    {eventDate && (
-                        <motion.p variants={heroItem} className="mt-6 text-lg tracking-wide opacity-90">
-                            {eventDate}
-                        </motion.p>
-                    )}
-                    {wedding.event_date && (
-                        <motion.div variants={heroItem} className="mt-10">
-                            <Countdown date={wedding.event_date} light />
-                        </motion.div>
-                    )}
-                    <motion.div variants={heroItem} className="mt-12 flex flex-wrap justify-center gap-3">
-                        <Link
-                            href={`/w/${wedding.slug}/rsvp`}
-                            className="rounded-full bg-rose-500 px-8 py-3 font-medium text-white shadow-lg transition-colors hover:bg-rose-600"
-                        >
-                            RSVP
-                        </Link>
-                        <Link
-                            href={`/w/${wedding.slug}/seats`}
-                            className="inline-flex items-center gap-2 rounded-full border border-white/60 px-8 py-3 font-medium text-white backdrop-blur transition-colors hover:bg-white/10"
-                        >
-                            <Armchair className="size-4" />
-                            Find your seat
-                        </Link>
-                    </motion.div>
-                </motion.div>
+                    <p className="mb-6 text-xs tracking-[0.3em] text-white/90 uppercase drop-shadow">
+                        {content?.headline || 'Save the Date'}
+                        {eventShort ? ` • ${eventShort}` : ''}
+                    </p>
+                    <h1 className={`${serif} mb-10 text-6xl leading-[1.05] text-white drop-shadow-lg sm:text-7xl md:text-8xl`}>
+                        <CoupleName name={wedding.name} />
+                    </h1>
 
-                <motion.div
-                    className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-white/80"
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                    <ChevronDown className="size-7" />
+                    <div className="flex flex-col items-center gap-8 md:flex-row md:items-end">
+                        {wedding.event_date && (
+                            <div className="flex gap-8 border border-white/30 bg-[#1e1b18]/30 px-8 py-6 backdrop-blur-sm">
+                                {[
+                                    { label: 'Days', value: cd.days },
+                                    { label: 'Hours', value: cd.hours },
+                                    { label: 'Mins', value: cd.minutes },
+                                ].map((u) => (
+                                    <div key={u.label} className="text-center text-white">
+                                        <span className={`${serif} block text-3xl tabular-nums sm:text-4xl`}>
+                                            {String(u.value).padStart(2, '0')}
+                                        </span>
+                                        <span className="text-[10px] tracking-widest uppercase opacity-70">{u.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {content?.welcome_message && (
+                            <p className="max-w-xs text-sm text-white/90 italic drop-shadow md:text-[#4c4640] md:not-italic md:opacity-100">
+                                {content.welcome_message}
+                            </p>
+                        )}
+                    </div>
                 </motion.div>
             </section>
 
-            {/* Welcome */}
-            {published && content?.welcome_message && (
-                <section className="mx-auto max-w-2xl px-6 py-24 text-center">
-                    <Reveal>
-                        <Heart className="mx-auto size-6 text-rose-400" />
-                        <p className="mt-6 font-serif text-2xl leading-relaxed text-stone-600 sm:text-3xl dark:text-stone-300">
-                            {content.welcome_message}
-                        </p>
-                    </Reveal>
-                </section>
-            )}
-
-            {/* Our story */}
             {published && content?.our_story && (
-                <section className="mx-auto grid max-w-5xl items-center gap-10 px-6 py-16 md:grid-cols-2">
-                    <Reveal className="overflow-hidden rounded-3xl">
-                        <img
-                            src={IMG.story}
-                            alt="Our story"
-                            className="aspect-[4/5] w-full object-cover"
-                            loading="lazy"
-                        />
-                    </Reveal>
-                    <Reveal delay={0.15}>
-                        <p className="text-sm tracking-[0.3em] text-rose-400 uppercase">Our story</p>
-                        <h2 className="mt-3 font-serif text-4xl">How it began</h2>
-                        <p className="mt-5 leading-relaxed whitespace-pre-line text-stone-600 dark:text-stone-300">
-                            {content.our_story}
-                        </p>
-                    </Reveal>
+                <section id="story" className="bg-[#faf2ec] py-24 md:py-40">
+                    <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 md:grid-cols-12 md:px-16">
+                        <Reveal className="md:col-span-5">
+                            <div className="relative aspect-[3/4] overflow-hidden">
+                                <img
+                                    src={IMG.story}
+                                    alt="Our story"
+                                    className="size-full object-cover grayscale transition-all duration-700 hover:grayscale-0"
+                                    loading="lazy"
+                                />
+                            </div>
+                        </Reveal>
+                        <Reveal delay={0.15} className="md:col-span-6 md:col-start-7">
+                            <h2 className="mb-8 text-xs tracking-[0.25em] text-[#775a19] uppercase">The Beginning</h2>
+                            <h3 className={`${serif} mb-10 text-4xl leading-tight sm:text-5xl`}>How it began</h3>
+                            <p className="text-lg leading-relaxed whitespace-pre-line text-[#4c4640]">{content.our_story}</p>
+                            <div className="mt-8 h-px w-16 bg-[#775a19]/40" />
+                        </Reveal>
+                    </div>
                 </section>
             )}
 
             {/* Details */}
             {published && (content?.venue_name || content?.ceremony_time || content?.dress_code) && (
-                <section className="mx-auto max-w-5xl px-6 py-20">
-                    <Reveal className="mb-12 text-center">
-                        <h2 className="font-serif text-4xl">The Details</h2>
-                    </Reveal>
-                    <Stagger className="grid gap-6 sm:grid-cols-3">
-                        {content.venue_name && (
-                            <StaggerItem className="rounded-2xl border border-rose-100/70 bg-rose-50/40 p-8 text-center dark:border-stone-800 dark:bg-stone-900/50">
-                                <MapPin className="mx-auto size-6 text-rose-400" />
-                                <h3 className="mt-4 font-serif text-xl">Venue</h3>
-                                <p className="mt-2 text-stone-600 dark:text-stone-300">{content.venue_name}</p>
-                                {content.venue_address && (
-                                    <p className="mt-1 text-sm text-stone-400">{content.venue_address}</p>
-                                )}
-                            </StaggerItem>
-                        )}
-                        {content.ceremony_time && (
-                            <StaggerItem className="rounded-2xl border border-rose-100/70 bg-rose-50/40 p-8 text-center dark:border-stone-800 dark:bg-stone-900/50">
-                                <Clock className="mx-auto size-6 text-rose-400" />
-                                <h3 className="mt-4 font-serif text-xl">Ceremony</h3>
-                                <p className="mt-2 text-stone-600 dark:text-stone-300">{content.ceremony_time}</p>
-                            </StaggerItem>
-                        )}
-                        {content.dress_code && (
-                            <StaggerItem className="rounded-2xl border border-rose-100/70 bg-rose-50/40 p-8 text-center dark:border-stone-800 dark:bg-stone-900/50">
-                                <Shirt className="mx-auto size-6 text-rose-400" />
-                                <h3 className="mt-4 font-serif text-xl">Dress code</h3>
-                                <p className="mt-2 text-stone-600 dark:text-stone-300">{content.dress_code}</p>
-                            </StaggerItem>
-                        )}
-                    </Stagger>
+                <section id="details" className="bg-[#fff8f3] py-24 md:py-40">
+                    <div className="mx-auto max-w-[1440px] px-5 md:px-16">
+                        <Reveal className="mb-16 text-center">
+                            <h2 className={`${serif} text-4xl sm:text-5xl`}>
+                                The <span className="italic text-[#775a19]">Celebration</span>
+                            </h2>
+                            {eventLong && (
+                                <p className="mt-4 text-sm tracking-[0.15em] text-[#4c4640] uppercase">{eventLong}</p>
+                            )}
+                        </Reveal>
+                        <Stagger className="grid gap-px overflow-hidden border border-[#cec5bd]/40 bg-[#cec5bd]/40 md:grid-cols-3">
+                            {[
+                                { label: 'The Venue', value: content.venue_name, sub: content.venue_address },
+                                { label: 'Ceremony', value: content.ceremony_time, sub: eventLong },
+                                { label: 'Dress Code', value: content.dress_code, sub: null },
+                            ]
+                                .filter((d) => d.value)
+                                .map((d) => (
+                                    <StaggerItem key={d.label} className="bg-[#fff8f3] p-10 text-center">
+                                        <p className="text-xs tracking-[0.2em] text-[#775a19] uppercase">{d.label}</p>
+                                        <p className={`${serif} mt-4 text-2xl`}>{d.value}</p>
+                                        {d.sub && <p className="mt-2 text-sm text-[#4c4640]">{d.sub}</p>}
+                                    </StaggerItem>
+                                ))}
+                        </Stagger>
+                    </div>
                 </section>
             )}
 
             {/* Gallery */}
-            <section className="mx-auto max-w-6xl px-6 py-20">
-                <Reveal className="mb-12 text-center">
-                    <p className="text-sm tracking-[0.3em] text-rose-400 uppercase">A glimpse</p>
-                    <h2 className="mt-3 font-serif text-4xl">Moments to come</h2>
-                </Reveal>
-                <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                    {GALLERY.map((g) => (
-                        <StaggerItem
-                            key={g.src}
-                            className="group relative overflow-hidden rounded-2xl"
-                        >
-                            <img
-                                src={g.src}
-                                alt={g.label}
-                                className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                loading="lazy"
-                            />
-                            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                                <span className="font-serif text-lg text-white">{g.label}</span>
-                            </div>
-                        </StaggerItem>
-                    ))}
-                </Stagger>
-            </section>
-
-            {/* CTA band */}
-            <section className="relative overflow-hidden">
-                <div
-                    className="absolute inset-0 bg-cover bg-fixed bg-center"
-                    style={{ backgroundImage: `url(${IMG.celebration})` }}
-                />
-                <div className="absolute inset-0 bg-rose-950/70" />
-                <div className="relative mx-auto max-w-2xl px-6 py-28 text-center text-white">
-                    <Reveal>
-                        <h2 className="font-serif text-4xl sm:text-5xl">We can't wait to celebrate</h2>
-                        <p className="mx-auto mt-4 max-w-md text-rose-50">
-                            {published
-                                ? 'Let us know if you can make it — we would love to have you there.'
-                                : 'More details are on the way. In the meantime, you can let us know if you’ll be there.'}
-                        </p>
-                        <Link
-                            href={`/w/${wedding.slug}/rsvp`}
-                            className="mt-8 inline-block rounded-full bg-white px-8 py-3 font-medium text-rose-600 transition-transform hover:scale-105"
-                        >
-                            RSVP now
-                        </Link>
+            <section id="gallery" className="bg-[#1e1b18] py-24 md:py-40">
+                <div className="mx-auto max-w-[1440px] px-5 md:px-16">
+                    <Reveal className="mb-16 text-center">
+                        <p className="text-xs tracking-[0.25em] text-[#e9c176] uppercase">A glimpse</p>
+                        <h2 className={`${serif} mt-4 text-4xl text-[#fff8f3] sm:text-5xl`}>The Atmosphere</h2>
                     </Reveal>
+                    <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+                        {GALLERY.map((g) => (
+                            <StaggerItem key={g.src} className="group relative aspect-[4/5] overflow-hidden">
+                                <img
+                                    src={g.src}
+                                    alt={g.label}
+                                    loading="lazy"
+                                    className="size-full object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#1e1b18]/70 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                                <span className="absolute bottom-4 left-4 text-xs tracking-[0.2em] text-white/90 uppercase opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                                    {g.label}
+                                </span>
+                            </StaggerItem>
+                        ))}
+                    </Stagger>
                 </div>
             </section>
 
-            <footer className="bg-white py-8 text-center text-sm text-stone-400 dark:bg-stone-950">
-                Powered by WedFlow Atelier
+            {/* RSVP CTA */}
+            <section className="bg-[#fff8f3] py-28 text-center md:py-40">
+                <Reveal className="mx-auto max-w-2xl px-5">
+                    <h2 className={`${serif} mb-6 text-4xl sm:text-5xl`}>
+                        Kindly <span className="italic text-[#775a19]">Respond</span>
+                    </h2>
+                    <p className="mb-12 text-[#4c4640]">
+                        We would be honoured to have you celebrate with us. Find your name to send your reply.
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-4">
+                        <Link
+                            href={`/w/${wedding.slug}/rsvp`}
+                            className="bg-[#1e1b18] px-12 py-4 text-xs font-medium tracking-[0.3em] text-white uppercase transition-opacity hover:opacity-80"
+                        >
+                            RSVP
+                        </Link>
+                        <Link
+                            href={`/w/${wedding.slug}/seats`}
+                            className="border border-[#1e1b18] px-12 py-4 text-xs font-medium tracking-[0.3em] text-[#1e1b18] uppercase transition-colors hover:bg-[#1e1b18] hover:text-white"
+                        >
+                            Find your seat
+                        </Link>
+                    </div>
+                </Reveal>
+            </section>
+
+            {/* Footer */}
+            <footer className="border-t border-[#cec5bd]/30 bg-[#fff8f3] py-16">
+                <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-6 px-5 text-center md:flex-row md:justify-between md:px-16 md:text-left">
+                    <div>
+                        <p className={`${serif} text-3xl`}>
+                            <CoupleName name={wedding.name} />
+                        </p>
+                        {eventShort && (
+                            <p className="mt-2 text-xs tracking-[0.2em] text-[#4c4640] uppercase">{eventShort}</p>
+                        )}
+                    </div>
+                    <p className="text-xs tracking-[0.15em] text-[#4c4640]/70 uppercase">Made with WedFlow Atelier</p>
+                </div>
             </footer>
         </div>
     );
