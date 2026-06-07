@@ -20,6 +20,7 @@ class Guest extends Model
         'wedding_id',
         'group_id',
         'table_id',
+        'seat_number',
         'first_name',
         'last_name',
         'email',
@@ -42,6 +43,7 @@ class Guest extends Model
             'rsvp_status' => RsvpStatus::class,
             'is_plus_one' => 'boolean',
             'invited_at' => 'datetime',
+            'seat_number' => 'integer',
         ];
     }
 

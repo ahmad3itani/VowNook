@@ -1,17 +1,29 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import {
     Armchair,
+    Bath,
+    Box,
+    Cake,
+    Camera,
+    Disc3,
+    DoorOpen,
+    Gift,
     GripVertical,
+    Maximize2,
+    Mic,
+    Music,
     Pencil,
     Plus,
+    RotateCw,
     Trash2,
-    UserMinus,
+    Utensils,
+    Wine,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -36,6 +48,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 
 type Option = { value: string; label: string };
+type ElementTypeOption = { value: string; label: string; size: [number, number] };
 
 type Table = {
     id: number;
@@ -52,127 +65,269 @@ type SeatGuest = {
     id: number;
     name: string;
     table_id: number | null;
+    seat_number: number | null;
     rsvp_status: string;
 };
 
-type Stats = {
-    tables: number;
-    capacity: number;
-    seated: number;
-    unseated: number;
+type FloorElement = {
+    id: number;
+    type: string;
+    label: string;
+    position_x: number;
+    position_y: number;
+    width: number;
+    height: number;
+    rotation: number;
 };
+
+type Stats = { tables: number; capacity: number; seated: number; unseated: number };
 
 type PageProps = {
     tables: Table[];
     guests: SeatGuest[];
+    elements: FloorElement[];
+    layout: { room_width: number; room_height: number };
     stats: Stats;
-    options: { shapes: Option[] };
+    options: { shapes: Option[]; elementTypes: ElementTypeOption[] };
 };
 
-const SHAPE_CLASS: Record<string, string> = {
-    round: 'rounded-full',
-    rectangle: 'rounded-lg',
-    square: 'rounded-md',
+const ELEMENT_ICON: Record<string, LucideIcon> = {
+    dance_floor: Disc3,
+    bar: Wine,
+    dj_booth: Music,
+    stage: Mic,
+    gift_table: Gift,
+    cake_table: Cake,
+    photo_booth: Camera,
+    buffet: Utensils,
+    entrance: DoorOpen,
+    restroom: Bath,
+    other: Box,
+};
+
+const RSVP_RING: Record<string, string> = {
+    attending: 'ring-emerald-400',
+    maybe: 'ring-amber-400',
+    declined: 'ring-rose-400',
+    pending: 'ring-stone-300',
 };
 
 function clamp(value: number, min: number, max: number) {
     return Math.min(max, Math.max(min, value));
 }
 
-type TableFormData = {
-    name: string;
-    shape: string;
-    capacity: string;
-    notes: string;
-};
-
-function emptyForm(options: PageProps['options']): TableFormData {
-    return {
-        name: '',
-        shape: options.shapes[0]?.value ?? 'round',
-        capacity: '8',
-        notes: '',
-    };
+function initials(name: string) {
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0]?.toUpperCase() ?? '')
+        .join('');
 }
 
-export default function SeatingIndex({
-    tables,
-    guests,
-    stats,
-    options,
-}: PageProps) {
+/** Geometry for a table and the (x,y) px offset of each chair from its centre. */
+function tableGeometry(shape: string, capacity: number, scale: number) {
+    const chair = 22 * scale;
+    const cap = Math.max(1, capacity);
+
+    if (shape === 'rectangle' || shape === 'square') {
+        const perRow = Math.ceil(cap / 2);
+        const tableW =
+            shape === 'square'
+                ? Math.max(54, perRow * (chair + 6)) * 0.8
+                : Math.max(60, perRow * (chair + 8));
+        const tableH = shape === 'square' ? tableW : 40 * scale;
+
+        const seats: { n: number; x: number; y: number }[] = [];
+        const top = Math.ceil(cap / 2);
+        const bottom = cap - top;
+        const place = (count: number, y: number, startN: number) => {
+            for (let i = 0; i < count; i++) {
+                const t = count === 1 ? 0.5 : i / (count - 1);
+                const x = (t - 0.5) * (tableW - chair);
+                seats.push({ n: startN + i, x, y });
+            }
+        };
+        place(top, -(tableH / 2 + chair * 0.7), 1);
+        place(bottom, tableH / 2 + chair * 0.7, top + 1);
+
+        return { tableW, tableH, chair, seats };
+    }
+
+    // Round: chairs evenly spread on a ring; radius grows to avoid overlap.
+    const minRadius = (cap * (chair + 6)) / (2 * Math.PI);
+    const radius = Math.max(30 * scale, minRadius);
+    const diameter = Math.max(48 * scale, radius * 1.15);
+    const seats = Array.from({ length: cap }, (_, i) => {
+        const angle = -Math.PI / 2 + (i / cap) * 2 * Math.PI;
+
+        return {
+            n: i + 1,
+            x: Math.cos(angle) * (radius + chair * 0.55),
+            y: Math.sin(angle) * (radius + chair * 0.55),
+        };
+    });
+
+    return { tableW: diameter, tableH: diameter, chair, seats };
+}
+
+/** Resolve which guest sits in each seat number, filling blanks in order. */
+function resolveSeats(occupants: SeatGuest[], capacity: number) {
+    const map = new Map<number, SeatGuest>();
+    const leftovers: SeatGuest[] = [];
+
+    for (const g of occupants) {
+        if (g.seat_number && g.seat_number >= 1 && g.seat_number <= capacity && !map.has(g.seat_number)) {
+            map.set(g.seat_number, g);
+        } else {
+            leftovers.push(g);
+        }
+    }
+
+    let n = 1;
+
+    for (const g of leftovers) {
+        while (n <= capacity && map.has(n)) {
+n++;
+}
+
+        if (n > capacity) {
+break;
+}
+
+        map.set(n, g);
+    }
+
+    return map;
+}
+
+type TableFormData = { name: string; shape: string; capacity: string; notes: string };
+
+function emptyForm(options: PageProps['options']): TableFormData {
+    return { name: '', shape: options.shapes[0]?.value ?? 'round', capacity: '8', notes: '' };
+}
+
+type Drag =
+    | { kind: 'move-table'; id: number }
+    | { kind: 'move-element'; id: number }
+    | { kind: 'resize-element'; id: number; startX: number; startY: number; startW: number; startH: number };
+
+export default function SeatingIndex({ tables, guests, elements, layout, stats, options }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('seating');
 
     const canvasRef = useRef<HTMLDivElement>(null);
-    const [positions, setPositions] = useState<
-        Record<number, { x: number; y: number }>
-    >({});
-    const [movingId, setMovingId] = useState<number | null>(null);
+
+    // Optimistic positions/sizes while dragging.
+    const [tablePos, setTablePos] = useState<Record<number, { x: number; y: number }>>({});
+    const [elemPos, setElemPos] = useState<Record<number, { x: number; y: number }>>({});
+    const [elemSize, setElemSize] = useState<Record<number, { width: number; height: number }>>({});
+    const [drag, setDrag] = useState<Drag | null>(null);
+
     const [dragGuestId, setDragGuestId] = useState<number | null>(null);
-    const [dropTarget, setDropTarget] = useState<number | 'unseated' | null>(
-        null,
-    );
+    const [dropTarget, setDropTarget] = useState<string | null>(null);
+    const [selectedElement, setSelectedElement] = useState<number | null>(null);
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [newElementType, setNewElementType] = useState(options.elementTypes[0]?.value ?? 'dance_floor');
 
     const form = useForm<TableFormData>(emptyForm(options));
 
+    const scale = clamp(46 / layout.room_width, 0.55, 1.3);
+    const aspect = `${layout.room_width} / ${layout.room_height}`;
+
     const unseated = guests.filter((g) => g.table_id === null);
-    const guestsByTable = (tableId: number) =>
-        guests.filter((g) => g.table_id === tableId);
+    const tablePosFor = (t: Table) => tablePos[t.id] ?? { x: t.position_x, y: t.position_y };
+    const elemPosFor = (e: FloorElement) => elemPos[e.id] ?? { x: e.position_x, y: e.position_y };
+    const elemSizeFor = (e: FloorElement) => elemSize[e.id] ?? { width: e.width, height: e.height };
 
-    const posFor = (table: Table) =>
-        positions[table.id] ?? { x: table.position_x, y: table.position_y };
+    const persistTable = useCallback(
+        (id: number, x: number, y: number) => {
+            router.patch(
+                `/seating/${id}/move`,
+                { position_x: Math.round(x), position_y: Math.round(y) },
+                { preserveScroll: true, preserveState: true },
+            );
+        },
+        [],
+    );
 
-    const persistMove = useCallback((id: number, x: number, y: number) => {
-        router.patch(
-            `/seating/${id}/move`,
-            { position_x: Math.round(x), position_y: Math.round(y) },
-            { preserveScroll: true, preserveState: true },
-        );
-    }, []);
+    const persistElement = useCallback(
+        (id: number, payload: Record<string, number>) => {
+            router.patch(`/seating-elements/${id}/move`, payload, {
+                preserveScroll: true,
+                preserveState: true,
+            });
+        },
+        [],
+    );
 
     useEffect(() => {
-        if (movingId === null) {
-            return;
-        }
-
-        const id = movingId;
+        if (!drag) {
+return;
+}
 
         function onMove(e: PointerEvent) {
             const rect = canvasRef.current?.getBoundingClientRect();
 
-            if (!rect) {
-                return;
-            }
+            if (!rect || !drag) {
+return;
+}
 
-            const x = clamp(
-                ((e.clientX - rect.left) / rect.width) * 100,
-                3,
-                95,
-            );
-            const y = clamp(
-                ((e.clientY - rect.top) / rect.height) * 100,
-                3,
-                92,
-            );
-            setPositions((prev) => ({ ...prev, [id]: { x, y } }));
+            const pctX = ((e.clientX - rect.left) / rect.width) * 100;
+            const pctY = ((e.clientY - rect.top) / rect.height) * 100;
+
+            if (drag.kind === 'move-table') {
+                setTablePos((p) => ({ ...p, [drag.id]: { x: clamp(pctX, 4, 96), y: clamp(pctY, 5, 95) } }));
+            } else if (drag.kind === 'move-element') {
+                setElemPos((p) => ({ ...p, [drag.id]: { x: clamp(pctX, 2, 98), y: clamp(pctY, 2, 98) } }));
+            } else {
+                const dxPct = ((e.clientX - drag.startX) / rect.width) * 100;
+                const dyPct = ((e.clientY - drag.startY) / rect.height) * 100;
+                setElemSize((s) => ({
+                    ...s,
+                    [drag.id]: {
+                        width: clamp(drag.startW + dxPct * 2, 6, 100),
+                        height: clamp(drag.startH + dyPct * 2, 6, 100),
+                    },
+                }));
+            }
         }
 
         function onUp() {
-            setMovingId((current) => {
-                if (current !== null) {
-                    const pos = positions[current];
+            if (!drag) {
+return;
+}
 
-                    if (pos) {
-                        persistMove(current, pos.x, pos.y);
-                    }
+            if (drag.kind === 'move-table') {
+                const pos = tablePos[drag.id];
+
+                if (pos) {
+persistTable(drag.id, pos.x, pos.y);
+}
+            } else if (drag.kind === 'move-element') {
+                const pos = elemPos[drag.id];
+
+                if (pos) {
+persistElement(drag.id, { position_x: Math.round(pos.x), position_y: Math.round(pos.y) });
+}
+            } else {
+                const size = elemSize[drag.id];
+                const el = elements.find((e) => e.id === drag.id);
+
+                if (size && el) {
+                    const pos = elemPos[drag.id] ?? { x: el.position_x, y: el.position_y };
+                    persistElement(drag.id, {
+                        position_x: Math.round(pos.x),
+                        position_y: Math.round(pos.y),
+                        width: Math.round(size.width),
+                        height: Math.round(size.height),
+                    });
                 }
+            }
 
-                return null;
-            });
+            setDrag(null);
         }
 
         window.addEventListener('pointermove', onMove);
@@ -182,27 +337,93 @@ export default function SeatingIndex({
             window.removeEventListener('pointermove', onMove);
             window.removeEventListener('pointerup', onUp);
         };
-    }, [movingId, positions, persistMove]);
+         
+    }, [drag, tablePos, elemPos, elemSize, elements, persistTable, persistElement]);
 
-    function assign(guestId: number, tableId: number | null) {
+    function assign(guestId: number, tableId: number | null, seatNumber: number | null = null) {
         router.patch(
             '/seating-assign',
-            { guest_id: guestId, table_id: tableId },
+            { guest_id: guestId, table_id: tableId, seat_number: seatNumber },
             {
                 preserveScroll: true,
+                preserveState: true,
                 onError: (errors) =>
-                    toast.error(errors.table_id ?? 'Could not seat guest.'),
+                    toast.error(errors.seat_number ?? errors.table_id ?? 'Could not seat guest.'),
             },
         );
     }
 
-    function onGuestDrop(tableId: number | null) {
-        if (dragGuestId !== null) {
-            assign(dragGuestId, tableId);
+    function dropOnSeat(table: Table, seatNumber: number, occupied: SeatGuest | undefined) {
+        if (dragGuestId === null) {
+return;
+}
+
+        if (occupied && occupied.id !== dragGuestId) {
+            toast.error('That seat is taken.');
+        } else {
+            assign(dragGuestId, table.id, seatNumber);
         }
 
         setDragGuestId(null);
         setDropTarget(null);
+    }
+
+    function dropOnUnseated() {
+        if (dragGuestId !== null) {
+assign(dragGuestId, null);
+}
+
+        setDragGuestId(null);
+        setDropTarget(null);
+    }
+
+    function addElement() {
+        const type = options.elementTypes.find((t) => t.value === newElementType);
+
+        if (!type) {
+return;
+}
+
+        router.post(
+            '/seating-elements',
+            {
+                type: type.value,
+                position_x: 50,
+                position_y: 50,
+                width: type.size[0],
+                height: type.size[1],
+                rotation: 0,
+            },
+            { preserveScroll: true, onSuccess: () => toast.success(`${type.label} added.`) },
+        );
+    }
+
+    function rotateElement(el: FloorElement) {
+        const size = elemSizeFor(el);
+        const pos = elemPosFor(el);
+        persistElement(el.id, {
+            position_x: Math.round(pos.x),
+            position_y: Math.round(pos.y),
+            width: Math.round(size.width),
+            height: Math.round(size.height),
+            rotation: (el.rotation + 15) % 360,
+        });
+    }
+
+    function deleteElement(el: FloorElement) {
+        router.delete(`/seating-elements/${el.id}`, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Element removed.'),
+        });
+        setSelectedElement(null);
+    }
+
+    function saveRoom(width: number, height: number) {
+        router.patch(
+            '/seating-layout',
+            { room_width: clamp(width, 10, 200), room_height: clamp(height, 10, 200) },
+            { preserveScroll: true, preserveState: true },
+        );
     }
 
     function openCreate() {
@@ -227,26 +448,22 @@ export default function SeatingIndex({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-
         const onSuccess = () => {
             toast.success(editingId ? 'Table updated.' : 'Table added.');
             setSheetOpen(false);
         };
 
         if (editingId) {
-            form.put(`/seating/${editingId}`, {
-                preserveScroll: true,
-                onSuccess,
-            });
+            form.put(`/seating/${editingId}`, { preserveScroll: true, onSuccess });
         } else {
             form.post('/seating', { preserveScroll: true, onSuccess });
         }
     }
 
-    function destroy(table: Table) {
+    function destroyTable(table: Table) {
         if (!confirm(`Delete ${table.name}? Seated guests will be unseated.`)) {
-            return;
-        }
+return;
+}
 
         router.delete(`/seating/${table.id}`, {
             preserveScroll: true,
@@ -256,207 +473,370 @@ export default function SeatingIndex({
 
     return (
         <>
-            <Head title="Seating chart" />
+            <Head title="Floor plan" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading
-                        title="Seating chart"
-                        description="Drag guests onto tables and arrange your floor plan."
+                        title="Floor plan"
+                        description="Size the room, place tables and elements, and seat guests chair by chair."
                     />
-                    {writable && (
-                        <Button onClick={openCreate} data-test="add-table">
-                            <Plus className="size-4" />
-                            Add table
-                        </Button>
-                    )}
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Tables" value={String(stats.tables)} />
                     <StatCard label="Seats" value={String(stats.capacity)} />
-                    <StatCard
-                        label="Seated"
-                        value={String(stats.seated)}
-                        accent="text-emerald-600"
-                    />
+                    <StatCard label="Seated" value={String(stats.seated)} accent="text-emerald-600" />
                     <StatCard
                         label="Unseated"
                         value={String(stats.unseated)}
-                        accent={
-                            stats.unseated > 0 ? 'text-amber-600' : undefined
-                        }
+                        accent={stats.unseated > 0 ? 'text-amber-600' : undefined}
                     />
                 </div>
 
-                <div className="flex flex-col gap-4 lg:flex-row">
-                    {/* Floor plan */}
-                    <div
-                        ref={canvasRef}
-                        className="relative min-h-[28rem] flex-1 overflow-hidden rounded-xl border bg-muted/30 bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:24px_24px]"
-                    >
-                        {tables.length === 0 && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-                                <Armchair className="size-8 opacity-40" />
-                                Add a table to start building your floor plan.
+                {/* Toolbar */}
+                {writable && (
+                    <Card>
+                        <CardContent className="flex flex-wrap items-end gap-4 px-4">
+                            <div className="flex items-end gap-2">
+                                <div className="grid gap-1">
+                                    <Label className="text-xs">Room width (ft)</Label>
+                                    <Input
+                                        type="number"
+                                        min={10}
+                                        max={200}
+                                        defaultValue={layout.room_width}
+                                        className="w-24"
+                                        onBlur={(e) => saveRoom(Number(e.target.value), layout.room_height)}
+                                    />
+                                </div>
+                                <span className="pb-2 text-muted-foreground">×</span>
+                                <div className="grid gap-1">
+                                    <Label className="text-xs">Length (ft)</Label>
+                                    <Input
+                                        type="number"
+                                        min={10}
+                                        max={200}
+                                        defaultValue={layout.room_height}
+                                        className="w-24"
+                                        onBlur={(e) => saveRoom(layout.room_width, Number(e.target.value))}
+                                    />
+                                </div>
                             </div>
-                        )}
 
-                        {tables.map((table) => {
-                            const pos = posFor(table);
-                            const seatedGuests = guestsByTable(table.id);
-                            const full = seatedGuests.length >= table.capacity;
-                            const isTarget = dropTarget === table.id;
+                            <div className="bg-border h-10 w-px" />
 
-                            return (
-                                <div
-                                    key={table.id}
-                                    className="absolute -translate-x-1/2 -translate-y-1/2"
-                                    style={{
-                                        left: `${pos.x}%`,
-                                        top: `${pos.y}%`,
-                                    }}
-                                    onDragOver={(e) => {
-                                        if (dragGuestId !== null) {
-                                            e.preventDefault();
-                                            setDropTarget(table.id);
-                                        }
-                                    }}
-                                    onDragLeave={() =>
-                                        setDropTarget((t) =>
-                                            t === table.id ? null : t,
-                                        )
-                                    }
-                                    onDrop={() => onGuestDrop(table.id)}
-                                >
-                                    <div
-                                        className={`flex w-44 flex-col gap-2 border bg-card p-3 shadow-sm transition-colors ${
-                                            SHAPE_CLASS[table.shape] ??
-                                            'rounded-lg'
-                                        } ${isTarget ? 'border-primary ring-2 ring-primary/40' : ''}`}
-                                    >
-                                        <div className="flex items-center justify-between gap-1">
-                                            <div className="flex min-w-0 items-center gap-1">
-                                                {writable && (
-                                                    <span
-                                                        className="cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
-                                                        onPointerDown={(e) => {
-                                                            e.preventDefault();
-                                                            setMovingId(
-                                                                table.id,
-                                                            );
-                                                        }}
-                                                        aria-label="Move table"
-                                                    >
-                                                        <GripVertical className="size-4" />
-                                                    </span>
-                                                )}
-                                                <span className="truncate text-sm font-semibold">
-                                                    {table.name}
-                                                </span>
-                                            </div>
-                                            <Badge
-                                                variant={
-                                                    full
-                                                        ? 'default'
-                                                        : 'secondary'
-                                                }
-                                            >
-                                                {seatedGuests.length}/
-                                                {table.capacity}
-                                            </Badge>
-                                        </div>
-
-                                        <div className="flex flex-col gap-1">
-                                            {seatedGuests.map((g) => (
-                                                <div
-                                                    key={g.id}
-                                                    draggable={writable}
-                                                    onDragStart={() =>
-                                                        setDragGuestId(g.id)
-                                                    }
-                                                    onDragEnd={() =>
-                                                        setDragGuestId(null)
-                                                    }
-                                                    className="flex items-center justify-between gap-1 rounded bg-muted px-2 py-1 text-xs"
-                                                >
-                                                    <span className="truncate">
-                                                        {g.name}
-                                                    </span>
-                                                    {writable && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                assign(
-                                                                    g.id,
-                                                                    null,
-                                                                )
-                                                            }
-                                                            className="shrink-0 text-muted-foreground hover:text-foreground"
-                                                            aria-label={`Unseat ${g.name}`}
-                                                        >
-                                                            <UserMinus className="size-3" />
-                                                        </button>
-                                                    )}
-                                                </div>
+                            <div className="flex items-end gap-2">
+                                <div className="grid gap-1">
+                                    <Label className="text-xs">Add element</Label>
+                                    <Select value={newElementType} onValueChange={setNewElementType}>
+                                        <SelectTrigger className="w-44">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {options.elementTypes.map((t) => (
+                                                <SelectItem key={t.value} value={t.value}>
+                                                    {t.label}
+                                                </SelectItem>
                                             ))}
-                                            {seatedGuests.length === 0 && (
-                                                <span className="py-1 text-center text-xs text-muted-foreground">
-                                                    Drop guests here
-                                                </span>
-                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <Button variant="outline" onClick={addElement}>
+                                    <Plus className="size-4" />
+                                    Place
+                                </Button>
+                            </div>
+
+                            <div className="bg-border h-10 w-px" />
+
+                            <Button onClick={openCreate} data-test="add-table">
+                                <Plus className="size-4" />
+                                Add table
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="flex flex-col gap-4 lg:flex-row">
+                    {/* Floor plan canvas */}
+                    <div className="flex-1">
+                        <div
+                            ref={canvasRef}
+                            onPointerDown={() => setSelectedElement(null)}
+                            className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-stone-300 bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:22px_22px] dark:border-stone-700"
+                            style={{ aspectRatio: aspect }}
+                        >
+                            <span className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 rounded bg-background/70 px-2 text-[10px] text-muted-foreground">
+                                {layout.room_width} ft
+                            </span>
+                            <span className="pointer-events-none absolute top-1/2 left-1 -translate-y-1/2 rotate-180 rounded bg-background/70 px-2 text-[10px] text-muted-foreground [writing-mode:vertical-rl]">
+                                {layout.room_height} ft
+                            </span>
+
+                            {tables.length === 0 && elements.length === 0 && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+                                    <Armchair className="size-8 opacity-40" />
+                                    Add tables and elements to build your floor plan.
+                                </div>
+                            )}
+
+                            {/* Elements (under tables) */}
+                            {elements.map((el) => {
+                                const pos = elemPosFor(el);
+                                const size = elemSizeFor(el);
+                                const Icon = ELEMENT_ICON[el.type] ?? Box;
+                                const selected = selectedElement === el.id;
+
+                                return (
+                                    <div
+                                        key={el.id}
+                                        className="absolute"
+                                        style={{
+                                            left: `${pos.x}%`,
+                                            top: `${pos.y}%`,
+                                            width: `${size.width}%`,
+                                            height: `${size.height}%`,
+                                            transform: `translate(-50%, -50%) rotate(${el.rotation}deg)`,
+                                        }}
+                                        onPointerDown={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedElement(el.id);
+                                        }}
+                                    >
+                                        <div
+                                            className={`flex size-full flex-col items-center justify-center gap-1 rounded-lg border text-center text-xs font-medium transition-colors ${
+                                                selected
+                                                    ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                                                    : 'border-stone-300 bg-stone-100/80 text-stone-600 dark:border-stone-600 dark:bg-stone-800/70 dark:text-stone-300'
+                                            }`}
+                                        >
+                                            <Icon className="size-4 shrink-0" />
+                                            <span className="px-1 leading-tight">{el.label}</span>
                                         </div>
 
                                         {writable && (
-                                            <div className="flex justify-end gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="size-7"
-                                                    onClick={() =>
-                                                        openEdit(table)
-                                                    }
-                                                    aria-label="Edit table"
+                                            <span
+                                                className="absolute -top-3 left-1/2 -translate-x-1/2 cursor-grab touch-none rounded bg-primary px-1 text-primary-foreground active:cursor-grabbing"
+                                                onPointerDown={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    setSelectedElement(el.id);
+                                                    setDrag({ kind: 'move-element', id: el.id });
+                                                }}
+                                                aria-label="Move element"
+                                            >
+                                                <GripVertical className="size-3.5" />
+                                            </span>
+                                        )}
+
+                                        {writable && selected && (
+                                            <>
+                                                <span
+                                                    className="absolute -right-3 -bottom-3 cursor-nwse-resize touch-none rounded bg-primary p-0.5 text-primary-foreground"
+                                                    onPointerDown={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        setDrag({
+                                                            kind: 'resize-element',
+                                                            id: el.id,
+                                                            startX: e.clientX,
+                                                            startY: e.clientY,
+                                                            startW: size.width,
+                                                            startH: size.height,
+                                                        });
+                                                    }}
+                                                    aria-label="Resize element"
                                                 >
-                                                    <Pencil className="size-3.5" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="size-7"
-                                                    onClick={() =>
-                                                        destroy(table)
-                                                    }
-                                                    aria-label="Delete table"
-                                                >
-                                                    <Trash2 className="size-3.5" />
-                                                </Button>
-                                            </div>
+                                                    <Maximize2 className="size-3" />
+                                                </span>
+                                                <div className="absolute -top-9 left-1/2 flex -translate-x-1/2 gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            rotateElement(el);
+                                                        }}
+                                                        className="rounded bg-card p-1 shadow ring-1 ring-border hover:text-primary"
+                                                        aria-label="Rotate element"
+                                                    >
+                                                        <RotateCw className="size-3.5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            deleteElement(el);
+                                                        }}
+                                                        className="rounded bg-card p-1 shadow ring-1 ring-border hover:text-destructive"
+                                                        aria-label="Delete element"
+                                                    >
+                                                        <Trash2 className="size-3.5" />
+                                                    </button>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+
+                            {/* Tables with chairs */}
+                            {tables.map((table) => {
+                                const pos = tablePosFor(table);
+                                const geo = tableGeometry(table.shape, table.capacity, scale);
+                                const occupants = guests.filter((g) => g.table_id === table.id);
+                                const seatMap = resolveSeats(occupants, table.capacity);
+                                const shapeRadius =
+                                    table.shape === 'round'
+                                        ? '9999px'
+                                        : table.shape === 'square'
+                                          ? '0.5rem'
+                                          : '0.5rem';
+
+                                return (
+                                    <div
+                                        key={table.id}
+                                        className="absolute"
+                                        style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                                    >
+                                        {/* chairs */}
+                                        {geo.seats.map((seat) => {
+                                            const who = seatMap.get(seat.n);
+                                            const target = `seat-${table.id}-${seat.n}`;
+                                            const isTarget = dropTarget === target;
+
+                                            return (
+                                                <div
+                                                    key={seat.n}
+                                                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                                                    style={{
+                                                        left: `calc(50% + ${seat.x}px)`,
+                                                        top: `calc(50% + ${seat.y}px)`,
+                                                    }}
+                                                    onDragOver={(e) => {
+                                                        if (dragGuestId !== null) {
+                                                            e.preventDefault();
+                                                            setDropTarget(target);
+                                                        }
+                                                    }}
+                                                    onDragLeave={() =>
+                                                        setDropTarget((t) => (t === target ? null : t))
+                                                    }
+                                                    onDrop={() => dropOnSeat(table, seat.n, who)}
+                                                >
+                                                    <div
+                                                        draggable={writable && !!who}
+                                                        onDragStart={() => who && setDragGuestId(who.id)}
+                                                        onDragEnd={() => setDragGuestId(null)}
+                                                        title={who ? `Seat ${seat.n}: ${who.name}` : `Seat ${seat.n}`}
+                                                        className={`flex items-center justify-center rounded-full border text-[9px] font-semibold transition-all ${
+                                                            who
+                                                                ? `cursor-grab bg-rose-500 text-white ring-2 active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
+                                                                : 'border-dashed border-stone-400 bg-background text-stone-400 dark:border-stone-600'
+                                                        } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''}`}
+                                                        style={{ width: geo.chair, height: geo.chair }}
+                                                    >
+                                                        {who ? initials(who.name) : seat.n}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                        {/* table top */}
+                                        <div
+                                            className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border bg-card shadow-sm"
+                                            style={{
+                                                width: geo.tableW,
+                                                height: geo.tableH,
+                                                borderRadius: shapeRadius,
+                                            }}
+                                            onDragOver={(e) => {
+                                                if (dragGuestId !== null) {
+                                                    e.preventDefault();
+                                                    setDropTarget(`table-${table.id}`);
+                                                }
+                                            }}
+                                            onDrop={() => {
+                                                // drop on table body → first free seat
+                                                let free = 1;
+
+                                                while (free <= table.capacity && seatMap.has(free)) {
+free++;
+}
+
+                                                if (dragGuestId !== null && free <= table.capacity) {
+                                                    assign(dragGuestId, table.id, free);
+                                                } else if (dragGuestId !== null) {
+                                                    toast.error(`${table.name} is full.`);
+                                                }
+
+                                                setDragGuestId(null);
+                                                setDropTarget(null);
+                                            }}
+                                        >
+                                            {writable && (
+                                                <span
+                                                    className="absolute -top-2 -left-2 cursor-grab touch-none rounded bg-foreground/80 p-0.5 text-background active:cursor-grabbing"
+                                                    onPointerDown={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setDrag({ kind: 'move-table', id: table.id });
+                                                    }}
+                                                    aria-label="Move table"
+                                                >
+                                                    <GripVertical className="size-3" />
+                                                </span>
+                                            )}
+                                            <span className="px-1 text-center text-[10px] leading-tight font-semibold">
+                                                {table.name}
+                                            </span>
+                                            <span className="text-[9px] text-muted-foreground">
+                                                {occupants.length}/{table.capacity}
+                                            </span>
+                                            {writable && (
+                                                <div className="mt-0.5 flex gap-0.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openEdit(table)}
+                                                        className="text-muted-foreground hover:text-foreground"
+                                                        aria-label="Edit table"
+                                                    >
+                                                        <Pencil className="size-3" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => destroyTable(table)}
+                                                        className="text-muted-foreground hover:text-destructive"
+                                                        aria-label="Delete table"
+                                                    >
+                                                        <Trash2 className="size-3" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <p className="mt-2 text-center text-xs text-muted-foreground">
+                            Drag a guest onto a chair to seat them. Drag the grip to move tables and elements.
+                        </p>
                     </div>
 
                     {/* Unseated guests */}
                     <Card
-                        className={`lg:w-72 ${dropTarget === 'unseated' ? 'border-primary ring-2 ring-primary/40' : ''}`}
+                        className={`lg:w-64 ${dropTarget === 'unseated' ? 'border-primary ring-2 ring-primary/40' : ''}`}
                         onDragOver={(e) => {
                             if (dragGuestId !== null) {
                                 e.preventDefault();
                                 setDropTarget('unseated');
                             }
                         }}
-                        onDragLeave={() =>
-                            setDropTarget((t) => (t === 'unseated' ? null : t))
-                        }
-                        onDrop={() => onGuestDrop(null)}
+                        onDragLeave={() => setDropTarget((t) => (t === 'unseated' ? null : t))}
+                        onDrop={dropOnUnseated}
                     >
-                        <CardContent className="flex flex-col gap-2 px-4">
-                            <div className="text-sm font-semibold">
-                                Unseated guests ({unseated.length})
-                            </div>
+                        <CardContent className="flex max-h-[34rem] flex-col gap-2 overflow-y-auto px-4">
+                            <div className="text-sm font-semibold">Unseated guests ({unseated.length})</div>
                             {unseated.length === 0 ? (
                                 <p className="py-6 text-center text-xs text-muted-foreground">
                                     Everyone has a seat.
@@ -468,9 +848,18 @@ export default function SeatingIndex({
                                         draggable={writable}
                                         onDragStart={() => setDragGuestId(g.id)}
                                         onDragEnd={() => setDragGuestId(null)}
-                                        className="cursor-grab rounded bg-muted px-3 py-2 text-sm hover:bg-muted/70 active:cursor-grabbing"
+                                        className="flex cursor-grab items-center gap-2 rounded bg-muted px-3 py-2 text-sm hover:bg-muted/70 active:cursor-grabbing"
                                     >
-                                        {g.name}
+                                        <span
+                                            className={`size-2 shrink-0 rounded-full ${
+                                                g.rsvp_status === 'attending'
+                                                    ? 'bg-emerald-400'
+                                                    : g.rsvp_status === 'declined'
+                                                      ? 'bg-rose-400'
+                                                      : 'bg-stone-300'
+                                            }`}
+                                        />
+                                        <span className="truncate">{g.name}</span>
                                     </div>
                                 ))
                             )}
@@ -482,26 +871,17 @@ export default function SeatingIndex({
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
-                            {editingId ? 'Edit table' : 'Add table'}
-                        </SheetTitle>
-                        <SheetDescription>
-                            Name the table, pick a shape, and set its capacity.
-                        </SheetDescription>
+                        <SheetTitle>{editingId ? 'Edit table' : 'Add table'}</SheetTitle>
+                        <SheetDescription>Name the table, pick a shape, and set its capacity.</SheetDescription>
                     </SheetHeader>
 
-                    <form
-                        onSubmit={submit}
-                        className="flex flex-1 flex-col gap-4 px-4"
-                    >
+                    <form onSubmit={submit} className="flex flex-1 flex-col gap-4 px-4">
                         <div className="grid gap-2">
                             <Label htmlFor="name">Table name</Label>
                             <Input
                                 id="name"
                                 value={form.data.name}
-                                onChange={(e) =>
-                                    form.setData('name', e.target.value)
-                                }
+                                onChange={(e) => form.setData('name', e.target.value)}
                                 autoFocus
                             />
                             <InputError message={form.errors.name} />
@@ -510,21 +890,13 @@ export default function SeatingIndex({
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-2">
                                 <Label>Shape</Label>
-                                <Select
-                                    value={form.data.shape}
-                                    onValueChange={(v) =>
-                                        form.setData('shape', v)
-                                    }
-                                >
+                                <Select value={form.data.shape} onValueChange={(v) => form.setData('shape', v)}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {options.shapes.map((o) => (
-                                            <SelectItem
-                                                key={o.value}
-                                                value={o.value}
-                                            >
+                                            <SelectItem key={o.value} value={o.value}>
                                                 {o.label}
                                             </SelectItem>
                                         ))}
@@ -540,9 +912,7 @@ export default function SeatingIndex({
                                     min="1"
                                     max="50"
                                     value={form.data.capacity}
-                                    onChange={(e) =>
-                                        form.setData('capacity', e.target.value)
-                                    }
+                                    onChange={(e) => form.setData('capacity', e.target.value)}
                                 />
                                 <InputError message={form.errors.capacity} />
                             </div>
@@ -553,9 +923,7 @@ export default function SeatingIndex({
                             <Textarea
                                 id="notes"
                                 value={form.data.notes}
-                                onChange={(e) =>
-                                    form.setData('notes', e.target.value)
-                                }
+                                onChange={(e) => form.setData('notes', e.target.value)}
                             />
                             <InputError message={form.errors.notes} />
                         </div>
@@ -573,29 +941,17 @@ export default function SeatingIndex({
     );
 }
 
-function StatCard({
-    label,
-    value,
-    accent,
-}: {
-    label: string;
-    value: string;
-    accent?: string;
-}) {
+function StatCard({ label, value, accent }: { label: string; value: string; accent?: string }) {
     return (
         <Card>
             <CardContent className="px-5">
                 <div className="text-sm text-muted-foreground">{label}</div>
-                <div
-                    className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}
-                >
-                    {value}
-                </div>
+                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>{value}</div>
             </CardContent>
         </Card>
     );
 }
 
 SeatingIndex.layout = {
-    breadcrumbs: [{ title: 'Seating chart', href: '/seating' }],
+    breadcrumbs: [{ title: 'Floor plan', href: '/seating' }],
 };

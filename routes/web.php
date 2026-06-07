@@ -16,6 +16,7 @@ use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
 use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\SeatingController;
+use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\VendorController;
@@ -125,6 +126,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('seating/{table}/move', [SeatingController::class, 'move'])->name('seating.move');
         Route::delete('seating/{table}', [SeatingController::class, 'destroy'])->name('seating.destroy');
         Route::patch('seating-assign', [SeatingController::class, 'assign'])->name('seating.assign');
+        Route::patch('seating-layout', [SeatingController::class, 'updateLayout'])->name('seating.layout');
+
+        Route::post('seating-elements', [SeatingElementController::class, 'store'])->name('seating-elements.store');
+        Route::put('seating-elements/{element}', [SeatingElementController::class, 'update'])->name('seating-elements.update');
+        Route::patch('seating-elements/{element}/move', [SeatingElementController::class, 'move'])->name('seating-elements.move');
+        Route::delete('seating-elements/{element}', [SeatingElementController::class, 'destroy'])->name('seating-elements.destroy');
     });
 
     // Inspiration board workspace.

@@ -9,6 +9,7 @@ use App\Enums\GuestSide;
 use App\Enums\InspirationCategory;
 use App\Enums\Role;
 use App\Enums\RsvpStatus;
+use App\Enums\SeatingElementType;
 use App\Enums\TableShape;
 use App\Enums\TaskCategory;
 use App\Enums\TaskPriority;
@@ -20,6 +21,7 @@ use App\Models\CrewMember;
 use App\Models\Guest;
 use App\Models\GuestGroup;
 use App\Models\InspirationItem;
+use App\Models\SeatingElement;
 use App\Models\SeatingTable;
 use App\Models\Task;
 use App\Models\TimelineEvent;
@@ -258,12 +260,40 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Seat the first few attending guests at Table 1 so the chart isn't empty.
+        // Seat the first few attending guests at Table 1 (in specific chairs).
         $wedding->guests()
             ->where('rsvp_status', RsvpStatus::Attending->value)
             ->take(3)
             ->get()
-            ->each(fn (Guest $guest) => $guest->update(['table_id' => $tables[1]->id]));
+            ->values()
+            ->each(fn (Guest $guest, int $i) => $guest->update([
+                'table_id' => $tables[1]->id,
+                'seat_number' => $i + 1,
+            ]));
+
+        // Room dimensions for the floor plan.
+        $wedding->seatingLayout()->create(['room_width' => 44, 'room_height' => 32]);
+
+        // A few non-table elements on the floor.
+        // [type, x%, y%, w%, h%]
+        $elements = [
+            [SeatingElementType::DanceFloor, 50, 45, 28, 24],
+            [SeatingElementType::Stage, 50, 8, 24, 10],
+            [SeatingElementType::Bar, 12, 85, 22, 8],
+            [SeatingElementType::DjBooth, 85, 15, 12, 10],
+            [SeatingElementType::GiftTable, 88, 85, 12, 7],
+        ];
+
+        foreach ($elements as [$type, $x, $y, $w, $h]) {
+            SeatingElement::create([
+                'wedding_id' => $wedding->id,
+                'type' => $type,
+                'position_x' => $x,
+                'position_y' => $y,
+                'width' => $w,
+                'height' => $h,
+            ]);
+        }
     }
 
     protected function seedInspiration(Wedding $wedding): void

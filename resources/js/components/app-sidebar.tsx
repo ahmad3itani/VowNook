@@ -74,7 +74,7 @@ export function AppSidebar() {
         ...(canRead('seating')
             ? [
                   {
-                      title: 'Seating',
+                      title: 'Floor plan',
                       href: '/seating',
                       icon: Armchair,
                   } satisfies NavItem,

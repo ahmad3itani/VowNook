@@ -115,6 +115,16 @@ class Wedding extends Model
         return $this->hasOne(WeddingWebsite::class);
     }
 
+    public function seatingElements(): HasMany
+    {
+        return $this->hasMany(SeatingElement::class);
+    }
+
+    public function seatingLayout(): HasOne
+    {
+        return $this->hasOne(SeatingLayout::class);
+    }
+
     /** The membership role for a given user, or null if not a member. */
     public function roleFor(User $user): ?Role
     {
