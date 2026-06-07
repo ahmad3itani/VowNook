@@ -10,6 +10,7 @@ import {
     Users,
     Wallet,
 } from 'lucide-react';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login } from '@/routes';
 import { register } from '@/routes';
 
@@ -117,11 +118,23 @@ export default function Welcome() {
                         </div>
                     </section>
 
+                    {/* Showcase image */}
+                    <section className="mx-auto max-w-5xl px-6">
+                        <Reveal className="overflow-hidden rounded-3xl shadow-xl">
+                            <img
+                                src="/images/wedding/venue.jpg"
+                                alt="An elegant wedding reception"
+                                className="aspect-[16/9] w-full object-cover"
+                                loading="lazy"
+                            />
+                        </Reveal>
+                    </section>
+
                     {/* Features */}
-                    <section className="mx-auto max-w-6xl px-6 py-12">
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <section className="mx-auto max-w-6xl px-6 py-20">
+                        <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {features.map((f) => (
-                                <div
+                                <StaggerItem
                                     key={f.title}
                                     className="rounded-2xl border border-rose-100/70 bg-white/70 p-6 backdrop-blur transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900/60"
                                 >
@@ -134,9 +147,9 @@ export default function Welcome() {
                                     <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
                                         {f.body}
                                     </p>
-                                </div>
+                                </StaggerItem>
                             ))}
-                        </div>
+                        </Stagger>
                     </section>
 
                     {/* Guest-facing highlight */}

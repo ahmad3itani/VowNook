@@ -1,12 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import {
-    Armchair,
-    CalendarHeart,
-    Clock,
-    Heart,
-    MapPin,
-    Shirt,
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Armchair, ChevronDown, Clock, Heart, MapPin, Shirt } from 'lucide-react';
+import { Countdown } from '@/components/countdown';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 
 type Content = {
     headline: string | null;
@@ -25,6 +21,21 @@ type PageProps = {
     content: Content | null;
 };
 
+const IMG = {
+    hero: '/images/wedding/hero.jpg',
+    story: '/images/wedding/story.jpg',
+    celebration: '/images/wedding/celebration.jpg',
+};
+
+const GALLERY = [
+    { src: '/images/wedding/venue.jpg', label: 'The venue' },
+    { src: '/images/wedding/reception.jpg', label: 'Reception' },
+    { src: '/images/wedding/table-setting.jpg', label: 'The details' },
+    { src: '/images/wedding/florals.jpg', label: 'Florals' },
+    { src: '/images/wedding/dinner.jpg', label: 'Dinner' },
+    { src: '/images/wedding/ceremony.jpg', label: 'Ceremony' },
+];
+
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
     weekday: 'long',
     year: 'numeric',
@@ -32,156 +43,213 @@ const dateFormat = new Intl.DateTimeFormat('en-CA', {
     day: 'numeric',
 });
 
-export default function PublicWebsite({
-    wedding,
-    published,
-    content,
-}: PageProps) {
-    const eventDate = wedding.event_date
-        ? dateFormat.format(new Date(wedding.event_date))
-        : null;
+const heroText = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.18, delayChildren: 0.2 } },
+};
+const heroItem = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const } },
+};
+
+export default function PublicWebsite({ wedding, published, content }: PageProps) {
+    const eventDate = wedding.event_date ? dateFormat.format(new Date(wedding.event_date)) : null;
+    const heroImage = content?.hero_image_url || IMG.hero;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-rose-50 text-stone-800 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 dark:text-stone-100">
+        <div className="bg-white text-stone-800 dark:bg-stone-950 dark:text-stone-100">
             <Head title={wedding.name} />
 
             {/* Hero */}
-            <section className="relative flex min-h-[60vh] flex-col items-center justify-center overflow-hidden px-6 py-20 text-center">
-                {content?.hero_image_url && (
-                    <>
-                        <img
-                            src={content.hero_image_url}
-                            alt=""
-                            className="absolute inset-0 size-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/40" />
-                    </>
-                )}
-                <div
-                    className={
-                        content?.hero_image_url
-                            ? 'relative text-white'
-                            : 'relative'
-                    }
-                >
-                    <Heart
-                        className={`mx-auto size-8 ${content?.hero_image_url ? 'text-white' : 'text-rose-400'}`}
-                    />
-                    {content?.headline && (
-                        <p className="mt-6 text-sm tracking-[0.3em] uppercase opacity-90">
-                            {content.headline}
-                        </p>
-                    )}
-                    <h1 className="mt-3 font-serif text-5xl leading-tight sm:text-6xl">
-                        {wedding.name}
-                    </h1>
-                    {eventDate && (
-                        <p className="mt-4 text-lg opacity-90">{eventDate}</p>
-                    )}
+            <section className="relative flex h-screen min-h-[600px] items-center justify-center overflow-hidden">
+                <motion.div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${heroImage})` }}
+                    initial={{ scale: 1.18 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 12, ease: 'easeOut' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
 
-                    <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <motion.div
+                    className="relative z-10 px-6 text-center text-white"
+                    variants={heroText}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <motion.div variants={heroItem}>
+                        <Heart className="mx-auto size-9" />
+                    </motion.div>
+                    <motion.p
+                        variants={heroItem}
+                        className="mt-6 text-sm tracking-[0.4em] uppercase opacity-90"
+                    >
+                        {content?.headline || 'Together with their families'}
+                    </motion.p>
+                    <motion.h1
+                        variants={heroItem}
+                        className="mt-4 font-serif text-6xl leading-[1.05] sm:text-7xl md:text-8xl"
+                    >
+                        {wedding.name}
+                    </motion.h1>
+                    {eventDate && (
+                        <motion.p variants={heroItem} className="mt-6 text-lg tracking-wide opacity-90">
+                            {eventDate}
+                        </motion.p>
+                    )}
+                    {wedding.event_date && (
+                        <motion.div variants={heroItem} className="mt-10">
+                            <Countdown date={wedding.event_date} light />
+                        </motion.div>
+                    )}
+                    <motion.div variants={heroItem} className="mt-12 flex flex-wrap justify-center gap-3">
                         <Link
                             href={`/w/${wedding.slug}/rsvp`}
-                            className="rounded-full bg-rose-500 px-7 py-3 font-medium text-white transition-colors hover:bg-rose-600"
+                            className="rounded-full bg-rose-500 px-8 py-3 font-medium text-white shadow-lg transition-colors hover:bg-rose-600"
                         >
                             RSVP
                         </Link>
                         <Link
                             href={`/w/${wedding.slug}/seats`}
-                            className={`inline-flex items-center gap-2 rounded-full border px-7 py-3 font-medium transition-colors ${
-                                content?.hero_image_url
-                                    ? 'border-white/60 text-white hover:bg-white/10'
-                                    : 'border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-stone-700 dark:text-rose-300 dark:hover:bg-stone-900'
-                            }`}
+                            className="inline-flex items-center gap-2 rounded-full border border-white/60 px-8 py-3 font-medium text-white backdrop-blur transition-colors hover:bg-white/10"
                         >
                             <Armchair className="size-4" />
                             Find your seat
                         </Link>
-                    </div>
+                    </motion.div>
+                </motion.div>
+
+                <motion.div
+                    className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-white/80"
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                    <ChevronDown className="size-7" />
+                </motion.div>
+            </section>
+
+            {/* Welcome */}
+            {published && content?.welcome_message && (
+                <section className="mx-auto max-w-2xl px-6 py-24 text-center">
+                    <Reveal>
+                        <Heart className="mx-auto size-6 text-rose-400" />
+                        <p className="mt-6 font-serif text-2xl leading-relaxed text-stone-600 sm:text-3xl dark:text-stone-300">
+                            {content.welcome_message}
+                        </p>
+                    </Reveal>
+                </section>
+            )}
+
+            {/* Our story */}
+            {published && content?.our_story && (
+                <section className="mx-auto grid max-w-5xl items-center gap-10 px-6 py-16 md:grid-cols-2">
+                    <Reveal className="overflow-hidden rounded-3xl">
+                        <img
+                            src={IMG.story}
+                            alt="Our story"
+                            className="aspect-[4/5] w-full object-cover"
+                            loading="lazy"
+                        />
+                    </Reveal>
+                    <Reveal delay={0.15}>
+                        <p className="text-sm tracking-[0.3em] text-rose-400 uppercase">Our story</p>
+                        <h2 className="mt-3 font-serif text-4xl">How it began</h2>
+                        <p className="mt-5 leading-relaxed whitespace-pre-line text-stone-600 dark:text-stone-300">
+                            {content.our_story}
+                        </p>
+                    </Reveal>
+                </section>
+            )}
+
+            {/* Details */}
+            {published && (content?.venue_name || content?.ceremony_time || content?.dress_code) && (
+                <section className="mx-auto max-w-5xl px-6 py-20">
+                    <Reveal className="mb-12 text-center">
+                        <h2 className="font-serif text-4xl">The Details</h2>
+                    </Reveal>
+                    <Stagger className="grid gap-6 sm:grid-cols-3">
+                        {content.venue_name && (
+                            <StaggerItem className="rounded-2xl border border-rose-100/70 bg-rose-50/40 p-8 text-center dark:border-stone-800 dark:bg-stone-900/50">
+                                <MapPin className="mx-auto size-6 text-rose-400" />
+                                <h3 className="mt-4 font-serif text-xl">Venue</h3>
+                                <p className="mt-2 text-stone-600 dark:text-stone-300">{content.venue_name}</p>
+                                {content.venue_address && (
+                                    <p className="mt-1 text-sm text-stone-400">{content.venue_address}</p>
+                                )}
+                            </StaggerItem>
+                        )}
+                        {content.ceremony_time && (
+                            <StaggerItem className="rounded-2xl border border-rose-100/70 bg-rose-50/40 p-8 text-center dark:border-stone-800 dark:bg-stone-900/50">
+                                <Clock className="mx-auto size-6 text-rose-400" />
+                                <h3 className="mt-4 font-serif text-xl">Ceremony</h3>
+                                <p className="mt-2 text-stone-600 dark:text-stone-300">{content.ceremony_time}</p>
+                            </StaggerItem>
+                        )}
+                        {content.dress_code && (
+                            <StaggerItem className="rounded-2xl border border-rose-100/70 bg-rose-50/40 p-8 text-center dark:border-stone-800 dark:bg-stone-900/50">
+                                <Shirt className="mx-auto size-6 text-rose-400" />
+                                <h3 className="mt-4 font-serif text-xl">Dress code</h3>
+                                <p className="mt-2 text-stone-600 dark:text-stone-300">{content.dress_code}</p>
+                            </StaggerItem>
+                        )}
+                    </Stagger>
+                </section>
+            )}
+
+            {/* Gallery */}
+            <section className="mx-auto max-w-6xl px-6 py-20">
+                <Reveal className="mb-12 text-center">
+                    <p className="text-sm tracking-[0.3em] text-rose-400 uppercase">A glimpse</p>
+                    <h2 className="mt-3 font-serif text-4xl">Moments to come</h2>
+                </Reveal>
+                <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                    {GALLERY.map((g) => (
+                        <StaggerItem
+                            key={g.src}
+                            className="group relative overflow-hidden rounded-2xl"
+                        >
+                            <img
+                                src={g.src}
+                                alt={g.label}
+                                className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                loading="lazy"
+                            />
+                            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                <span className="font-serif text-lg text-white">{g.label}</span>
+                            </div>
+                        </StaggerItem>
+                    ))}
+                </Stagger>
+            </section>
+
+            {/* CTA band */}
+            <section className="relative overflow-hidden">
+                <div
+                    className="absolute inset-0 bg-cover bg-fixed bg-center"
+                    style={{ backgroundImage: `url(${IMG.celebration})` }}
+                />
+                <div className="absolute inset-0 bg-rose-950/70" />
+                <div className="relative mx-auto max-w-2xl px-6 py-28 text-center text-white">
+                    <Reveal>
+                        <h2 className="font-serif text-4xl sm:text-5xl">We can't wait to celebrate</h2>
+                        <p className="mx-auto mt-4 max-w-md text-rose-50">
+                            {published
+                                ? 'Let us know if you can make it — we would love to have you there.'
+                                : 'More details are on the way. In the meantime, you can let us know if you’ll be there.'}
+                        </p>
+                        <Link
+                            href={`/w/${wedding.slug}/rsvp`}
+                            className="mt-8 inline-block rounded-full bg-white px-8 py-3 font-medium text-rose-600 transition-transform hover:scale-105"
+                        >
+                            RSVP now
+                        </Link>
+                    </Reveal>
                 </div>
             </section>
 
-            <div className="mx-auto max-w-2xl px-6 pb-20">
-                {published && content ? (
-                    <div className="flex flex-col gap-12">
-                        {content.welcome_message && (
-                            <p className="text-center text-xl leading-relaxed text-stone-600 dark:text-stone-300">
-                                {content.welcome_message}
-                            </p>
-                        )}
-
-                        {content.our_story && (
-                            <section className="text-center">
-                                <h2 className="font-serif text-3xl">
-                                    Our Story
-                                </h2>
-                                <p className="mt-4 leading-relaxed whitespace-pre-line text-stone-600 dark:text-stone-300">
-                                    {content.our_story}
-                                </p>
-                            </section>
-                        )}
-
-                        {(content.venue_name ||
-                            content.ceremony_time ||
-                            content.dress_code) && (
-                            <section className="grid gap-4 sm:grid-cols-3">
-                                {content.venue_name && (
-                                    <Detail icon={MapPin} label="Venue">
-                                        {content.venue_name}
-                                        {content.venue_address && (
-                                            <span className="mt-1 block text-sm opacity-80">
-                                                {content.venue_address}
-                                            </span>
-                                        )}
-                                    </Detail>
-                                )}
-                                {content.ceremony_time && (
-                                    <Detail icon={Clock} label="Ceremony">
-                                        {content.ceremony_time}
-                                    </Detail>
-                                )}
-                                {content.dress_code && (
-                                    <Detail icon={Shirt} label="Dress code">
-                                        {content.dress_code}
-                                    </Detail>
-                                )}
-                            </section>
-                        )}
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center gap-3 text-center text-stone-500 dark:text-stone-400">
-                        <CalendarHeart className="size-8 text-rose-300" />
-                        <p>
-                            More details are on the way — in the meantime, you
-                            can RSVP above.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            <footer className="border-t border-rose-100/70 py-8 text-center text-sm text-stone-400 dark:border-stone-800">
+            <footer className="bg-white py-8 text-center text-sm text-stone-400 dark:bg-stone-950">
                 Powered by WedFlow Atelier
             </footer>
-        </div>
-    );
-}
-
-function Detail({
-    icon: Icon,
-    label,
-    children,
-}: {
-    icon: typeof MapPin;
-    label: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-6 text-center backdrop-blur dark:border-stone-800 dark:bg-stone-900/60">
-            <Icon className="mx-auto size-5 text-rose-400" />
-            <div className="mt-3 text-xs tracking-wide text-stone-400 uppercase">
-                {label}
-            </div>
-            <div className="mt-1 font-medium">{children}</div>
         </div>
     );
 }

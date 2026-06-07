@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { Armchair, Heart, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,10 +39,15 @@ export default function PublicSeats({ wedding, matches, searched, query }: PageP
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-rose-50 text-stone-800 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 dark:text-stone-100">
+        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-rose-50 via-white to-rose-50 text-stone-800 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 dark:text-stone-100">
             <Head title={`Find your seat — ${wedding.name}`} />
 
-            <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-16">
+            <div
+                className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-10"
+                style={{ backgroundImage: "url('/images/wedding/reception.jpg')" }}
+            />
+
+            <div className="relative mx-auto flex max-w-xl flex-col items-center px-6 py-16">
                 <Heart className="size-8 text-rose-400" />
                 <p className="mt-6 text-sm tracking-[0.3em] text-rose-400 uppercase">
                     Welcome to the celebration
@@ -55,7 +61,12 @@ export default function PublicSeats({ wedding, matches, searched, query }: PageP
                     </p>
                 )}
 
-                <div className="mt-12 w-full rounded-2xl border border-rose-100 bg-white/80 p-8 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-900/70">
+                <motion.div
+                    className="mt-12 w-full rounded-2xl border border-rose-100 bg-white/80 p-8 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-900/70"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                >
                     <div className="text-center">
                         <h2 className="text-lg font-medium">Find your seat</h2>
                         <p className="text-sm text-stone-500 dark:text-stone-400">
@@ -134,7 +145,7 @@ export default function PublicSeats({ wedding, matches, searched, query }: PageP
                             )}
                         </div>
                     )}
-                </div>
+                </motion.div>
 
                 <p className="mt-10 text-xs text-stone-400">
                     Powered by WedFlow Atelier
