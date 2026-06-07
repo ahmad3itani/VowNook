@@ -25,6 +25,8 @@ class VendorRequest extends FormRequest
             'name' => ['required', 'string', 'max:160'],
             'category' => ['required', Rule::enum(VendorCategory::class)],
             'status' => ['required', Rule::enum(VendorStatus::class)],
+            'rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'price_level' => ['nullable', 'integer', 'min:1', 'max:4'],
             'contact_name' => ['nullable', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],

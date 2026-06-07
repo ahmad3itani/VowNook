@@ -1,9 +1,10 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Briefcase,
     ExternalLink,
     Pencil,
     Plus,
+    Scale,
     Search,
     Trash2,
 } from 'lucide-react';
@@ -42,6 +43,8 @@ type Vendor = {
     name: string;
     category: string;
     status: string;
+    rating: number | null;
+    price_level: number | null;
     contact_name: string | null;
     email: string | null;
     phone: string | null;
@@ -85,6 +88,8 @@ type VendorFormData = {
     name: string;
     category: string;
     status: string;
+    rating: string;
+    price_level: string;
     contact_name: string;
     email: string;
     phone: string;
@@ -99,6 +104,8 @@ function emptyForm(options: PageProps['options']): VendorFormData {
         name: '',
         category: options.categories[0]?.value ?? 'other',
         status: options.statuses[0]?.value ?? 'researching',
+        rating: '',
+        price_level: '',
         contact_name: '',
         email: '',
         phone: '',
@@ -153,6 +160,8 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
             name: vendor.name,
             category: vendor.category,
             status: vendor.status,
+            rating: vendor.rating !== null ? String(vendor.rating) : '',
+            price_level: vendor.price_level !== null ? String(vendor.price_level) : '',
             contact_name: vendor.contact_name ?? '',
             email: vendor.email ?? '',
             phone: vendor.phone ?? '',
@@ -170,6 +179,8 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
         form.transform((data) => ({
             ...data,
             cost_amount: data.cost_amount === '' ? null : data.cost_amount,
+            rating: data.rating === '' ? null : Number(data.rating),
+            price_level: data.price_level === '' ? null : Number(data.price_level),
         }));
 
         const onSuccess = () => {
@@ -208,12 +219,20 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                         title="Vendors"
                         description="Track the people and businesses bringing your day to life."
                     />
-                    {writable && (
-                        <Button onClick={openCreate} data-test="add-vendor">
-                            <Plus className="size-4" />
-                            Add vendor
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" asChild>
+                            <Link href="/vendors/compare">
+                                <Scale className="size-4" />
+                                Compare
+                            </Link>
                         </Button>
-                    )}
+                        {writable && (
+                            <Button onClick={openCreate} data-test="add-vendor">
+                                <Plus className="size-4" />
+                                Add vendor
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -463,6 +482,49 @@ export default function VendorsIndex({ vendors, stats, options }: PageProps) {
                                     </SelectContent>
                                 </Select>
                                 <InputError message={form.errors.status} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="grid gap-2">
+                                <Label>Rating</Label>
+                                <Select
+                                    value={form.data.rating || 'none'}
+                                    onValueChange={(v) => form.setData('rating', v === 'none' ? '' : v)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Not rated" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Not rated</SelectItem>
+                                        {[1, 2, 3, 4, 5].map((n) => (
+                                            <SelectItem key={n} value={String(n)}>
+                                                {'★'.repeat(n)} ({n})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={form.errors.rating} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Price level</Label>
+                                <Select
+                                    value={form.data.price_level || 'none'}
+                                    onValueChange={(v) => form.setData('price_level', v === 'none' ? '' : v)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="—" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">—</SelectItem>
+                                        {[1, 2, 3, 4].map((n) => (
+                                            <SelectItem key={n} value={String(n)}>
+                                                {'$'.repeat(n)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={form.errors.price_level} />
                             </div>
                         </div>
 

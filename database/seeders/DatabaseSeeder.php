@@ -153,23 +153,30 @@ class DatabaseSeeder extends Seeder
     /** A handful of vendors across the booking lifecycle. */
     protected function seedVendors(Wedding $wedding): void
     {
-        // [name, category, status, contact, $cost (null = no quote yet), $paid]
+        // [name, category, status, contact, $cost (null = no quote yet), $paid, rating, price_level]
         $vendors = [
-            ['The Grand Conservatory', VendorCategory::Venue, VendorStatus::Booked, 'Olivia Pearce', 12000, 5000],
-            ['Saffron & Sage Catering', VendorCategory::Catering, VendorStatus::Booked, 'Marcus Bell', 9000, 0],
-            ['Aperture Studios', VendorCategory::Photography, VendorStatus::Quoted, 'Nina Castillo', 3500, 0],
-            ['Wildflower Collective', VendorCategory::Florist, VendorStatus::Contacted, 'Priya Anand', null, 0],
-            ['The Velvet Trio', VendorCategory::Music, VendorStatus::Researching, null, null, 0],
-            ['Sweet Layers Bakery', VendorCategory::Bakery, VendorStatus::Declined, 'Hannah Cole', 800, 0],
+            ['The Grand Conservatory', VendorCategory::Venue, VendorStatus::Booked, 'Olivia Pearce', 12000, 5000, 5, 4],
+            ['Saffron & Sage Catering', VendorCategory::Catering, VendorStatus::Booked, 'Marcus Bell', 9000, 0, 4, 3],
+            // Photography — two to compare.
+            ['Aperture Studios', VendorCategory::Photography, VendorStatus::Quoted, 'Nina Castillo', 3500, 0, 5, 4],
+            ['Lumière Photography', VendorCategory::Photography, VendorStatus::Contacted, 'Théo Marchand', 2600, 0, 4, 2],
+            // Florists — three to compare (Petal & Stem is the best value).
+            ['Maison de Fleurs', VendorCategory::Florist, VendorStatus::Quoted, 'Claire Dubois', 4200, 0, 5, 4],
+            ['Petal & Stem', VendorCategory::Florist, VendorStatus::Contacted, 'Priya Anand', 2400, 0, 4, 2],
+            ['Botanical Soul', VendorCategory::Florist, VendorStatus::Researching, 'Giulia Romano', 3300, 0, 4, 3],
+            ['The Velvet Trio', VendorCategory::Music, VendorStatus::Researching, null, null, 0, null, null],
+            ['Sweet Layers Bakery', VendorCategory::Bakery, VendorStatus::Declined, 'Hannah Cole', 800, 0, 3, 2],
         ];
 
-        foreach ($vendors as [$name, $category, $status, $contact, $cost, $paid]) {
+        foreach ($vendors as [$name, $category, $status, $contact, $cost, $paid, $rating, $priceLevel]) {
             Vendor::create([
                 'wedding_id' => $wedding->id,
                 'name' => $name,
                 'category' => $category,
                 'status' => $status,
                 'contact_name' => $contact,
+                'rating' => $rating,
+                'price_level' => $priceLevel,
                 'cost_cents' => $cost !== null ? $cost * 100 : null,
                 'paid_cents' => $paid * 100,
             ]);

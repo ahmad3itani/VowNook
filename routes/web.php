@@ -88,6 +88,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Vendors workspace.
     Route::get('vendors', [VendorController::class, 'index'])
         ->middleware('permission:vendors,read')->name('vendors.index');
+    Route::get('vendors/compare', [VendorController::class, 'compare'])
+        ->middleware('permission:vendors,read')->name('vendors.compare');
+    Route::get('vendors/compare/pdf', [VendorController::class, 'comparePdf'])
+        ->middleware('permission:vendors,read')->name('vendors.compare.pdf');
 
     Route::middleware('permission:vendors,write')->group(function () {
         Route::post('vendors', [VendorController::class, 'store'])->name('vendors.store');

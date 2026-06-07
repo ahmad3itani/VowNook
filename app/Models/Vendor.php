@@ -20,6 +20,8 @@ class Vendor extends Model
         'name',
         'category',
         'status',
+        'rating',
+        'price_level',
         'contact_name',
         'email',
         'phone',
@@ -34,6 +36,8 @@ class Vendor extends Model
         return [
             'category' => VendorCategory::class,
             'status' => VendorStatus::class,
+            'rating' => 'integer',
+            'price_level' => 'integer',
             'cost_cents' => 'integer',
             'paid_cents' => 'integer',
         ];

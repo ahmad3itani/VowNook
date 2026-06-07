@@ -20,6 +20,8 @@ class VendorFactory extends Factory
             'name' => fake()->company(),
             'category' => fake()->randomElement(VendorCategory::cases()),
             'status' => fake()->randomElement(VendorStatus::cases()),
+            'rating' => fake()->optional()->numberBetween(1, 5),
+            'price_level' => fake()->optional()->numberBetween(1, 4),
             'contact_name' => fake()->name(),
             'email' => fake()->optional()->companyEmail(),
             'phone' => fake()->optional()->phoneNumber(),
