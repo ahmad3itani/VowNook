@@ -1,13 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { Check, Heart, Search } from 'lucide-react';
+import { Check, Search } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
 
 type Match = {
     id: number;
@@ -30,6 +24,8 @@ const REPLIES: { value: string; label: string }[] = [
     { value: 'declined', label: 'Regretfully declines' },
 ];
 
+const serif = "font-['Playfair_Display']";
+
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
     weekday: 'long',
     year: 'numeric',
@@ -42,13 +38,7 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
     const [done, setDone] = useState(false);
 
     const lookup = useForm({ name: query ?? '' });
-
-    const respond = useForm({
-        guest_id: 0,
-        rsvp_status: 'attending',
-        meal_choice: '',
-        dietary_notes: '',
-    });
+    const respond = useForm({ guest_id: 0, rsvp_status: 'attending', meal_choice: '', dietary_notes: '' });
 
     function submitLookup(e: React.FormEvent) {
         e.preventDefault();
@@ -66,10 +56,7 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
         setDone(false);
         respond.setData({
             guest_id: match.id,
-            rsvp_status:
-                match.rsvp_status === 'pending'
-                    ? 'attending'
-                    : match.rsvp_status,
+            rsvp_status: match.rsvp_status === 'pending' ? 'attending' : match.rsvp_status,
             meal_choice: match.meal_choice ?? '',
             dietary_notes: match.dietary_notes ?? '',
         });
@@ -86,91 +73,63 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
         });
     }
 
+    const inputClass =
+        'w-full border-0 border-b border-[#cec5bd] bg-transparent px-0 py-3 text-[#1e1b17] transition-colors placeholder:text-[#4c4640]/50 focus:border-[#775a19] focus:ring-0';
+
     return (
-        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-rose-50 via-white to-rose-50 text-stone-800 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 dark:text-stone-100">
+        <div className="min-h-screen bg-[#fff8f3] font-['DM_Sans'] text-[#1e1b17] antialiased">
             <Head title={`RSVP — ${wedding.name}`} />
 
-            <div
-                className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-10"
-                style={{ backgroundImage: "url('/images/wedding/florals.jpg')" }}
-            />
-
-            <div className="relative mx-auto flex max-w-xl flex-col items-center px-6 py-16">
-                <Heart className="size-8 text-rose-400" />
-                <p className="mt-6 text-sm tracking-[0.3em] text-rose-400 uppercase">
-                    Together with their families
-                </p>
-                <h1 className="mt-3 text-center font-serif text-4xl leading-tight sm:text-5xl">
-                    {wedding.name}
-                </h1>
+            <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-20">
+                <p className="text-xs tracking-[0.3em] text-[#775a19] uppercase">Together with their families</p>
+                <h1 className={`${serif} mt-4 text-center text-4xl leading-tight sm:text-5xl`}>{wedding.name}</h1>
                 {wedding.event_date && (
-                    <p className="mt-4 text-center text-stone-500 dark:text-stone-400">
+                    <p className="mt-4 text-sm tracking-[0.1em] text-[#4c4640] uppercase">
                         {dateFormat.format(new Date(wedding.event_date))}
                     </p>
                 )}
 
-                <motion.div
-                    className="mt-12 w-full rounded-2xl border border-rose-100 bg-white/80 p-8 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-900/70"
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                >
+                <div className="mt-12 w-full border border-[#cec5bd]/40 bg-[#fffdf9] p-8 shadow-sm md:p-10">
                     {done ? (
                         <div className="flex flex-col items-center gap-3 py-6 text-center">
-                            <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                            <div className="flex size-12 items-center justify-center rounded-full bg-[#775a19] text-white">
                                 <Check className="size-6" />
                             </div>
-                            <h2 className="text-xl font-medium">
-                                Reply received
-                            </h2>
-                            <p className="text-sm text-stone-500 dark:text-stone-400">
-                                Thank you, {selected?.name}. You can update your
-                                response any time.
+                            <h2 className={`${serif} text-2xl`}>Reply received</h2>
+                            <p className="text-sm text-[#4c4640]">
+                                Thank you, {selected?.name}. You can update your response any time.
                             </p>
-                            <Button
-                                variant="outline"
+                            <button
                                 onClick={() => {
                                     setDone(false);
                                     setSelected(null);
                                     lookup.reset();
                                 }}
+                                className="mt-2 border border-[#1e1b18] px-6 py-2.5 text-xs tracking-widest text-[#1e1b18] uppercase transition-colors hover:bg-[#1e1b18] hover:text-white"
                             >
                                 Respond for someone else
-                            </Button>
+                            </button>
                         </div>
                     ) : selected ? (
-                        <form
-                            onSubmit={submitRespond}
-                            className="flex flex-col gap-5"
-                        >
+                        <form onSubmit={submitRespond} className="flex flex-col gap-6">
                             <div>
-                                <h2 className="text-lg font-medium">
-                                    Hello, {selected.name}
-                                </h2>
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    Will you be joining us?
-                                </p>
+                                <h2 className={`${serif} text-2xl`}>Hello, {selected.name}</h2>
+                                <p className="text-sm text-[#4c4640]">Will you be joining us?</p>
                             </div>
 
                             <div className="grid gap-2">
                                 {REPLIES.map((r) => {
-                                    const active =
-                                        respond.data.rsvp_status === r.value;
+                                    const active = respond.data.rsvp_status === r.value;
 
                                     return (
                                         <button
                                             type="button"
                                             key={r.value}
-                                            onClick={() =>
-                                                respond.setData(
-                                                    'rsvp_status',
-                                                    r.value,
-                                                )
-                                            }
-                                            className={`rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
+                                            onClick={() => respond.setData('rsvp_status', r.value)}
+                                            className={`border px-4 py-3 text-left text-sm tracking-wide transition-colors ${
                                                 active
-                                                    ? 'border-rose-400 bg-rose-50 font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-200'
-                                                    : 'border-stone-200 hover:border-rose-200 dark:border-stone-700'
+                                                    ? 'border-[#775a19] bg-[#fed488]/20 font-medium text-[#1e1b18]'
+                                                    : 'border-[#cec5bd]/60 hover:border-[#775a19]/50'
                                             }`}
                                         >
                                             {r.label}
@@ -182,100 +141,80 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
                             {respond.data.rsvp_status === 'attending' && (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="meal_choice">
+                                        <label className="text-xs tracking-widest text-[#4c4640] uppercase">
                                             Meal preference
-                                        </Label>
-                                        <Input
-                                            id="meal_choice"
+                                        </label>
+                                        <input
                                             value={respond.data.meal_choice}
-                                            onChange={(e) =>
-                                                respond.setData(
-                                                    'meal_choice',
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => respond.setData('meal_choice', e.target.value)}
                                             placeholder="Beef, fish, vegetarian…"
+                                            className={inputClass}
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="dietary_notes">
+                                        <label className="text-xs tracking-widest text-[#4c4640] uppercase">
                                             Dietary notes
-                                        </Label>
-                                        <Textarea
-                                            id="dietary_notes"
+                                        </label>
+                                        <textarea
                                             value={respond.data.dietary_notes}
-                                            onChange={(e) =>
-                                                respond.setData(
-                                                    'dietary_notes',
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => respond.setData('dietary_notes', e.target.value)}
                                             placeholder="Allergies or restrictions"
+                                            rows={3}
+                                            className={`${inputClass} resize-none`}
                                         />
                                     </div>
                                 </>
                             )}
 
-                            <div className="flex gap-2">
-                                <Button
+                            <div className="flex gap-3">
+                                <button
                                     type="submit"
                                     disabled={respond.processing}
-                                    className="flex-1"
+                                    className="flex-1 bg-[#1e1b18] px-6 py-3.5 text-xs tracking-[0.2em] text-white uppercase transition-opacity hover:opacity-85 disabled:opacity-50"
                                 >
-                                    {respond.processing && <Spinner />}
                                     Send reply
-                                </Button>
-                                <Button
+                                </button>
+                                <button
                                     type="button"
-                                    variant="ghost"
                                     onClick={() => setSelected(null)}
+                                    className="px-4 text-xs tracking-widest text-[#4c4640] uppercase hover:text-[#1e1b18]"
                                 >
                                     Back
-                                </Button>
+                                </button>
                             </div>
                         </form>
                     ) : (
-                        <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-6">
                             <div className="text-center">
-                                <h2 className="text-lg font-medium">RSVP</h2>
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    Find your name to reply.
-                                </p>
+                                <h2 className={`${serif} text-2xl`}>Kindly Respond</h2>
+                                <p className="text-sm text-[#4c4640]">Find your name to reply.</p>
                             </div>
 
-                            <form
-                                onSubmit={submitLookup}
-                                className="flex gap-2"
-                            >
+                            <form onSubmit={submitLookup} className="flex gap-3">
                                 <div className="relative flex-1">
-                                    <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" />
-                                    <Input
+                                    <Search className="absolute top-1/2 left-0 size-4 -translate-y-1/2 text-[#775a19]" />
+                                    <input
                                         value={lookup.data.name}
-                                        onChange={(e) =>
-                                            lookup.setData(
-                                                'name',
-                                                e.target.value,
-                                            )
-                                        }
+                                        onChange={(e) => lookup.setData('name', e.target.value)}
                                         placeholder="Your name"
-                                        className="pl-9"
+                                        className={`${inputClass} pl-6`}
                                         autoFocus
                                     />
                                 </div>
-                                <Button
+                                <button
                                     type="submit"
                                     disabled={lookup.processing}
+                                    className="bg-[#1e1b18] px-6 text-xs tracking-widest text-white uppercase transition-opacity hover:opacity-85 disabled:opacity-50"
                                 >
-                                    {lookup.processing ? <Spinner /> : 'Find'}
-                                </Button>
+                                    Find
+                                </button>
                             </form>
 
                             {searched && (
                                 <div className="flex flex-col gap-2">
                                     {matches.length === 0 ? (
-                                        <p className="py-4 text-center text-sm text-stone-500 dark:text-stone-400">
-                                            No matches found. Try another
-                                            spelling, or contact the couple.
+                                        <p className="py-4 text-center text-sm text-[#4c4640]">
+                                            No matches found. Try another spelling, or contact the couple.
                                         </p>
                                     ) : (
                                         matches.map((m) => (
@@ -283,7 +222,7 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
                                                 type="button"
                                                 key={m.id}
                                                 onClick={() => choose(m)}
-                                                className="rounded-lg border border-stone-200 px-4 py-3 text-left text-sm transition-colors hover:border-rose-300 hover:bg-rose-50 dark:border-stone-700 dark:hover:bg-stone-800"
+                                                className="border border-[#cec5bd]/60 px-4 py-3 text-left text-sm transition-colors hover:border-[#775a19] hover:bg-[#fed488]/10"
                                             >
                                                 {m.name}
                                             </button>
@@ -293,11 +232,9 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
                             )}
                         </div>
                     )}
-                </motion.div>
+                </div>
 
-                <p className="mt-10 text-xs text-stone-400">
-                    Powered by WedFlow Atelier
-                </p>
+                <p className="mt-10 text-xs tracking-[0.15em] text-[#4c4640]/60 uppercase">Made with WedFlow Atelier</p>
             </div>
         </div>
     );
