@@ -7,6 +7,7 @@ import {
     Camera,
     Disc3,
     DoorOpen,
+    FileDown,
     Gift,
     GripVertical,
     Maximize2,
@@ -490,10 +491,18 @@ return;
             <Head title="Floor plan" />
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <Heading
-                    title="Seating studio"
-                    description="Size the room, place tables and elements, and seat guests chair by chair."
-                />
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <Heading
+                        title="Seating studio"
+                        description="Size the room, place tables and elements, and seat guests chair by chair."
+                    />
+                    <Button variant="outline" asChild>
+                        <a href="/seating/export/pdf">
+                            <FileDown className="size-4" />
+                            Export PDF
+                        </a>
+                    </Button>
+                </div>
 
                 <div className="flex flex-1 flex-col gap-4 lg:flex-row">
                     {/* LEFT RAIL — guests */}
@@ -624,7 +633,7 @@ return;
                         <div
                             ref={canvasRef}
                             onPointerDown={clearSelection}
-                            className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-border bg-card bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:22px_22px]"
+                            className="relative w-full overflow-hidden rounded-xl border-2 border-[#b9ab97] bg-[#efe7da] bg-[radial-gradient(#c9bba6_1.2px,transparent_1.2px)] [background-size:22px_22px]"
                             style={{ aspectRatio: aspect }}
                         >
                             <span className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 rounded bg-background/70 px-2 text-[10px] text-muted-foreground">
@@ -666,10 +675,10 @@ return;
                                         }}
                                     >
                                         <div
-                                            className={`flex size-full flex-col items-center justify-center gap-1 rounded-lg border text-center text-xs font-medium transition-colors ${
+                                            className={`flex size-full flex-col items-center justify-center gap-1 rounded-lg border-2 text-center text-xs font-medium transition-colors ${
                                                 selected
-                                                    ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-                                                    : 'border-border bg-muted text-muted-foreground'
+                                                    ? 'border-[#775a19] bg-[#fed488]/50 text-[#5b4a1f] ring-2 ring-[#775a19]/40'
+                                                    : 'border-[#9c8f7d] bg-[#e6d8bd] text-[#5b4a1f]'
                                             }`}
                                         >
                                             <Icon className="size-4 shrink-0" />
@@ -793,8 +802,8 @@ return;
                                                         title={who ? `Seat ${seat.n}: ${who.name}` : `Seat ${seat.n}`}
                                                         className={`flex items-center justify-center rounded-full border text-[9px] font-semibold transition-all ${
                                                             who
-                                                                ? `cursor-grab bg-[#775a19] text-white ring-2 ring-offset-1 ring-offset-card active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
-                                                                : 'border-dashed border-[#c1b6a8] bg-background text-muted-foreground'
+                                                                ? `cursor-grab bg-[#775a19] text-white ring-2 ring-offset-1 ring-offset-[#efe7da] active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
+                                                                : 'border-2 border-[#9c8f7d] bg-white text-[#7d7468]'
                                                         } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''}`}
                                                         style={{ width: geo.chair, height: geo.chair }}
                                                     >
@@ -806,8 +815,10 @@ return;
 
                                         {/* table top */}
                                         <div
-                                            className={`absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border bg-card shadow-sm ${
-                                                selectedTableId === table.id ? 'ring-2 ring-[#775a19]' : ''
+                                            className={`absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 bg-white shadow-md ${
+                                                selectedTableId === table.id
+                                                    ? 'border-[#775a19] ring-2 ring-[#775a19]/50'
+                                                    : 'border-[#3d3833]'
                                             }`}
                                             style={{
                                                 width: geo.tableW,

@@ -9,8 +9,10 @@ use App\Models\Guest;
 use App\Models\SeatingElement;
 use App\Models\SeatingTable;
 use App\Support\CurrentWedding;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -96,6 +98,55 @@ class SeatingController extends Controller
                 ),
             ],
         ]);
+    }
+
+    /** A printable seating chart: every table with its guests, by seat. */
+    public function exportPdf(): \Illuminate\Http\Response
+    {
+        $weddingId = $this->current->id();
+        $wedding = $this->current->get();
+
+        $tables = SeatingTable::query()
+            ->forWedding($weddingId)
+            ->orderBy('name')
+            ->get();
+
+        $guests = Guest::query()
+            ->forWedding($weddingId)
+            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'meal_choice']);
+
+        $rows = $tables->map(function (SeatingTable $t) use ($guests) {
+            $seated = $guests
+                ->where('table_id', $t->id)
+                ->sortBy([['seat_number', 'asc'], ['first_name', 'asc']])
+                ->map(fn (Guest $g) => [
+                    'seat' => $g->seat_number,
+                    'name' => trim($g->first_name.' '.($g->last_name ?? '')),
+                    'meal' => $g->meal_choice,
+                ])
+                ->values();
+
+            return [
+                'name' => $t->name,
+                'shape' => $t->shape->label(),
+                'capacity' => $t->capacity,
+                'guests' => $seated,
+            ];
+        });
+
+        $unseated = $guests
+            ->whereNull('table_id')
+            ->map(fn (Guest $g) => trim($g->first_name.' '.($g->last_name ?? '')))
+            ->sort()
+            ->values();
+
+        $pdf = Pdf::loadView('pdf.seating', [
+            'wedding' => $wedding,
+            'tables' => $rows,
+            'unseated' => $unseated,
+        ]);
+
+        return $pdf->download(Str::slug($wedding->name).'-seating-chart.pdf');
     }
 
     public function store(SeatingTableRequest $request): RedirectResponse

@@ -124,6 +124,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Seating chart workspace.
     Route::get('seating', [SeatingController::class, 'index'])
         ->middleware('permission:seating,read')->name('seating.index');
+    Route::get('seating/export/pdf', [SeatingController::class, 'exportPdf'])
+        ->middleware('permission:seating,read')->name('seating.export.pdf');
 
     Route::middleware('permission:seating,write')->group(function () {
         Route::post('seating', [SeatingController::class, 'store'])->name('seating.store');

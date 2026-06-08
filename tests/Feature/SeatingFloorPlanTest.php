@@ -24,6 +24,18 @@ class SeatingFloorPlanTest extends TestCase
         return [$user, $wedding];
     }
 
+    public function test_seating_chart_pdf_downloads(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $table = SeatingTable::factory()->create(['wedding_id' => $wedding->id]);
+        Guest::factory()->create(['wedding_id' => $wedding->id, 'table_id' => $table->id, 'seat_number' => 1]);
+
+        $response = $this->actingAs($user)->get('/seating/export/pdf');
+
+        $response->assertOk();
+        $this->assertSame('application/pdf', $response->headers->get('content-type'));
+    }
+
     public function test_index_includes_elements_and_layout(): void
     {
         [$user, $wedding] = $this->ownerWithWedding();
