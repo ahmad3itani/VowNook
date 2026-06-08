@@ -15,9 +15,11 @@ import {
     Pencil,
     Plus,
     RotateCw,
+    Search,
     Trash2,
     Utensils,
     Wine,
+    X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -25,7 +27,6 @@ import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -227,6 +228,8 @@ export default function SeatingIndex({ tables, guests, elements, layout, stats, 
     const [dragGuestId, setDragGuestId] = useState<number | null>(null);
     const [dropTarget, setDropTarget] = useState<string | null>(null);
     const [selectedElement, setSelectedElement] = useState<number | null>(null);
+    const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
+    const [guestSearch, setGuestSearch] = useState('');
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -238,6 +241,17 @@ export default function SeatingIndex({ tables, guests, elements, layout, stats, 
     const aspect = `${layout.room_width} / ${layout.room_height}`;
 
     const unseated = guests.filter((g) => g.table_id === null);
+    const filteredUnseated = unseated.filter((g) =>
+        g.name.toLowerCase().includes(guestSearch.trim().toLowerCase()),
+    );
+    const selectedTable = tables.find((t) => t.id === selectedTableId) ?? null;
+    const selectedElementObj = elements.find((e) => e.id === selectedElement) ?? null;
+
+    function clearSelection() {
+        setSelectedElement(null);
+        setSelectedTableId(null);
+    }
+
     const tablePosFor = (t: Table) => tablePos[t.id] ?? { x: t.position_x, y: t.position_y };
     const elemPosFor = (e: FloorElement) => elemPos[e.id] ?? { x: e.position_x, y: e.position_y };
     const elemSizeFor = (e: FloorElement) => elemSize[e.id] ?? { width: e.width, height: e.height };
@@ -476,94 +490,140 @@ return;
             <Head title="Floor plan" />
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading
-                        title="Floor plan"
-                        description="Size the room, place tables and elements, and seat guests chair by chair."
-                    />
-                </div>
+                <Heading
+                    title="Seating studio"
+                    description="Size the room, place tables and elements, and seat guests chair by chair."
+                />
 
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard label="Tables" value={String(stats.tables)} />
-                    <StatCard label="Seats" value={String(stats.capacity)} />
-                    <StatCard label="Seated" value={String(stats.seated)} accent="text-[#775a19]" />
-                    <StatCard
-                        label="Unseated"
-                        value={String(stats.unseated)}
-                        accent={stats.unseated > 0 ? 'text-[#b08d3e]' : undefined}
-                    />
-                </div>
-
-                {/* Toolbar */}
-                {writable && (
-                    <Card>
-                        <CardContent className="flex flex-wrap items-end gap-4 px-4">
-                            <div className="flex items-end gap-2">
-                                <div className="grid gap-1">
-                                    <Label className="text-xs">Room width (ft)</Label>
-                                    <Input
-                                        type="number"
-                                        min={10}
-                                        max={200}
-                                        defaultValue={layout.room_width}
-                                        className="w-24"
-                                        onBlur={(e) => saveRoom(Number(e.target.value), layout.room_height)}
-                                    />
-                                </div>
-                                <span className="pb-2 text-muted-foreground">×</span>
-                                <div className="grid gap-1">
-                                    <Label className="text-xs">Length (ft)</Label>
-                                    <Input
-                                        type="number"
-                                        min={10}
-                                        max={200}
-                                        defaultValue={layout.room_height}
-                                        className="w-24"
-                                        onBlur={(e) => saveRoom(layout.room_width, Number(e.target.value))}
+                <div className="flex flex-1 flex-col gap-4 lg:flex-row">
+                    {/* LEFT RAIL — guests */}
+                    <aside className="flex flex-col lg:w-64">
+                        <div className="flex flex-1 flex-col border border-border bg-card">
+                            <div className="border-b border-border p-4">
+                                <p className="text-xs tracking-[0.2em] text-[#775a19] uppercase">Guests</p>
+                                <div className="relative mt-3">
+                                    <Search className="absolute top-1/2 left-0 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        value={guestSearch}
+                                        onChange={(e) => setGuestSearch(e.target.value)}
+                                        placeholder="Find a guest…"
+                                        className="w-full border-0 border-b border-border bg-transparent py-2 pl-6 text-sm focus:border-[#775a19] focus:ring-0"
                                     />
                                 </div>
                             </div>
+                            <div
+                                className={`flex flex-1 flex-col gap-2 overflow-y-auto p-4 ${
+                                    dropTarget === 'unseated' ? 'bg-[#fed488]/10' : ''
+                                }`}
+                                onDragOver={(e) => {
+                                    if (dragGuestId !== null) {
+                                        e.preventDefault();
+                                        setDropTarget('unseated');
+                                    }
+                                }}
+                                onDragLeave={() => setDropTarget((t) => (t === 'unseated' ? null : t))}
+                                onDrop={dropOnUnseated}
+                            >
+                                {filteredUnseated.length === 0 ? (
+                                    <p className="py-6 text-center text-xs text-muted-foreground">
+                                        {unseated.length === 0 ? 'Everyone has a seat.' : 'No matches.'}
+                                    </p>
+                                ) : (
+                                    filteredUnseated.map((g) => (
+                                        <div
+                                            key={g.id}
+                                            draggable={writable}
+                                            onDragStart={() => setDragGuestId(g.id)}
+                                            onDragEnd={() => setDragGuestId(null)}
+                                            className="flex cursor-grab items-center gap-2 rounded bg-muted px-3 py-2 text-sm hover:bg-muted/70 active:cursor-grabbing"
+                                        >
+                                            <span
+                                                className={`size-2 shrink-0 rounded-full ${
+                                                    g.rsvp_status === 'attending'
+                                                        ? 'bg-[#775a19]'
+                                                        : g.rsvp_status === 'declined'
+                                                          ? 'bg-[#c1b6a8]'
+                                                          : 'bg-[#e0d6c9]'
+                                                }`}
+                                            />
+                                            <span className="truncate">{g.name}</span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <div className="flex justify-between border-t border-border p-4 text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
+                                <span>Seated: {stats.seated}</span>
+                                <span>Total: {stats.seated + stats.unseated}</span>
+                            </div>
+                        </div>
+                    </aside>
 
-                            <div className="bg-border h-10 w-px" />
-
-                            <div className="flex items-end gap-2">
-                                <div className="grid gap-1">
-                                    <Label className="text-xs">Add element</Label>
-                                    <Select value={newElementType} onValueChange={setNewElementType}>
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {options.elementTypes.map((t) => (
-                                                <SelectItem key={t.value} value={t.value}>
-                                                    {t.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                    {/* CENTER — toolbar + canvas */}
+                    <div className="flex flex-1 flex-col gap-3">
+                        {writable && (
+                            <div className="flex flex-wrap items-end gap-4 border border-border bg-card px-4 py-3">
+                                <div className="flex items-end gap-2">
+                                    <div className="grid gap-1">
+                                        <Label className="text-xs">Room width (ft)</Label>
+                                        <Input
+                                            type="number"
+                                            min={10}
+                                            max={200}
+                                            defaultValue={layout.room_width}
+                                            className="w-24"
+                                            onBlur={(e) => saveRoom(Number(e.target.value), layout.room_height)}
+                                        />
+                                    </div>
+                                    <span className="pb-2 text-muted-foreground">×</span>
+                                    <div className="grid gap-1">
+                                        <Label className="text-xs">Length (ft)</Label>
+                                        <Input
+                                            type="number"
+                                            min={10}
+                                            max={200}
+                                            defaultValue={layout.room_height}
+                                            className="w-24"
+                                            onBlur={(e) => saveRoom(layout.room_width, Number(e.target.value))}
+                                        />
+                                    </div>
                                 </div>
-                                <Button variant="outline" onClick={addElement}>
+
+                                <div className="bg-border h-10 w-px" />
+
+                                <div className="flex items-end gap-2">
+                                    <div className="grid gap-1">
+                                        <Label className="text-xs">Add element</Label>
+                                        <Select value={newElementType} onValueChange={setNewElementType}>
+                                            <SelectTrigger className="w-44">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {options.elementTypes.map((t) => (
+                                                    <SelectItem key={t.value} value={t.value}>
+                                                        {t.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button variant="outline" onClick={addElement}>
+                                        <Plus className="size-4" />
+                                        Place
+                                    </Button>
+                                </div>
+
+                                <div className="bg-border h-10 w-px" />
+
+                                <Button onClick={openCreate} data-test="add-table">
                                     <Plus className="size-4" />
-                                    Place
+                                    Add table
                                 </Button>
                             </div>
+                        )}
 
-                            <div className="bg-border h-10 w-px" />
-
-                            <Button onClick={openCreate} data-test="add-table">
-                                <Plus className="size-4" />
-                                Add table
-                            </Button>
-                        </CardContent>
-                    </Card>
-                )}
-
-                <div className="flex flex-col gap-4 lg:flex-row">
-                    {/* Floor plan canvas */}
-                    <div className="flex-1">
                         <div
                             ref={canvasRef}
-                            onPointerDown={() => setSelectedElement(null)}
+                            onPointerDown={clearSelection}
                             className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-border bg-card bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:22px_22px]"
                             style={{ aspectRatio: aspect }}
                         >
@@ -602,6 +662,7 @@ return;
                                         onPointerDown={(e) => {
                                             e.stopPropagation();
                                             setSelectedElement(el.id);
+                                            setSelectedTableId(null);
                                         }}
                                     >
                                         <div
@@ -622,6 +683,7 @@ return;
                                                     e.stopPropagation();
                                                     e.preventDefault();
                                                     setSelectedElement(el.id);
+                                                    setSelectedTableId(null);
                                                     setDrag({ kind: 'move-element', id: el.id });
                                                 }}
                                                 aria-label="Move element"
@@ -744,11 +806,18 @@ return;
 
                                         {/* table top */}
                                         <div
-                                            className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border bg-card shadow-sm"
+                                            className={`absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border bg-card shadow-sm ${
+                                                selectedTableId === table.id ? 'ring-2 ring-[#775a19]' : ''
+                                            }`}
                                             style={{
                                                 width: geo.tableW,
                                                 height: geo.tableH,
                                                 borderRadius: shapeRadius,
+                                            }}
+                                            onPointerDown={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedTableId(table.id);
+                                                setSelectedElement(null);
                                             }}
                                             onDragOver={(e) => {
                                                 if (dragGuestId !== null) {
@@ -823,48 +892,107 @@ free++;
                         </p>
                     </div>
 
-                    {/* Unseated guests */}
-                    <Card
-                        className={`lg:w-64 ${dropTarget === 'unseated' ? 'border-primary ring-2 ring-primary/40' : ''}`}
-                        onDragOver={(e) => {
-                            if (dragGuestId !== null) {
-                                e.preventDefault();
-                                setDropTarget('unseated');
-                            }
-                        }}
-                        onDragLeave={() => setDropTarget((t) => (t === 'unseated' ? null : t))}
-                        onDrop={dropOnUnseated}
-                    >
-                        <CardContent className="flex max-h-[34rem] flex-col gap-2 overflow-y-auto px-4">
-                            <div className="text-sm font-semibold">Unseated guests ({unseated.length})</div>
-                            {unseated.length === 0 ? (
-                                <p className="py-6 text-center text-xs text-muted-foreground">
-                                    Everyone has a seat.
-                                </p>
-                            ) : (
-                                unseated.map((g) => (
-                                    <div
-                                        key={g.id}
-                                        draggable={writable}
-                                        onDragStart={() => setDragGuestId(g.id)}
-                                        onDragEnd={() => setDragGuestId(null)}
-                                        className="flex cursor-grab items-center gap-2 rounded bg-muted px-3 py-2 text-sm hover:bg-muted/70 active:cursor-grabbing"
-                                    >
-                                        <span
-                                            className={`size-2 shrink-0 rounded-full ${
-                                                g.rsvp_status === 'attending'
-                                                    ? 'bg-[#775a19]'
-                                                    : g.rsvp_status === 'declined'
-                                                      ? 'bg-[#c1b6a8]'
-                                                      : 'bg-[#e0d6c9]'
-                                            }`}
-                                        />
-                                        <span className="truncate">{g.name}</span>
+                    {/* RIGHT RAIL — object details */}
+                    <aside className="lg:w-72">
+                        <div className="flex h-full flex-col border border-border bg-card p-5">
+                            <p className="mb-4 text-xs tracking-[0.2em] text-muted-foreground uppercase">
+                                Object details
+                            </p>
+
+                            {selectedTable ? (
+                                <div className="flex flex-1 flex-col gap-5">
+                                    <div>
+                                        <h3 className="font-serif text-2xl">{selectedTable.name}</h3>
+                                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            {selectedTable.shape} · {selectedTable.seated}/{selectedTable.capacity} seated
+                                        </p>
                                     </div>
-                                ))
+
+                                    <div>
+                                        <p className="mb-2 text-xs tracking-widest text-[#775a19] uppercase">
+                                            Seated here
+                                        </p>
+                                        <div className="flex flex-col gap-1.5">
+                                            {guests.filter((g) => g.table_id === selectedTable.id).length === 0 ? (
+                                                <p className="text-sm text-muted-foreground">No one seated yet.</p>
+                                            ) : (
+                                                guests
+                                                    .filter((g) => g.table_id === selectedTable.id)
+                                                    .map((g) => (
+                                                        <div
+                                                            key={g.id}
+                                                            className="flex items-center justify-between rounded bg-muted px-3 py-1.5 text-sm"
+                                                        >
+                                                            <span className="truncate">
+                                                                {g.seat_number ? `${g.seat_number}. ` : ''}
+                                                                {g.name}
+                                                            </span>
+                                                            {writable && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => assign(g.id, null)}
+                                                                    className="text-muted-foreground hover:text-destructive"
+                                                                    aria-label={`Unseat ${g.name}`}
+                                                                >
+                                                                    <X className="size-3.5" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {writable && (
+                                        <div className="mt-auto flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => openEdit(selectedTable)}>
+                                                <Pencil className="size-4" /> Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => destroyTable(selectedTable)}
+                                            >
+                                                <Trash2 className="size-4" /> Delete
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : selectedElementObj ? (
+                                <div className="flex flex-1 flex-col gap-5">
+                                    <div>
+                                        <h3 className="font-serif text-2xl">{selectedElementObj.label}</h3>
+                                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Floor element · {selectedElementObj.rotation}°
+                                        </p>
+                                    </div>
+                                    {writable && (
+                                        <div className="mt-auto flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => rotateElement(selectedElementObj)}
+                                            >
+                                                <RotateCw className="size-4" /> Rotate
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => deleteElement(selectedElementObj)}
+                                            >
+                                                <Trash2 className="size-4" /> Delete
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+                                    <Armchair className="size-7 opacity-40" />
+                                    Select a table or element to see its details.
+                                </div>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </aside>
                 </div>
             </div>
 
@@ -938,17 +1066,6 @@ free++;
                 </SheetContent>
             </Sheet>
         </>
-    );
-}
-
-function StatCard({ label, value, accent }: { label: string; value: string; accent?: string }) {
-    return (
-        <Card>
-            <CardContent className="px-5">
-                <div className="text-sm text-muted-foreground">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ?? ''}`}>{value}</div>
-            </CardContent>
-        </Card>
     );
 }
 
