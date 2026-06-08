@@ -100,20 +100,17 @@ class SeatingController extends Controller
         ]);
     }
 
-    /** A printable seating chart: every table with its guests, by seat. */
+    /** A printable floor plan (tables + chairs) and seating chart with meals & allergies. */
     public function exportPdf(): \Illuminate\Http\Response
     {
         $weddingId = $this->current->id();
         $wedding = $this->current->get();
 
-        $tables = SeatingTable::query()
-            ->forWedding($weddingId)
-            ->orderBy('name')
-            ->get();
-
+        $tables = SeatingTable::query()->forWedding($weddingId)->orderBy('name')->get();
+        $elements = SeatingElement::query()->forWedding($weddingId)->orderBy('id')->get();
         $guests = Guest::query()
             ->forWedding($weddingId)
-            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'meal_choice']);
+            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'meal_choice', 'dietary_notes']);
 
         $rows = $tables->map(function (SeatingTable $t) use ($guests) {
             $seated = $guests
@@ -123,6 +120,7 @@ class SeatingController extends Controller
                     'seat' => $g->seat_number,
                     'name' => trim($g->first_name.' '.($g->last_name ?? '')),
                     'meal' => $g->meal_choice,
+                    'dietary' => $g->dietary_notes,
                 ])
                 ->values();
 
@@ -144,9 +142,156 @@ class SeatingController extends Controller
             'wedding' => $wedding,
             'tables' => $rows,
             'unseated' => $unseated,
-        ]);
+            'plan' => $this->floorPlanGeometry($tables, $elements, $guests, $this->current->get()->seatingLayout),
+        ])->setPaper('a4', 'landscape');
 
         return $pdf->download(Str::slug($wedding->name).'-seating-chart.pdf');
+    }
+
+    /**
+     * Pre-compute pixel-positioned table, chair and element geometry for the
+     * printable floor plan, mirroring the on-screen canvas.
+     */
+    protected function floorPlanGeometry($tables, $elements, $guests, $layout): array
+    {
+        $rw = $layout?->room_width ?? 40;
+        $rh = $layout?->room_height ?? 30;
+        $scale = max(0.55, min(1.3, 46 / $rw));
+
+        $maxW = 740;
+        $maxH = 460;
+        $cw = $maxW;
+        $ch = $cw * $rh / $rw;
+        if ($ch > $maxH) {
+            $ch = $maxH;
+            $cw = $ch * $rw / $rh;
+        }
+
+        $planTables = $tables->map(function (SeatingTable $t) use ($guests, $scale, $cw, $ch) {
+            $geo = $this->tableGeometry($t->shape->value, $t->capacity, $scale);
+            $cx = $t->position_x / 100 * $cw;
+            $cy = $t->position_y / 100 * $ch;
+
+            $occupants = $guests->where('table_id', $t->id)->values();
+            $seatMap = $this->resolveSeats($occupants, $t->capacity);
+
+            $chairs = collect($geo['seats'])->map(function (array $s) use ($seatMap, $cx, $cy) {
+                $who = $seatMap[$s['n']] ?? null;
+                $label = $who
+                    ? mb_strtoupper(mb_substr($who->first_name, 0, 1).mb_substr($who->last_name ?? '', 0, 1))
+                    : (string) $s['n'];
+
+                return [
+                    'x' => round($cx + $s['x'], 1),
+                    'y' => round($cy + $s['y'], 1),
+                    'label' => $label,
+                    'occupied' => $who !== null,
+                ];
+            })->all();
+
+            return [
+                'cx' => round($cx, 1),
+                'cy' => round($cy, 1),
+                'w' => round($geo['tableW'], 1),
+                'h' => round($geo['tableH'], 1),
+                'round' => $t->shape->value === 'round',
+                'chair' => round($geo['chair'], 1),
+                'name' => $t->name,
+                'chairs' => $chairs,
+            ];
+        })->all();
+
+        $planElements = $elements->map(function (SeatingElement $e) use ($cw, $ch) {
+            return [
+                'w' => round($e->width / 100 * $cw, 1),
+                'h' => round($e->height / 100 * $ch, 1),
+                'cx' => round($e->position_x / 100 * $cw, 1),
+                'cy' => round($e->position_y / 100 * $ch, 1),
+                'label' => $e->label ?? $e->type->label(),
+            ];
+        })->all();
+
+        return [
+            'width' => round($cw, 1),
+            'height' => round($ch, 1),
+            'room_width' => $rw,
+            'room_height' => $rh,
+            'tables' => $planTables,
+            'elements' => $planElements,
+        ];
+    }
+
+    /** @return array{tableW: float, tableH: float, chair: float, seats: array<int, array{n:int,x:float,y:float}>} */
+    protected function tableGeometry(string $shape, int $capacity, float $scale): array
+    {
+        $chair = 22 * $scale;
+        $cap = max(1, $capacity);
+
+        if ($shape === 'rectangle' || $shape === 'square') {
+            $perRow = (int) ceil($cap / 2);
+            $tableW = $shape === 'square'
+                ? max(54, $perRow * ($chair + 6)) * 0.8
+                : max(60, $perRow * ($chair + 8));
+            $tableH = $shape === 'square' ? $tableW : 40 * $scale;
+
+            $seats = [];
+            $top = (int) ceil($cap / 2);
+            $bottom = $cap - $top;
+            $place = function (int $count, float $y, int $startN) use (&$seats, $tableW, $chair) {
+                for ($i = 0; $i < $count; $i++) {
+                    $t = $count === 1 ? 0.5 : $i / ($count - 1);
+                    $seats[] = ['n' => $startN + $i, 'x' => ($t - 0.5) * ($tableW - $chair), 'y' => $y];
+                }
+            };
+            $place($top, -($tableH / 2 + $chair * 0.7), 1);
+            $place($bottom, $tableH / 2 + $chair * 0.7, $top + 1);
+
+            return ['tableW' => $tableW, 'tableH' => $tableH, 'chair' => $chair, 'seats' => $seats];
+        }
+
+        $minRadius = ($cap * ($chair + 6)) / (2 * M_PI);
+        $radius = max(30 * $scale, $minRadius);
+        $diameter = max(48 * $scale, $radius * 1.15);
+        $seats = [];
+        for ($i = 0; $i < $cap; $i++) {
+            $angle = -M_PI / 2 + ($i / $cap) * 2 * M_PI;
+            $seats[] = [
+                'n' => $i + 1,
+                'x' => cos($angle) * ($radius + $chair * 0.55),
+                'y' => sin($angle) * ($radius + $chair * 0.55),
+            ];
+        }
+
+        return ['tableW' => $diameter, 'tableH' => $diameter, 'chair' => $chair, 'seats' => $seats];
+    }
+
+    /** Resolve seat number => guest, filling blanks in order. */
+    protected function resolveSeats($occupants, int $capacity): array
+    {
+        $map = [];
+        $leftovers = [];
+
+        foreach ($occupants as $g) {
+            $sn = $g->seat_number;
+            if ($sn && $sn >= 1 && $sn <= $capacity && ! isset($map[$sn])) {
+                $map[$sn] = $g;
+            } else {
+                $leftovers[] = $g;
+            }
+        }
+
+        $n = 1;
+        foreach ($leftovers as $g) {
+            while ($n <= $capacity && isset($map[$n])) {
+                $n++;
+            }
+            if ($n > $capacity) {
+                break;
+            }
+            $map[$n] = $g;
+        }
+
+        return $map;
     }
 
     public function store(SeatingTableRequest $request): RedirectResponse
