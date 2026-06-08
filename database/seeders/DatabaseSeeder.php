@@ -25,6 +25,7 @@ use App\Models\SeatingElement;
 use App\Models\SeatingTable;
 use App\Models\Task;
 use App\Models\TimelineEvent;
+use App\Models\Translation;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Wedding;
@@ -86,6 +87,26 @@ class DatabaseSeeder extends Seeder
         $this->seedInspiration($wedding);
         $this->seedCrew($wedding);
         $this->seedWebsite($wedding);
+        $this->seedTranslations();
+    }
+
+    /** A few French overrides so the localisation tool has sample data. */
+    protected function seedTranslations(): void
+    {
+        $fr = [
+            'app.tagline' => 'Un mariage, composé.',
+            'dashboard.welcome' => 'Bon retour',
+            'cta.rsvp' => 'RSVP',
+            'cta.find_seat' => 'Trouvez votre place',
+            'public.rsvp_heading' => 'Merci de répondre',
+            'public.rsvp_subheading' => 'Trouvez votre nom pour répondre.',
+            'public.seat_heading' => 'Trouvez votre place',
+            'public.footer' => 'Réalisé avec WedFlow Atelier',
+        ];
+
+        foreach ($fr as $key => $value) {
+            Translation::put('fr', $key, $value);
+        }
     }
 
     /** A small, realistic guest list so the demo workspace feels alive. */

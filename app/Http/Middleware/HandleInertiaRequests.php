@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Translation;
 use App\Services\PermissionService;
 use App\Support\CurrentWedding;
 use Illuminate\Http\Request;
@@ -64,6 +65,9 @@ class HandleInertiaRequests extends Middleware
                     : (object) [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'locale' => app()->getLocale(),
+            'locales' => Translation::LOCALES,
+            'translations' => Translation::forLocale(app()->getLocale()),
         ];
     }
 }

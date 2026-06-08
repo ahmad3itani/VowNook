@@ -15,6 +15,9 @@ declare module '@inertiajs/core' {
             auth: Auth;
             wedding: WeddingShared;
             sidebarOpen: boolean;
+            locale: string;
+            locales: Record<string, string>;
+            translations: Record<string, string>;
             [key: string]: unknown;
         };
     }

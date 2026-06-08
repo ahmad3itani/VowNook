@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\LocalisationController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
@@ -190,6 +191,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('settings', [SettingsController::class, 'index'])->name('settings');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+
+        Route::get('localisation', [LocalisationController::class, 'index'])->name('localisation');
+        Route::put('localisation', [LocalisationController::class, 'update'])->name('localisation.update');
     });
 });
 

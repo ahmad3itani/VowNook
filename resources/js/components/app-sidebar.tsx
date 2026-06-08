@@ -11,6 +11,7 @@ import {
     LayoutGrid,
     ListChecks,
     QrCode,
+    Languages,
     Settings2,
     Sparkles,
     UserCog,
@@ -172,6 +173,11 @@ export function AppSidebar() {
                       title: 'Admin settings',
                       href: '/admin/settings',
                       icon: Settings2,
+                  } satisfies NavItem,
+                  {
+                      title: 'Localisation',
+                      href: '/admin/localisation',
+                      icon: Languages,
                   } satisfies NavItem,
               ]
             : []),

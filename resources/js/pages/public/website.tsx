@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
+import { useTranslations } from '@/hooks/use-translations';
 
 type Content = {
     headline: string | null;
@@ -92,6 +93,7 @@ return;
 }
 
 export default function PublicWebsite({ wedding, published, content }: PageProps) {
+    const { t } = useTranslations();
     const heroImage = content?.hero_image_url || IMG.hero;
     const eventLong = wedding.event_date ? longDate.format(new Date(wedding.event_date)) : null;
     const eventShort = wedding.event_date ? shortDate.format(new Date(wedding.event_date)) : null;
@@ -295,7 +297,9 @@ export default function PublicWebsite({ wedding, published, content }: PageProps
                             <p className="mt-2 text-xs tracking-[0.2em] text-[#4c4640] uppercase">{eventShort}</p>
                         )}
                     </div>
-                    <p className="text-xs tracking-[0.15em] text-[#4c4640]/70 uppercase">Made with WedFlow Atelier</p>
+                    <p className="text-xs tracking-[0.15em] text-[#4c4640]/70 uppercase">
+                        {t('public.footer', 'Made with WedFlow Atelier')}
+                    </p>
                 </div>
             </footer>
         </div>
