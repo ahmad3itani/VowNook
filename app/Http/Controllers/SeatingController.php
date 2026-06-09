@@ -158,8 +158,9 @@ class SeatingController extends Controller
         $rh = $layout?->room_height ?? 30;
         $scale = max(0.55, min(1.3, 46 / $rw));
 
-        $maxW = 740;
-        $maxH = 460;
+        // Use most of an A4 landscape page so tables have room to breathe.
+        $maxW = 980;
+        $maxH = 600;
         $cw = $maxW;
         $ch = $cw * $rh / $rw;
         if ($ch > $maxH) {
@@ -167,23 +168,28 @@ class SeatingController extends Controller
             $cw = $ch * $rw / $rh;
         }
 
-        $planTables = $tables->map(function (SeatingTable $t) use ($guests, $scale, $cw, $ch) {
+        // The on-screen canvas sizes tables/chairs in fixed pixels; shrink them
+        // for the (smaller) printed canvas so adjacent tables don't collide.
+        $k = 0.7;
+
+        $planTables = $tables->map(function (SeatingTable $t) use ($guests, $scale, $cw, $ch, $k) {
             $geo = $this->tableGeometry($t->shape->value, $t->capacity, $scale);
             $cx = $t->position_x / 100 * $cw;
             $cy = $t->position_y / 100 * $ch;
+            $chairPx = $geo['chair'] * $k;
 
             $occupants = $guests->where('table_id', $t->id)->values();
             $seatMap = $this->resolveSeats($occupants, $t->capacity);
 
-            $chairs = collect($geo['seats'])->map(function (array $s) use ($seatMap, $cx, $cy) {
+            $chairs = collect($geo['seats'])->map(function (array $s) use ($seatMap, $cx, $cy, $k) {
                 $who = $seatMap[$s['n']] ?? null;
                 $label = $who
                     ? mb_strtoupper(mb_substr($who->first_name, 0, 1).mb_substr($who->last_name ?? '', 0, 1))
                     : (string) $s['n'];
 
                 return [
-                    'x' => round($cx + $s['x'], 1),
-                    'y' => round($cy + $s['y'], 1),
+                    'x' => round($cx + $s['x'] * $k, 1),
+                    'y' => round($cy + $s['y'] * $k, 1),
                     'label' => $label,
                     'occupied' => $who !== null,
                 ];
@@ -192,10 +198,10 @@ class SeatingController extends Controller
             return [
                 'cx' => round($cx, 1),
                 'cy' => round($cy, 1),
-                'w' => round($geo['tableW'], 1),
-                'h' => round($geo['tableH'], 1),
+                'w' => round($geo['tableW'] * $k, 1),
+                'h' => round($geo['tableH'] * $k, 1),
                 'round' => $t->shape->value === 'round',
-                'chair' => round($geo['chair'], 1),
+                'chair' => round($chairPx, 1),
                 'name' => $t->name,
                 'chairs' => $chairs,
             ];

@@ -9,7 +9,9 @@
         .subtitle { color: #775a19; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 12px; }
         .canvas { position: relative; border: 1.5px solid #b9ab97; background: #efe7da; margin: 0 auto; }
         .el { position: absolute; border: 1px solid #9c8f7d; background: #e6d8bd; color: #5b4a1f; font-size: 8px; text-align: center; overflow: hidden; }
-        .table { position: absolute; border: 1.5px solid #3d3833; background: #ffffff; text-align: center; color: #1e1b18; font-size: 8px; font-weight: bold; overflow: hidden; }
+        .table { position: absolute; border: 1.5px solid #3d3833; background: #ffffff; }
+        .table-label { position: absolute; text-align: center; font-size: 7px; font-weight: bold; color: #1e1b18; }
+        .table-label span { background: #ffffff; padding: 0 2px; }
         .chair { position: absolute; border-radius: 50%; text-align: center; }
         .chair-on { background: #775a19; color: #ffffff; }
         .chair-off { background: #ffffff; border: 1px solid #9c8f7d; color: #7d7468; }
@@ -43,8 +45,9 @@
                 </div>
             @endforeach
             <div class="table"
-                 style="left: {{ $t['cx'] - $t['w'] / 2 }}px; top: {{ $t['cy'] - $t['h'] / 2 }}px; width: {{ $t['w'] }}px; height: {{ $t['h'] }}px; line-height: {{ $t['h'] }}px; border-radius: {{ $t['round'] ? '50%' : '4px' }};">
-                {{ $t['name'] }}
+                 style="left: {{ $t['cx'] - $t['w'] / 2 }}px; top: {{ $t['cy'] - $t['h'] / 2 }}px; width: {{ $t['w'] }}px; height: {{ $t['h'] }}px; border-radius: {{ $t['round'] ? '50%' : '4px' }};"></div>
+            <div class="table-label" style="left: {{ $t['cx'] - 36 }}px; top: {{ $t['cy'] - 4 }}px; width: 72px;">
+                <span>{{ $t['name'] }}</span>
             </div>
         @endforeach
     </div>
