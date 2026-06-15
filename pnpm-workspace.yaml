@@ -3,3 +3,9 @@ packages:
 
 publicHoistPattern:
   - '@inertiajs/core'
+
+# Approve build scripts for these deps so pnpm v10 (Laravel Cloud's build
+# environment) doesn't fail the install with ERR_PNPM_IGNORED_BUILDS.
+onlyBuiltDependencies:
+  - core-js
+  - unrs-resolver
