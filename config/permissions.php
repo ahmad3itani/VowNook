@@ -61,6 +61,23 @@ return [
             Section::Settings->value => $n,
         ],
 
+        // Vendor: sees only the timeline (to know their schedule) and nothing sensitive.
+        Role::Vendor->value => [
+            Section::Overview->value => $r,
+            Section::Timeline->value => $r,
+            Section::Vendors->value => $r,
+            Section::Budget->value => $n,
+            Section::Guests->value => $n,
+            Section::Seating->value => $n,
+            Section::Checklist->value => $n,
+            Section::Inspiration->value => $n,
+            Section::Gallery->value => $n,
+            Section::Website->value => $n,
+            Section::Crew->value => $n,
+            Section::Collaborators->value => $n,
+            Section::Settings->value => $n,
+        ],
+
         // Read-only for family and friends; sensitive sections hidden.
         Role::Viewer->value => [
             Section::Overview->value => $r,

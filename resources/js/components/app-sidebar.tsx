@@ -1,10 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Armchair,
-    BookOpen,
+    ArrowLeft,
     Briefcase,
     CalendarClock,
-    FolderGit2,
     Globe,
     HeartHandshake,
     Images,
@@ -17,9 +16,9 @@ import {
     UserCog,
     Users,
     Wallet,
+    WandSparkles,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -36,33 +35,39 @@ import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
     const { auth } = usePage().props;
-    const { canRead } = usePermissions();
+    const { canRead, canWrite } = usePermissions();
+
+    const isPlanner = auth?.user?.account_type === 'planner';
+    const canUseAssistant = canWrite('checklist') || canWrite('budget') || canWrite('timeline');
 
     const navItems: NavItem[] = [
-        ...mainNavItems,
+        // Planners came from the HQ — give them the way back, and a Dashboard
+        // link that opens the per-wedding overview instead of bouncing to HQ.
+        ...(isPlanner
+            ? [
+                  {
+                      title: 'All weddings',
+                      href: '/planner',
+                      icon: ArrowLeft,
+                  } satisfies NavItem,
+              ]
+            : []),
+        {
+            title: 'Dashboard',
+            href: isPlanner ? '/dashboard?workspace=1' : dashboard(),
+            icon: LayoutGrid,
+        },
+        ...(canUseAssistant
+            ? [
+                  {
+                      title: 'AI assistant',
+                      href: '/assistant',
+                      icon: WandSparkles,
+                  } satisfies NavItem,
+              ]
+            : []),
         ...(canRead('guests')
             ? [
                   {
@@ -93,9 +98,10 @@ export function AppSidebar() {
         ...(canRead('vendors')
             ? [
                   {
-                      title: 'Vendors',
-                      href: '/vendors',
+                      title: 'Marketplace',
+                      href: '/vendors/marketplace',
                       icon: Briefcase,
+                      matchPrefix: true,
                   } satisfies NavItem,
               ]
             : []),
@@ -203,7 +209,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

@@ -1,0 +1,285 @@
+<?php
+
+namespace App\Support\Payments;
+
+use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
+use App\Models\Booking;
+use App\Models\Payment;
+use App\Models\VendorProfile;
+use Illuminate\Support\Facades\Log;
+use Stripe\Event;
+use Stripe\StripeClient;
+use Stripe\Webhook;
+
+/**
+ * Wraps Stripe Connect for the marketplace: Express onboarding for vendors and
+ * hosted Checkout for couples, using destination charges so the platform takes
+ * its commission (application_fee) and the remainder is paid out to the vendor.
+ *
+ * Degrades gracefully — when no secret key is configured, isConfigured() is
+ * false and callers skip Stripe entirely. The webhook source of truth advances
+ * booking state; success URLs are cosmetic only.
+ */
+class StripeService
+{
+    public function isConfigured(): bool
+    {
+        return filled(config('services.stripe.secret'));
+    }
+
+    public function client(): StripeClient
+    {
+        return new StripeClient((string) config('services.stripe.secret'));
+    }
+
+    // ── Connect onboarding ──────────────────────────────────────────────────
+
+    /** Ensure the vendor has a Stripe Express account; returns its id. */
+    public function ensureAccount(VendorProfile $vendor): string
+    {
+        if (filled($vendor->stripe_account_id)) {
+            return $vendor->stripe_account_id;
+        }
+
+        $account = $this->client()->accounts->create([
+            'type' => 'express',
+            'email' => $vendor->email,
+            'business_profile' => ['name' => $vendor->business_name],
+            'capabilities' => [
+                'card_payments' => ['requested' => true],
+                'transfers' => ['requested' => true],
+            ],
+            'metadata' => ['vendor_profile_id' => $vendor->id],
+        ]);
+
+        $vendor->forceFill(['stripe_account_id' => $account->id])->save();
+
+        return $account->id;
+    }
+
+    /** A one-time onboarding URL the vendor is redirected to. */
+    public function onboardingLink(VendorProfile $vendor, string $returnUrl, string $refreshUrl): string
+    {
+        $accountId = $this->ensureAccount($vendor);
+
+        $link = $this->client()->accountLinks->create([
+            'account' => $accountId,
+            'return_url' => $returnUrl,
+            'refresh_url' => $refreshUrl,
+            'type' => 'account_onboarding',
+        ]);
+
+        return $link->url;
+    }
+
+    /** Pull the latest onboarding state from Stripe onto the vendor profile. */
+    public function syncAccountStatus(VendorProfile $vendor): void
+    {
+        if (blank($vendor->stripe_account_id)) {
+            return;
+        }
+
+        $account = $this->client()->accounts->retrieve($vendor->stripe_account_id);
+
+        $vendor->forceFill([
+            'stripe_charges_enabled' => (bool) $account->charges_enabled,
+            'stripe_details_submitted' => (bool) $account->details_submitted,
+        ])->save();
+    }
+
+    // ── Checkout ────────────────────────────────────────────────────────────
+
+    /** The amount (cents) due for a given payment stage on a booking. */
+    public function amountFor(Booking $booking, PaymentType $type): int
+    {
+        // A separate deposit only exists when 0 < deposit < total; otherwise the
+        // "deposit" stage collects the full amount and there is no balance.
+        $hasSplit = $booking->deposit_cents > 0 && $booking->deposit_cents < $booking->total_cents;
+
+        return match ($type) {
+            PaymentType::Deposit => $hasSplit ? $booking->deposit_cents : $booking->total_cents,
+            PaymentType::Balance => $hasSplit ? $booking->total_cents - $booking->deposit_cents : 0,
+            PaymentType::Refund => 0,
+        };
+    }
+
+    /**
+     * The platform commission attributed to this stage. The deposit takes its
+     * prorated share and the balance takes the exact remainder, so the two
+     * always sum to booking.platform_fee_cents.
+     */
+    public function feeFor(Booking $booking, PaymentType $type): int
+    {
+        if ($booking->total_cents <= 0) {
+            return 0;
+        }
+
+        $depositAmount = $this->amountFor($booking, PaymentType::Deposit);
+        $depositFee = (int) round($booking->platform_fee_cents * $depositAmount / $booking->total_cents);
+
+        return match ($type) {
+            PaymentType::Deposit => $depositFee,
+            PaymentType::Balance => max(0, $booking->platform_fee_cents - $depositFee),
+            PaymentType::Refund => 0,
+        };
+    }
+
+    /**
+     * Create a hosted Checkout session for this stage, record a pending Payment,
+     * and return the URL to redirect the couple to.
+     */
+    public function checkoutFor(Booking $booking, PaymentType $type, string $successUrl, string $cancelUrl): string
+    {
+        $session = $this->client()->checkout->sessions->create(
+            $this->checkoutParams($booking, $type, $successUrl, $cancelUrl),
+        );
+
+        $this->recordPendingPayment($booking, $type, $session->id);
+
+        return $session->url;
+    }
+
+    /**
+     * The exact Checkout Session arguments — a destination charge so the
+     * application_fee goes to the platform and the rest to the vendor's account.
+     *
+     * @return array<string,mixed>
+     */
+    public function checkoutParams(Booking $booking, PaymentType $type, string $successUrl, string $cancelUrl): array
+    {
+        $vendor = $booking->vendorProfile;
+
+        return [
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'cad',
+                    'unit_amount' => $this->amountFor($booking, $type),
+                    'product_data' => [
+                        'name' => "{$vendor->business_name} — {$type->label()}",
+                    ],
+                ],
+            ]],
+            'payment_intent_data' => [
+                'application_fee_amount' => $this->feeFor($booking, $type),
+                'transfer_data' => ['destination' => $vendor->stripe_account_id],
+            ],
+            'metadata' => [
+                'booking_id' => $booking->id,
+                'payment_type' => $type->value,
+            ],
+        ];
+    }
+
+    /** Persist the pending Payment that a Checkout session represents. */
+    public function recordPendingPayment(Booking $booking, PaymentType $type, string $sessionId): Payment
+    {
+        return Payment::create([
+            'booking_id' => $booking->id,
+            'type' => $type->value,
+            'amount_cents' => $this->amountFor($booking, $type),
+            'application_fee_cents' => $this->feeFor($booking, $type),
+            'status' => PaymentStatus::Pending->value,
+            'currency' => 'cad',
+            'stripe_session_id' => $sessionId,
+        ]);
+    }
+
+    // ── Webhook ─────────────────────────────────────────────────────────────
+
+    /** Verify the signature and parse the event (throws on a bad signature). */
+    public function constructEvent(string $payload, string $signature): Event
+    {
+        return Webhook::constructEvent($payload, $signature, (string) config('services.stripe.webhook_secret'));
+    }
+
+    /** Apply a verified webhook event to our records. */
+    public function handleEvent(Event $event): void
+    {
+        match ($event->type) {
+            'checkout.session.completed' => $this->onCheckoutCompleted($event->data->object),
+            'account.updated' => $this->onAccountUpdated($event->data->object),
+            'charge.refunded' => $this->onChargeRefunded($event->data->object),
+            default => null,
+        };
+    }
+
+    protected function onCheckoutCompleted($session): void
+    {
+        $payment = Payment::where('stripe_session_id', $session->id)->first();
+
+        if ($payment === null || $payment->status === PaymentStatus::Succeeded) {
+            return;
+        }
+
+        $payment->update([
+            'status' => PaymentStatus::Succeeded->value,
+            'stripe_payment_intent_id' => $session->payment_intent ?? null,
+        ]);
+
+        $booking = $payment->booking;
+        if ($booking === null) {
+            return;
+        }
+
+        // Advance the booking and reflect what's been paid on the CRM row.
+        $fullyPaid = $payment->type === PaymentType::Balance
+            || ($payment->type === PaymentType::Deposit
+                && $this->amountFor($booking, PaymentType::Balance) === 0);
+
+        $booking->update([
+            'status' => $fullyPaid ? BookingStatus::PaidInFull->value : BookingStatus::DepositPaid->value,
+        ]);
+
+        $paid = (int) $booking->payments()->where('status', PaymentStatus::Succeeded->value)
+            ->whereIn('type', [PaymentType::Deposit->value, PaymentType::Balance->value])
+            ->sum('amount_cents');
+
+        $booking->vendor?->update(['paid_cents' => $paid]);
+    }
+
+    protected function onAccountUpdated($account): void
+    {
+        $vendor = VendorProfile::where('stripe_account_id', $account->id)->first();
+
+        $vendor?->forceFill([
+            'stripe_charges_enabled' => (bool) ($account->charges_enabled ?? false),
+            'stripe_details_submitted' => (bool) ($account->details_submitted ?? false),
+        ])->save();
+    }
+
+    protected function onChargeRefunded($charge): void
+    {
+        $payment = Payment::where('stripe_payment_intent_id', $charge->payment_intent)
+            ->where('type', '!=', PaymentType::Refund->value)
+            ->first();
+
+        if ($payment === null) {
+            return;
+        }
+
+        $refunded = (int) ($charge->amount_refunded ?? 0);
+
+        Payment::create([
+            'booking_id' => $payment->booking_id,
+            'type' => PaymentType::Refund->value,
+            'amount_cents' => $refunded,
+            'status' => PaymentStatus::Refunded->value,
+            'currency' => $payment->currency,
+            'stripe_payment_intent_id' => $charge->payment_intent,
+        ]);
+
+        $payment->update(['status' => PaymentStatus::Refunded->value]);
+
+        // A full refund of the charge cancels the booking.
+        if (($charge->refunded ?? false) === true && $payment->booking) {
+            $payment->booking->update(['status' => BookingStatus::Cancelled->value]);
+            Log::info('Booking cancelled after full refund', ['booking_id' => $payment->booking_id]);
+        }
+    }
+}

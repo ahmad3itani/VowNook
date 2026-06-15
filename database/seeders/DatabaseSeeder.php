@@ -43,19 +43,19 @@ class DatabaseSeeder extends Seeder
     {
         // Platform administrator.
         User::factory()->admin()->create([
-            'name' => 'Atelier Admin',
-            'email' => 'admin@wedflow.test',
+            'name' => 'VowNook Admin',
+            'email' => 'admin@vownook.test',
         ]);
 
         // The couple.
         $owner = User::factory()->plan('planner')->create([
             'name' => 'Amelia Hart',
-            'email' => 'couple@wedflow.test',
+            'email' => 'couple@vownook.test',
         ]);
 
         $partner = User::factory()->create([
             'name' => 'Julian Reyes',
-            'email' => 'partner@wedflow.test',
+            'email' => 'partner@vownook.test',
         ]);
 
         $wedding = Wedding::factory()->create([
@@ -88,6 +88,12 @@ class DatabaseSeeder extends Seeder
         $this->seedCrew($wedding);
         $this->seedWebsite($wedding);
         $this->seedTranslations();
+
+        // Starter SEO blog content.
+        $this->call(BlogPostSeeder::class);
+
+        // Launch promo code(s).
+        $this->call(PromoCodeSeeder::class);
     }
 
     /** A few French overrides so the localisation tool has sample data. */
@@ -101,7 +107,7 @@ class DatabaseSeeder extends Seeder
             'public.rsvp_heading' => 'Merci de répondre',
             'public.rsvp_subheading' => 'Trouvez votre nom pour répondre.',
             'public.seat_heading' => 'Trouvez votre place',
-            'public.footer' => 'Réalisé avec WedFlow Atelier',
+            'public.footer' => 'Réalisé avec VowNook',
         ];
 
         foreach ($fr as $key => $value) {

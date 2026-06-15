@@ -71,7 +71,7 @@ export default function AdminSettings({
                                             defaultValue={
                                                 settings.app_name ?? ''
                                             }
-                                            placeholder="WedFlow Atelier"
+                                            placeholder="VowNook"
                                         />
                                         <InputError message={errors.app_name} />
                                     </div>

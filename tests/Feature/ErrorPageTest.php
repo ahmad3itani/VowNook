@@ -12,6 +12,6 @@ class ErrorPageTest extends TestCase
 
         $response->assertNotFound();
         $response->assertSee('Page not found');
-        $response->assertSee('WedFlow Atelier');
+        $response->assertSee('VowNook');
     }
 }

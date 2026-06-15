@@ -20,6 +20,14 @@ const prefersDark = (): boolean => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
 };
 
+/**
+ * Couples' wedding workspace is locked to light mode (set by the blade root).
+ * When forced, dark mode is never applied regardless of the stored preference.
+ */
+const isForcedLight = (): boolean =>
+    typeof window !== 'undefined' &&
+    (window as unknown as { __forceLight?: boolean }).__forceLight === true;
+
 const setCookie = (name: string, value: string, days = 365): void => {
     if (typeof document === 'undefined') {
         return;
@@ -38,6 +46,10 @@ const getStoredAppearance = (): Appearance => {
 };
 
 const isDarkMode = (appearance: Appearance): boolean => {
+    if (isForcedLight()) {
+        return false;
+    }
+
     return appearance === 'dark' || (appearance === 'system' && prefersDark());
 };
 

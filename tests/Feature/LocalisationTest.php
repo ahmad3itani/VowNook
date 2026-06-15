@@ -92,7 +92,7 @@ class LocalisationTest extends TestCase
     {
         $user = User::factory()->create();
         Setting::put('app_locale', 'fr');
-        Translation::put('fr', 'public.footer', 'Réalisé avec WedFlow Atelier');
+        Translation::put('fr', 'public.footer', 'Réalisé avec VowNook');
 
         $this->actingAs($user)
             ->get('/dashboard')
@@ -100,7 +100,7 @@ class LocalisationTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->where('locale', 'fr')
                 ->where('translations', fn ($translations) => collect($translations)->get('public.footer')
-                    === 'Réalisé avec WedFlow Atelier')
+                    === 'Réalisé avec VowNook')
             );
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AccountType;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -10,13 +11,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'account_type', 'email_preferences', 'marketing_consent_at', 'referred_by'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -29,8 +31,55 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'account_type' => AccountType::class,
             'two_factor_confirmed_at' => 'datetime',
+            'email_preferences' => 'array',
+            'marketing_consent_at' => 'datetime',
+            'plan_comped_until' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (blank($user->referral_code)) {
+                $user->referral_code = static::uniqueReferralCode();
+            }
+        });
+    }
+
+    public static function uniqueReferralCode(): string
+    {
+        do {
+            $code = strtoupper(\Illuminate\Support\Str::random(8));
+        } while (static::where('referral_code', $code)->exists());
+
+        return $code;
+    }
+
+    public function referredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(User::class, 'referred_by');
+    }
+
+    public function isVendor(): bool
+    {
+        return $this->account_type === AccountType::Vendor;
+    }
+
+    public function isPlanner(): bool
+    {
+        return $this->account_type === AccountType::Planner;
+    }
+
+    public function vendorProfile(): HasOne
+    {
+        return $this->hasOne(VendorProfile::class);
     }
 
     public function ownedWeddings(): HasMany
@@ -60,11 +109,30 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         $tiers = config('plans.tiers');
 
-        return $tiers[$this->plan] ?? $tiers[config('plans.default')];
+        // Read the raw column — `$this->plan` would recurse into this method
+        // when the attribute isn't loaded (e.g. freshly created models).
+        $plan = $this->getAttributes()['plan'] ?? null;
+
+        return $tiers[$plan] ?? $tiers[config('plans.default')];
     }
 
     public function planLimit(string $key): ?int
     {
         return $this->plan()[$key] ?? null;
+    }
+
+    /** Whether the user's plan tier includes a named feature flag. */
+    public function hasFeature(string $key): bool
+    {
+        return (bool) ($this->plan()['features'][$key] ?? false);
+    }
+
+    /**
+     * AI assistance is a paid perk: Premium couples (plan feature), all Planner
+     * accounts, and admins. Free couples are excluded and shown an upsell.
+     */
+    public function canUseAi(): bool
+    {
+        return $this->is_admin || $this->isPlanner() || $this->hasFeature('ai');
     }
 }

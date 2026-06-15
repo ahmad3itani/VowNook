@@ -1,63 +1,95 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
-    Armchair,
     ArrowRight,
-    CalendarClock,
+    ArrowUpRight,
     Check,
-    ChevronDown,
+    GitCompareArrows,
+    Inbox,
     LayoutGrid,
-    Sparkles,
+    MailOpen,
+    PenLine,
     Users,
     Wallet,
 } from 'lucide-react';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
 
-const serif = "font-['Playfair_Display']";
+const fraunces = "font-['Fraunces']";
 const DEMO = '/w/amelia-and-julian';
 
-const experience = [
-    {
-        icon: LayoutGrid,
-        title: 'Immersive Floor Plans',
-        body: 'Arrange tables and chairs to scale, place the dance floor and bar, and seat every guest by chair.',
-    },
-    {
-        icon: Sparkles,
-        title: 'The Material Library',
-        body: 'Curate inspiration, palettes, and the details that make the day unmistakably yours.',
-    },
+const IMG = {
+    hero: '/images/landing/hero.jpg',
+    florist: '/images/landing/florist.jpg',
+    tablescape: '/images/landing/tablescape.jpg',
+    photographer: '/images/landing/photographer.jpg',
+};
+
+const CATEGORIES = [
+    'Venues', 'Catering', 'Photography', 'Florals', 'Music', 'Bakery',
+    'Planning', 'Beauty', 'Videography', 'Officiants', 'Attire', 'Transport',
+];
+
+const coupleFeatures = [
+    { icon: Users, title: 'Guests & RSVP', body: 'One list, every reply — with a public RSVP page your guests will love.' },
+    { icon: LayoutGrid, title: 'Seating studio', body: 'Drag-and-drop floor plans, to scale, down to the last chair.' },
+    { icon: Wallet, title: 'Budget, balanced', body: 'Estimates, actuals and payments — always in plain sight.' },
+    { icon: PenLine, title: 'A website that wows', body: 'Templates, galleries, video and a countdown — published in minutes.' },
+];
+
+const vendorStats = [
+    { value: '$0', label: 'to list your business — no contract, no monthly fee' },
+    { value: '100%', label: 'of your leads, in one inbox' },
+    { value: '8%', label: 'only when a booking is won — capped, lower on big tickets' },
+];
+
+const coupleSteps = [
+    { n: '01', title: 'Browse & shortlist', body: 'Explore published vendors by category, region and budget — no account needed to look.' },
+    { n: '02', title: 'Request quotes', body: 'Send one inquiry with your date and guest count. Compare offers side by side when they arrive.' },
+    { n: '03', title: 'Book & plan together', body: 'Accept an offer and the vendor lands in your planning workspace — timeline, budget and all.' },
+];
+
+const vendorSteps = [
+    { n: '01', title: 'Build your profile', body: 'Portfolio, packages, pricing and availability — a public page that sells while you sleep.' },
+    { n: '02', title: 'Answer real inquiries', body: 'Couples come to you with a date, headcount and budget. Reply with a structured offer.' },
+    { n: '03', title: 'Win the booking', body: 'When a couple accepts, the booking is confirmed and tracked — earnings dashboard included.' },
 ];
 
 const tiers = [
     {
-        name: 'Essential',
+        name: 'Couples — Essential',
         price: '$0',
-        cadence: 'per wedding',
-        features: ['Guest list & RSVP', 'Budget tracker', 'Vendor directory', 'Checklist & timeline'],
-        cta: 'Begin journey',
+        cadence: 'forever',
+        features: ['Guest list & RSVP', 'Budget tracker', 'Vendor marketplace & quotes', 'Checklist & timeline'],
+        cta: 'Begin free',
+        href: '/register',
         featured: false,
     },
     {
-        name: 'The Atelier',
+        name: 'Couples — The Atelier',
         price: '$99',
         cadence: 'per wedding',
-        features: [
-            'Everything in Essential',
-            'Public wedding website',
-            'Floor-plan & seat finder',
-            'Collaborators & gallery',
-        ],
+        features: ['Everything in Essential', 'Wedding website & invitation', 'Floor plan & seat finder', 'Collaborators & gallery'],
         cta: 'Choose Atelier',
+        href: '/register',
         featured: true,
     },
     {
-        name: 'Studio Pro',
+        name: 'Vendors',
+        price: '8%',
+        cadence: 'only when booked',
+        features: ['Free listing & portfolio page', 'Unlimited quotes & messaging', 'No monthly fee, no contract', 'Lower rate & cap on large bookings'],
+        cta: 'List your business',
+        href: '/register?type=vendor',
+        featured: false,
+    },
+    {
+        name: 'Planners — HQ',
         price: '$499',
-        cadence: 'for planners',
-        features: ['Unlimited weddings', 'White-label portals', 'Priority support', 'All Atelier features'],
-        cta: 'For professionals',
+        cadence: 'per year',
+        features: ['Unlimited client weddings', 'Portfolio dashboard & week view', 'Reusable checklist & budget templates', 'Marketplace sourcing for every client'],
+        cta: 'Run your studio',
+        href: '/register?type=planner',
         featured: false,
     },
 ];
@@ -67,39 +99,55 @@ export default function Welcome() {
     const authed = !!auth?.user;
 
     return (
-        <div className="min-h-screen bg-[#fff8f3] font-['DM_Sans'] text-[#1e1b17] antialiased selection:bg-[#fed488]/40">
-            <Head title="WedFlow Atelier — A wedding, composed." />
+        <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
+            {/* Title/description/canonical/OG are server-rendered in the blade head. */}
+            <Head />
 
-            {/* Header */}
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#cec5bd]/30 bg-[#fff8f3]/80 backdrop-blur-md">
-                <nav className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 md:px-16">
-                    <span className={`${serif} text-2xl tracking-tight`}>WedFlow Atelier</span>
-                    <div className="hidden items-center gap-10 md:flex">
-                        <a href="#experience" className="text-sm tracking-wide text-[#4c4640] transition-colors hover:text-[#775a19]">
-                            The Atelier
+            {/* Marquee keyframes */}
+            <style>{`
+                @keyframes wfa-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+                .wfa-marquee { animation: wfa-marquee 36s linear infinite; }
+                .wfa-marquee:hover { animation-play-state: paused; }
+            `}</style>
+
+            {/* ── Header ─────────────────────────────────────────────────── */}
+            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
+                <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
+                    <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>
+                        VowNook <span className="italic font-light text-[#8a651c]">Atelier</span>
+                    </span>
+                    <div className="hidden items-center gap-9 md:flex">
+                        <a href="#couples" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            For couples
                         </a>
-                        <a href="#craft" className="text-sm tracking-wide text-[#4c4640] transition-colors hover:text-[#775a19]">
-                            The Craft
+                        <Link href="/marketplace" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            Marketplace
+                        </Link>
+                        <a href="#vendors" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            For vendors
                         </a>
-                        <a href="#pricing" className="text-sm tracking-wide text-[#4c4640] transition-colors hover:text-[#775a19]">
-                            Memberships
+                        <Link href="/how-it-works" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            How it works
+                        </Link>
+                        <a href="#pricing" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            Pricing
                         </a>
                     </div>
                     {authed ? (
                         <Link
                             href={dashboard()}
-                            className="bg-[#1e1b18] px-7 py-2.5 text-xs font-medium tracking-[0.2em] text-white uppercase transition-opacity hover:opacity-80"
+                            className="bg-[#191613] px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
                         >
                             Dashboard
                         </Link>
                     ) : (
-                        <div className="flex items-center gap-3">
-                            <Link href={login()} className="hidden text-sm tracking-wide text-[#4c4640] hover:text-[#775a19] sm:block">
+                        <div className="flex items-center gap-4">
+                            <Link href={login()} className="hidden text-[13px] text-[#52493d] hover:text-[#8a651c] sm:block">
                                 Sign in
                             </Link>
                             <Link
                                 href={register()}
-                                className="bg-[#1e1b18] px-7 py-2.5 text-xs font-medium tracking-[0.2em] text-white uppercase transition-opacity hover:opacity-80"
+                                className="bg-[#191613] px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
                             >
                                 Get started
                             </Link>
@@ -108,216 +156,372 @@ export default function Welcome() {
                 </nav>
             </header>
 
-            {/* Hero */}
-            <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#1e1b18] px-5 py-32 md:px-16">
-                <motion.div
-                    className="absolute inset-0 bg-cover bg-center opacity-40 grayscale"
-                    style={{ backgroundImage: 'url(/images/wedding/reception.jpg)' }}
-                    initial={{ scale: 1.15 }}
+            {/* ── Hero ───────────────────────────────────────────────────── */}
+            <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
+                <motion.img
+                    src={IMG.hero}
+                    alt="A couple laughing mid-dance at a golden-hour reception"
+                    className="absolute inset-0 size-full object-cover"
+                    initial={{ scale: 1.12 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 16, ease: 'easeOut' }}
                 />
-                <div className="absolute inset-0 bg-[#1e1b18]/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/85 via-[#191613]/25 to-[#191613]/30" />
 
+                {/* Editorial issue stamp */}
                 <motion.div
-                    className="relative z-10 mx-auto max-w-4xl text-center"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute top-28 right-6 hidden rotate-90 items-center gap-3 text-[10px] tracking-[0.4em] text-white/60 uppercase md:flex"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2, duration: 1 }}
                 >
-                    <span className="text-xs tracking-[0.3em] text-[#e9c176] uppercase">Curated Planning</span>
-                    <h1 className={`${serif} mt-6 text-5xl leading-[1.05] text-white sm:text-7xl md:text-8xl`}>
-                        A wedding, composed.
-                    </h1>
-                    <p className="mx-auto mt-6 max-w-xl text-lg text-[#e9e1dc]/80">
-                        The private studio for your most personal day — architectural precision with the soul of a
-                        storyteller.
-                    </p>
-                    <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                        <Link
-                            href={authed ? dashboard() : register()}
-                            className="bg-[#775a19] px-10 py-4 text-xs font-medium tracking-[0.25em] text-white uppercase transition-colors hover:bg-[#fed488] hover:text-[#1e1b18]"
-                        >
-                            {authed ? 'Open your studio' : 'Begin your composition'}
-                        </Link>
-                        <a
-                            href={DEMO}
-                            className="border border-white/30 px-10 py-4 text-xs font-medium tracking-[0.25em] text-white uppercase transition-colors hover:bg-white hover:text-[#1e1b18]"
-                        >
-                            View a live site
-                        </a>
-                    </div>
+                    <span className="h-px w-10 bg-white/40" />
+                    The Atelier — Issue N°01
                 </motion.div>
 
-                <motion.div
-                    className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 text-white/50"
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                    <ChevronDown className="size-6" />
-                </motion.div>
+                <div className="relative z-10 mx-auto w-full max-w-[1480px] px-5 pb-16 md:px-12 md:pb-20">
+                    <motion.p
+                        className="mb-5 text-[11px] tracking-[0.35em] text-[#e9c176] uppercase"
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.9, delay: 0.2 }}
+                    >
+                        Planning studio · Vendor marketplace
+                    </motion.p>
+                    <motion.h1
+                        className={`${fraunces} max-w-5xl text-[13vw] leading-[0.95] font-light text-white sm:text-7xl md:text-[6.5rem]`}
+                        initial={{ opacity: 0, y: 28 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                        Where weddings
+                        <br />
+                        <em className="font-normal text-[#e9c176]">find their people.</em>
+                    </motion.h1>
+
+                    <motion.div
+                        className="mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.9, delay: 0.6 }}
+                    >
+                        <p className="max-w-md text-[15px] leading-relaxed text-white/85">
+                            Plan every detail in one calm workspace — then discover trusted vendors,
+                            compare real quotes and book, without leaving the room.
+                        </p>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                            <Link
+                                href={authed ? dashboard() : register()}
+                                className="group flex items-center justify-center gap-3 bg-[#faf6ef] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#191613] uppercase transition-colors hover:bg-[#e9c176]"
+                            >
+                                {authed ? 'Open your studio' : 'Start planning — free'}
+                                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                            <Link
+                                href="/marketplace"
+                                className="flex items-center justify-center gap-3 border border-white/40 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-white uppercase transition-colors hover:bg-white hover:text-[#191613]"
+                            >
+                                Explore vendors
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
             </section>
 
-            {/* The Atelier Experience */}
-            <section id="experience" className="overflow-hidden bg-[#faf2ec] px-5 py-24 md:px-16 md:py-40">
-                <div className="mx-auto grid max-w-[1440px] items-center gap-16 md:grid-cols-12">
-                    <div className="md:col-span-5">
+            {/* ── Category marquee ───────────────────────────────────────── */}
+            <div className="overflow-hidden border-y border-[#191613]/10 bg-[#f3ecdf] py-4">
+                <div className="wfa-marquee flex w-max items-center">
+                    {[0, 1].map((dup) => (
+                        <div key={dup} className="flex items-center" aria-hidden={dup === 1}>
+                            {CATEGORIES.map((c) => (
+                                <span key={`${dup}-${c}`} className="flex items-center">
+                                    <span className={`${fraunces} px-6 text-sm tracking-[0.25em] text-[#52493d] uppercase`}>
+                                        {c}
+                                    </span>
+                                    <span className="text-[#8a651c]">✦</span>
+                                </span>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ── 01 · For couples ───────────────────────────────────────── */}
+            <section id="couples" className="overflow-hidden px-5 py-24 md:px-12 md:py-36">
+                <div className="mx-auto grid max-w-[1480px] items-center gap-14 md:grid-cols-12">
+                    <Reveal className="relative md:col-span-5">
+                        <div className="relative z-10 -rotate-1 bg-white p-3 shadow-[0_30px_60px_-20px_rgba(25,22,19,0.35)]">
+                            <img
+                                src={IMG.tablescape}
+                                alt="A candlelit reception tablescape"
+                                className="aspect-[3/4] w-full object-cover"
+                                loading="lazy"
+                            />
+                            <p className={`${fraunces} px-2 pt-3 pb-1 text-xs italic text-[#52493d]`}>
+                                The long table, an hour before everyone arrived.
+                            </p>
+                        </div>
+                        <div className="absolute -top-10 -left-6 z-0 hidden h-full w-full border border-[#8a651c]/25 md:block" />
+                        <span
+                            className={`${fraunces} pointer-events-none absolute -top-16 -right-2 z-20 text-[120px] leading-none font-light text-[#8a651c]/15 select-none md:text-[170px]`}
+                        >
+                            01
+                        </span>
+                    </Reveal>
+
+                    <div className="md:col-span-6 md:col-start-7">
                         <Reveal>
-                            <h2 className={`${serif} text-4xl tracking-tight text-[#1e1b18] uppercase sm:text-5xl`}>
-                                The Atelier Experience
+                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">For couples</p>
+                            <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+                                Every detail, <em className="text-[#8a651c]">composed.</em>
                             </h2>
-                            <div className="mt-6 h-px w-24 bg-gradient-to-r from-[#775a19]/60 to-transparent" />
-                            <p className="mt-6 text-lg leading-relaxed text-[#4c4640]">
-                                A workspace designed for clarity. Walk through your floor plan, curate every tactile
-                                detail, and keep your whole team in step — in one calm, digital sanctuary.
+                            <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-[#52493d]">
+                                Guest lists, seating, budget, timeline, a wedding website your guests will
+                                actually visit — one calm studio instead of eleven spreadsheets.
                             </p>
                         </Reveal>
-                        <Stagger className="mt-12 space-y-8">
-                            {experience.map((e) => (
-                                <StaggerItem key={e.title} className="flex items-start gap-4">
-                                    <e.icon className="mt-1 size-5 shrink-0 text-[#775a19]" />
-                                    <div>
-                                        <h4 className="text-sm font-bold tracking-wide text-[#1e1b18]">{e.title}</h4>
-                                        <p className="mt-1 text-[#4c4640]">{e.body}</p>
-                                    </div>
+
+                        <Stagger className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+                            {coupleFeatures.map((f) => (
+                                <StaggerItem key={f.title} className="group">
+                                    <f.icon className="mb-3 size-5 text-[#8a651c]" />
+                                    <h3 className="text-sm font-bold tracking-wide">{f.title}</h3>
+                                    <p className="mt-1.5 text-sm leading-relaxed text-[#52493d]">{f.body}</p>
                                 </StaggerItem>
                             ))}
                         </Stagger>
+
+                        <Reveal delay={0.2} className="mt-10 flex flex-wrap items-center gap-6">
+                            <Link
+                                href={authed ? dashboard() : register()}
+                                className="bg-[#191613] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                            >
+                                Start planning
+                            </Link>
+                            <a
+                                href={DEMO}
+                                className="group flex items-center gap-1.5 text-sm text-[#52493d] underline-offset-4 hover:text-[#8a651c] hover:underline"
+                            >
+                                See a live wedding site
+                                <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </a>
+                        </Reveal>
                     </div>
-                    <Reveal delay={0.15} className="md:col-span-7">
-                        <div className="relative">
-                            <div className="relative z-10 bg-white p-4 shadow-2xl">
+                </div>
+            </section>
+
+            {/* ── 02 · The marketplace (dark chapter) ────────────────────── */}
+            <section className="relative overflow-hidden bg-[#191613] px-5 py-24 text-[#faf6ef] md:px-12 md:py-36">
+                <span
+                    className={`${fraunces} pointer-events-none absolute top-10 left-6 text-[140px] leading-none font-light text-white/5 select-none md:text-[220px]`}
+                >
+                    02
+                </span>
+
+                <div className="relative mx-auto grid max-w-[1480px] gap-16 md:grid-cols-12">
+                    <div className="md:col-span-5">
+                        <Reveal>
+                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#e9c176] uppercase">The marketplace</p>
+                            <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+                                Real vendors. Real quotes.
+                                <br />
+                                <em className="text-[#e9c176]">No guesswork.</em>
+                            </h2>
+                            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/70">
+                                Every listing is reviewed before it goes live. Send one inquiry with your date
+                                and guest count, then weigh the offers side by side — terms, deposits and all.
+                            </p>
+                        </Reveal>
+
+                        <Stagger className="mt-10 space-y-6">
+                            {[
+                                { icon: Inbox, text: 'One inquiry — your date, headcount and budget, sent in a minute.' },
+                                { icon: GitCompareArrows, text: 'Offers compared side by side, grouped by category.' },
+                                { icon: MailOpen, text: 'Accept, and the vendor appears in your planning workspace automatically.' },
+                            ].map((item) => (
+                                <StaggerItem key={item.text} className="flex items-start gap-4">
+                                    <item.icon className="mt-0.5 size-5 shrink-0 text-[#e9c176]" />
+                                    <p className="text-sm leading-relaxed text-white/80">{item.text}</p>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+
+                        <Reveal delay={0.2} className="mt-10">
+                            <Link
+                                href="/marketplace"
+                                className="inline-flex items-center gap-3 bg-[#e9c176] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-[#191613] uppercase transition-colors hover:bg-[#faf6ef]"
+                            >
+                                Browse the marketplace
+                                <ArrowRight className="size-4" />
+                            </Link>
+                        </Reveal>
+                    </div>
+
+                    {/* Staggered editorial image pair */}
+                    <div className="relative min-h-[420px] md:col-span-6 md:col-start-7">
+                        <Reveal className="absolute top-0 left-0 w-[62%]">
+                            <div className="bg-[#faf6ef] p-2.5">
                                 <img
-                                    src="/images/wedding/venue.jpg"
-                                    alt="A venue laid out in the Atelier"
-                                    className="aspect-video w-full object-cover"
+                                    src={IMG.florist}
+                                    alt="A florist arranging a bridal bouquet"
+                                    className="aspect-[3/4] w-full object-cover"
                                     loading="lazy"
                                 />
                             </div>
-                            <div className="absolute -top-8 -right-8 z-0 hidden size-full border border-[#cec5bd]/40 md:block" />
-                        </div>
-                    </Reveal>
+                            <p className="mt-2 text-[10px] tracking-[0.25em] text-white/50 uppercase">Florals · The bouquet bench</p>
+                        </Reveal>
+                        <Reveal delay={0.18} className="absolute right-0 bottom-0 w-[52%]">
+                            <div className="bg-[#faf6ef] p-2.5">
+                                <img
+                                    src={IMG.photographer}
+                                    alt="A wedding photographer at work in a courtyard"
+                                    className="aspect-[3/4] w-full object-cover"
+                                    loading="lazy"
+                                />
+                            </div>
+                            <p className="mt-2 text-right text-[10px] tracking-[0.25em] text-white/50 uppercase">Photography · Golden hour</p>
+                        </Reveal>
+                    </div>
                 </div>
             </section>
 
-            {/* The Craft — feature bento */}
-            <section id="craft" className="bg-[#fff8f3] px-5 py-24 md:px-16 md:py-32">
-                <div className="mx-auto max-w-[1440px]">
-                    <Reveal className="mb-20 text-center">
-                        <h2 className={`${serif} text-4xl text-[#1e1b18] sm:text-5xl`}>Refined Utilitarianism</h2>
-                        <p className="mt-4 text-xs tracking-[0.2em] text-[#775a19] uppercase">The tools of the craft</p>
+            {/* ── 03 · For vendors ───────────────────────────────────────── */}
+            <section id="vendors" className="relative overflow-hidden px-5 py-24 md:px-12 md:py-36">
+                <span
+                    className={`${fraunces} pointer-events-none absolute -top-6 right-6 text-[140px] leading-none font-light text-[#8a651c]/10 select-none md:text-[220px]`}
+                >
+                    03
+                </span>
+
+                <div className="relative mx-auto max-w-[1480px]">
+                    <Reveal className="max-w-2xl">
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">For vendors</p>
+                        <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+                            Your craft, in front of couples <em className="text-[#8a651c]">ready to book.</em>
+                        </h2>
+                        <p className="mt-6 text-[15px] leading-relaxed text-[#52493d]">
+                            Build a portfolio page with packages and availability, receive structured inquiries
+                            instead of cold DMs, and reply with offers that win — all from one business dashboard.
+                        </p>
                     </Reveal>
 
-                    <Stagger className="grid grid-cols-1 gap-6 md:grid-cols-4">
-                        <StaggerItem className="group flex flex-col justify-between border border-[#cec5bd]/30 bg-[#f4ece6] p-12 transition-colors hover:border-[#775a19] md:col-span-2">
-                            <Wallet className="size-9 text-[#1e1b18]/30 transition-colors group-hover:text-[#775a19]" />
-                            <div className="mt-20">
-                                <h3 className={`${serif} mb-3 text-2xl`}>Financial Composition</h3>
-                                <p className="text-[#4c4640]">
-                                    A transparent, itemised approach to your wedding investment — estimates, actuals, and
-                                    what is paid, in balance.
-                                </p>
-                            </div>
-                        </StaggerItem>
-
-                        <StaggerItem className="group flex flex-col justify-between border border-[#cec5bd]/30 bg-[#efe7e0] p-12 transition-colors hover:border-[#775a19]">
-                            <Users className="size-9 text-[#1e1b18]/30 transition-colors group-hover:text-[#775a19]" />
-                            <div className="mt-12">
-                                <h3 className="mb-3 text-sm font-bold tracking-widest uppercase">Guest Matrix</h3>
-                                <p className="text-sm text-[#4c4640]">Intelligent RSVP tracking and a guest portal.</p>
-                            </div>
-                        </StaggerItem>
-
-                        <StaggerItem className="group flex flex-col justify-between border border-[#cec5bd]/30 bg-[#faf2ec] p-12 transition-colors hover:border-[#775a19]">
-                            <Armchair className="size-9 text-[#1e1b18]/30 transition-colors group-hover:text-[#775a19]" />
-                            <div className="mt-12">
-                                <h3 className="mb-3 text-sm font-bold tracking-widest uppercase">Seating Cartography</h3>
-                                <p className="text-sm text-[#4c4640]">Drag-and-drop floor plans, chair by chair.</p>
-                            </div>
-                        </StaggerItem>
-
-                        <StaggerItem className="group flex flex-col justify-between border border-[#cec5bd]/30 bg-[#e9e1db] p-12 transition-colors hover:border-[#775a19] md:col-span-2">
-                            <div className="flex items-start justify-between">
-                                <CalendarClock className="size-9 text-[#1e1b18]/30 transition-colors group-hover:text-[#775a19]" />
-                                <span className="border border-[#775a19] px-3 py-1 text-xs tracking-wider text-[#775a19] uppercase">
-                                    Real-time
-                                </span>
-                            </div>
-                            <div className="mt-20">
-                                <h3 className={`${serif} mb-3 text-2xl`}>The Master Timeline</h3>
-                                <p className="text-[#4c4640]">
-                                    A synchronised clock for you, your planner, and every vendor — every minute
-                                    choreographed.
-                                </p>
-                            </div>
-                        </StaggerItem>
-
-                        <StaggerItem className="group relative col-span-1 h-[300px] overflow-hidden md:col-span-2">
-                            <img
-                                src="/images/wedding/table-setting.jpg"
-                                alt="Attention to detail"
-                                loading="lazy"
-                                className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-[#1e1b18]/30 transition-colors group-hover:bg-[#1e1b18]/10" />
-                            <p className={`${serif} absolute bottom-8 left-8 text-2xl text-white`}>Attention to detail.</p>
-                        </StaggerItem>
+                    <Stagger className="mt-14 grid gap-px overflow-hidden border border-[#191613]/10 bg-[#191613]/10 sm:grid-cols-3">
+                        {vendorStats.map((s) => (
+                            <StaggerItem key={s.label} className="bg-[#faf6ef] p-10 text-center sm:p-12">
+                                <p className={`${fraunces} text-5xl font-light text-[#8a651c] sm:text-6xl`}>{s.value}</p>
+                                <p className="mt-3 text-sm text-[#52493d]">{s.label}</p>
+                            </StaggerItem>
+                        ))}
                     </Stagger>
+
+                    <Reveal delay={0.15} className="mt-10 flex flex-wrap items-center gap-6">
+                        <Link
+                            href="/register?type=vendor"
+                            className="bg-[#8a651c] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#191613]"
+                        >
+                            List your business — free
+                        </Link>
+                        <p className="text-sm text-[#52493d]">Reviewed and published, usually within a day.</p>
+                    </Reveal>
                 </div>
             </section>
 
-            {/* Memberships */}
-            <section id="pricing" className="bg-[#faf2ec] px-5 py-24 md:px-16 md:py-40">
-                <div className="mx-auto max-w-[1440px]">
-                    <Reveal className="mb-20">
-                        <h2 className={`${serif} text-4xl text-[#1e1b18] sm:text-5xl`}>Studio Memberships</h2>
-                        <p className="mt-2 text-lg text-[#4c4640]">Choose the level of support your journey requires.</p>
+            {/* ── How it works ───────────────────────────────────────────── */}
+            <section className="border-y border-[#191613]/10 bg-[#f3ecdf] px-5 py-24 md:px-12 md:py-32">
+                <div className="mx-auto max-w-[1480px]">
+                    <Reveal className="mb-16 text-center">
+                        <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
+                            How the room <em className="text-[#8a651c]">comes together</em>
+                        </h2>
                     </Reveal>
 
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                    <div className="grid gap-16 md:grid-cols-2 md:gap-24">
+                        <div>
+                            <p className="mb-8 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">If you're planning</p>
+                            <Stagger className="space-y-10">
+                                {coupleSteps.map((s) => (
+                                    <StaggerItem key={s.n} className="flex gap-6">
+                                        <span className={`${fraunces} text-3xl font-light text-[#8a651c]/50`}>{s.n}</span>
+                                        <div>
+                                            <h3 className="text-sm font-bold tracking-wide">{s.title}</h3>
+                                            <p className="mt-1.5 text-sm leading-relaxed text-[#52493d]">{s.body}</p>
+                                        </div>
+                                    </StaggerItem>
+                                ))}
+                            </Stagger>
+                        </div>
+                        <div>
+                            <p className="mb-8 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">If you're a vendor</p>
+                            <Stagger className="space-y-10">
+                                {vendorSteps.map((s) => (
+                                    <StaggerItem key={s.n} className="flex gap-6">
+                                        <span className={`${fraunces} text-3xl font-light text-[#8a651c]/50`}>{s.n}</span>
+                                        <div>
+                                            <h3 className="text-sm font-bold tracking-wide">{s.title}</h3>
+                                            <p className="mt-1.5 text-sm leading-relaxed text-[#52493d]">{s.body}</p>
+                                        </div>
+                                    </StaggerItem>
+                                ))}
+                            </Stagger>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Pricing ────────────────────────────────────────────────── */}
+            <section id="pricing" className="px-5 py-24 md:px-12 md:py-36">
+                <div className="mx-auto max-w-[1480px]">
+                    <Reveal className="mb-16">
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Memberships</p>
+                        <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
+                            Choose your <em className="text-[#8a651c]">level of ceremony.</em>
+                        </h2>
+                    </Reveal>
+
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
                         {tiers.map((tier) => (
                             <div
                                 key={tier.name}
-                                className={`flex flex-col justify-between p-12 ${
+                                className={`flex flex-col justify-between p-10 md:p-12 ${
                                     tier.featured
-                                        ? 'relative bg-[#1e1b18] text-white shadow-xl md:-translate-y-4'
-                                        : 'border border-[#cec5bd]/30 bg-[#fff8f3]'
+                                        ? 'relative bg-[#191613] text-[#faf6ef] shadow-[0_30px_60px_-25px_rgba(25,22,19,0.6)] md:-translate-y-5'
+                                        : 'border border-[#191613]/12 bg-[#faf6ef]'
                                 }`}
                             >
                                 {tier.featured && (
-                                    <div className="absolute top-0 right-0 bg-[#775a19] px-6 py-2 text-xs tracking-widest text-white uppercase">
+                                    <div className="absolute top-0 right-0 bg-[#8a651c] px-5 py-2 text-[10px] tracking-[0.25em] text-white uppercase">
                                         Recommended
                                     </div>
                                 )}
                                 <div>
                                     <h3
-                                        className={`mb-2 text-sm font-bold tracking-widest uppercase ${
-                                            tier.featured ? 'text-[#e9c176]' : 'text-[#1e1b18]'
+                                        className={`mb-2 text-xs font-bold tracking-[0.25em] uppercase ${
+                                            tier.featured ? 'text-[#e9c176]' : 'text-[#191613]'
                                         }`}
                                     >
                                         {tier.name}
                                     </h3>
                                     <div className="mb-8 flex items-baseline gap-2">
-                                        <span className={`${serif} text-4xl`}>{tier.price}</span>
-                                        <span className={tier.featured ? 'text-sm text-[#e9e1dc]/70' : 'text-sm text-[#4c4640]'}>
+                                        <span className={`${fraunces} text-5xl font-light`}>{tier.price}</span>
+                                        <span className={`text-sm ${tier.featured ? 'text-white/60' : 'text-[#52493d]'}`}>
                                             {tier.cadence}
                                         </span>
                                     </div>
                                     <ul className="mb-12 space-y-4">
                                         {tier.features.map((f) => (
                                             <li key={f} className="flex items-center gap-3 text-sm">
-                                                <Check className={`size-4 ${tier.featured ? 'text-[#e9c176]' : 'text-[#775a19]'}`} />
-                                                <span className={tier.featured ? 'text-[#e9e1dc]' : 'text-[#4c4640]'}>{f}</span>
+                                                <Check className={`size-4 shrink-0 ${tier.featured ? 'text-[#e9c176]' : 'text-[#8a651c]'}`} />
+                                                <span className={tier.featured ? 'text-white/85' : 'text-[#52493d]'}>{f}</span>
                                             </li>
                                         ))}
                                     </ul>
                                 </div>
                                 <Link
-                                    href={register()}
-                                    className={`py-4 text-center text-xs font-medium tracking-widest uppercase transition-all ${
+                                    href={tier.href}
+                                    className={`py-4 text-center text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors ${
                                         tier.featured
-                                            ? 'bg-[#775a19] text-white hover:bg-[#fed488] hover:text-[#1e1b18]'
-                                            : 'border border-[#1e1b18] text-[#1e1b18] hover:bg-[#1e1b18] hover:text-white'
+                                            ? 'bg-[#8a651c] text-white hover:bg-[#e9c176] hover:text-[#191613]'
+                                            : 'border border-[#191613] text-[#191613] hover:bg-[#191613] hover:text-[#faf6ef]'
                                     }`}
                                 >
                                     {tier.cta}
@@ -328,30 +532,48 @@ export default function Welcome() {
                 </div>
             </section>
 
-            {/* Final CTA */}
-            <section className="bg-[#fff8f3] px-5 py-28 text-center md:py-40">
-                <Reveal className="mx-auto max-w-2xl">
-                    <Sparkles className="mx-auto mb-6 size-8 text-[#775a19]" />
-                    <h2 className={`${serif} mb-6 text-4xl sm:text-5xl`}>Begin your composition.</h2>
-                    <p className="mb-12 text-lg text-[#4c4640]">
-                        Your personal atelier is ready. Start creating a day that is unmistakably yours.
-                    </p>
-                    <Link
-                        href={authed ? dashboard() : register()}
-                        className="inline-flex items-center gap-3 bg-[#1e1b18] px-14 py-5 text-xs font-medium tracking-[0.3em] text-white uppercase transition-colors hover:bg-[#775a19]"
-                    >
-                        {authed ? 'Open your studio' : 'Create account'}
-                        <ArrowRight className="size-4" />
-                    </Link>
+            {/* ── Final CTA ──────────────────────────────────────────────── */}
+            <section className="bg-[#191613] px-5 py-28 text-center text-[#faf6ef] md:py-40">
+                <Reveal className="mx-auto max-w-3xl">
+                    <p className="mb-6 text-[11px] tracking-[0.35em] text-[#e9c176] uppercase">The invitation stands</p>
+                    <h2 className={`${fraunces} text-4xl leading-[1.1] font-light sm:text-6xl`}>
+                        The best days are <em className="text-[#e9c176]">planned together.</em>
+                    </h2>
+                    <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                        <Link
+                            href={authed ? dashboard() : register()}
+                            className="group inline-flex items-center gap-3 bg-[#faf6ef] px-12 py-5 text-[11px] font-semibold tracking-[0.25em] text-[#191613] uppercase transition-colors hover:bg-[#e9c176]"
+                        >
+                            {authed ? 'Open your studio' : 'Create your account'}
+                            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                        </Link>
+                        <Link
+                            href="/register?type=vendor"
+                            className="inline-flex items-center gap-3 border border-white/30 px-12 py-5 text-[11px] font-semibold tracking-[0.25em] text-white uppercase transition-colors hover:bg-white hover:text-[#191613]"
+                        >
+                            I'm a vendor
+                        </Link>
+                    </div>
                 </Reveal>
             </section>
 
-            {/* Footer */}
-            <footer className="border-t border-[#cec5bd]/30 bg-[#fff8f3] py-12">
-                <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-6 px-5 md:flex-row md:px-16">
-                    <span className={`${serif} text-2xl text-[#1e1b18]`}>WedFlow Atelier</span>
-                    <p className="text-xs tracking-[0.15em] text-[#4c4640]/70 uppercase">
-                        © {new Date().getFullYear()} WedFlow Atelier. All rights reserved.
+            {/* ── Footer ─────────────────────────────────────────────────── */}
+            <footer className="border-t border-[#191613]/10 bg-[#faf6ef] py-12">
+                <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-6 px-5 md:flex-row md:px-12">
+                    <span className={`${fraunces} text-xl`}>
+                        VowNook <span className="italic text-[#8a651c]">Atelier</span>
+                    </span>
+                    <div className="flex items-center gap-8 text-[13px] text-[#52493d]">
+                        <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
+                        <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
+                        <a href={DEMO} className="hover:text-[#8a651c]">Live demo</a>
+                        <Link href="/terms" className="hover:text-[#8a651c]">Terms</Link>
+                        <Link href="/privacy" className="hover:text-[#8a651c]">Privacy</Link>
+                        <Link href="/contact" className="hover:text-[#8a651c]">Contact</Link>
+                        <Link href={login()} className="hover:text-[#8a651c]">Sign in</Link>
+                    </div>
+                    <p className="text-[11px] tracking-[0.15em] text-[#52493d]/70 uppercase">
+                        © {new Date().getFullYear()} VowNook
                     </p>
                 </div>
             </footer>

@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // Stripe Connect (marketplace payments). Absent keys ⇒ payments degrade
+    // gracefully (buttons hidden, webhook no-ops). Use TEST keys in staging.
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
 ];

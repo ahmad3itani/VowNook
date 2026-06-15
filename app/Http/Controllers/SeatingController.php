@@ -35,7 +35,7 @@ class SeatingController extends Controller
         $guests = Guest::query()
             ->forWedding($weddingId)
             ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'rsvp_status']);
+            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'rsvp_status', 'meal_choice', 'dietary_notes']);
 
         $elements = SeatingElement::query()
             ->forWedding($weddingId)
@@ -46,6 +46,7 @@ class SeatingController extends Controller
         $seated = $guests->whereNotNull('table_id')->count();
 
         return Inertia::render('seating/index', [
+            'weddingName' => $wedding->name,
             'tables' => $tables->map(fn (SeatingTable $t) => [
                 'id' => $t->id,
                 'name' => $t->name,
@@ -62,6 +63,8 @@ class SeatingController extends Controller
                 'table_id' => $g->table_id,
                 'seat_number' => $g->seat_number,
                 'rsvp_status' => $g->rsvp_status->value,
+                'meal_choice' => $g->meal_choice,
+                'dietary_notes' => $g->dietary_notes,
             ]),
             'elements' => $elements->map(fn (SeatingElement $e) => [
                 'id' => $e->id,
@@ -100,9 +103,81 @@ class SeatingController extends Controller
         ]);
     }
 
+    /** Export PDF using a frontend screenshot of the canvas as page 1. */
+    public function exportScreenshotPdf(Request $request): \Illuminate\Http\Response
+    {
+        // Embedding the canvas screenshot makes DomPDF memory-hungry.
+        @set_time_limit(120);
+        @ini_set('memory_limit', '512M');
+
+        $request->validate(['image' => 'required|string']);
+
+        $weddingId = $this->current->id();
+        $wedding = $this->current->get();
+
+        $tables = SeatingTable::query()->forWedding($weddingId)->orderBy('name')->get();
+        $guests = Guest::query()
+            ->forWedding($weddingId)
+            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'meal_choice', 'dietary_notes']);
+
+        $rows = $tables->map(function (SeatingTable $t) use ($guests) {
+            $seated = $guests
+                ->where('table_id', $t->id)
+                ->sortBy([['seat_number', 'asc'], ['first_name', 'asc']])
+                ->map(fn (Guest $g) => [
+                    'seat' => $g->seat_number,
+                    'name' => trim($g->first_name.' '.($g->last_name ?? '')),
+                    'meal' => $g->meal_choice,
+                    'dietary' => $g->dietary_notes,
+                ])
+                ->values();
+
+            return [
+                'name' => $t->name,
+                'shape' => $t->shape->label(),
+                'capacity' => $t->capacity,
+                'guests' => $seated,
+            ];
+        });
+
+        $unseated = $guests
+            ->whereNull('table_id')
+            ->map(fn (Guest $g) => trim($g->first_name.' '.($g->last_name ?? '')))
+            ->sort()
+            ->values();
+
+        // Save screenshot to a temp file so DomPDF can load it via local path.
+        $raw = preg_replace('/^data:image\/\w+;base64,/', '', $request->input('image'));
+        $tempDir = storage_path('app/temp');
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        $tempPath = $tempDir.'/seating-'.uniqid().'.png';
+        file_put_contents($tempPath, base64_decode($raw));
+
+        try {
+            $pdf = Pdf::loadView('pdf.seating', [
+                'wedding' => $wedding,
+                'tables' => $rows,
+                'unseated' => $unseated,
+                'screenshotImagePath' => $tempPath,
+                'plan' => null,
+            ])->setPaper('a4', 'landscape');
+
+            $response = $pdf->download(Str::slug($wedding->name).'-seating-chart.pdf');
+        } finally {
+            @unlink($tempPath);
+        }
+
+        return $response;
+    }
+
     /** A printable floor plan (tables + chairs) and seating chart with meals & allergies. */
     public function exportPdf(): \Illuminate\Http\Response
     {
+        @set_time_limit(120);
+        @ini_set('memory_limit', '512M');
+
         $weddingId = $this->current->id();
         $wedding = $this->current->get();
 

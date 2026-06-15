@@ -30,6 +30,8 @@ class Guest extends Model
         'is_plus_one',
         'rsvp_status',
         'meal_choice',
+        'appetizer_choice',
+        'dessert_choice',
         'dietary_notes',
         'invited_at',
         'notes',

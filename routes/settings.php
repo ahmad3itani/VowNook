@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Settings\PlanController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\RedeemPromoController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
@@ -27,4 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 
     Route::get('settings/plan', [PlanController::class, 'edit'])->name('plan.edit');
+    Route::post('settings/plan/redeem', [RedeemPromoController::class, 'store'])
+        ->middleware('throttle:6,1')->name('plan.redeem');
+
+    Route::get('settings/notifications', [NotificationController::class, 'edit'])->name('notifications.edit');
+    Route::put('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');
 });

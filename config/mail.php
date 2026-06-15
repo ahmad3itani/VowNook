@@ -18,6 +18,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CASL Sender Identity
+    |--------------------------------------------------------------------------
+    |
+    | Canada's anti-spam law (CASL) requires every commercial email to identify
+    | the sender with a valid physical mailing address. This is rendered in the
+    | footer of all marketing/lifecycle emails. Set MAIL_CASL_ADDRESS in prod.
+    |
+    */
+
+    'casl_address' => env('MAIL_CASL_ADDRESS', 'Toronto, Ontario, Canada'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mailer Configurations
     |--------------------------------------------------------------------------
     |

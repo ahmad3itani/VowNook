@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -39,10 +39,19 @@ const itemVariants = {
 };
 
 /** Wraps a group whose children animate in one after another on scroll. */
-export function Stagger({ children, className }: { children: ReactNode; className?: string }) {
+export function Stagger({
+    children,
+    className,
+    style,
+}: {
+    children: ReactNode;
+    className?: string;
+    style?: CSSProperties;
+}) {
     return (
         <motion.div
             className={className}
+            style={style}
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -53,9 +62,17 @@ export function Stagger({ children, className }: { children: ReactNode; classNam
     );
 }
 
-export function StaggerItem({ children, className }: { children: ReactNode; className?: string }) {
+export function StaggerItem({
+    children,
+    className,
+    style,
+}: {
+    children: ReactNode;
+    className?: string;
+    style?: CSSProperties;
+}) {
     return (
-        <motion.div className={className} variants={itemVariants}>
+        <motion.div className={className} style={style} variants={itemVariants}>
             {children}
         </motion.div>
     );

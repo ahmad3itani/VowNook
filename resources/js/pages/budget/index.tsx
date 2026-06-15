@@ -1,4 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { formatMoney } from '@/lib/format';
 import { Download, Layers, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -55,12 +56,6 @@ type PageProps = {
 };
 
 const NO_CATEGORY = 'none';
-
-const money = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    maximumFractionDigits: 0,
-});
 
 type ItemFormData = {
     name: string;
@@ -209,20 +204,20 @@ export default function BudgetIndex({ items, categories, stats }: PageProps) {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard
                         label="Estimated"
-                        value={money.format(stats.estimated)}
+                        value={formatMoney(stats.estimated * 100)}
                     />
                     <StatCard
                         label="Projected"
-                        value={money.format(stats.projected)}
+                        value={formatMoney(stats.projected * 100)}
                     />
                     <StatCard
                         label="Paid"
-                        value={money.format(stats.paid)}
+                        value={formatMoney(stats.paid * 100)}
                         accent="text-[#775a19]"
                     />
                     <StatCard
                         label="Outstanding"
-                        value={money.format(stats.outstanding)}
+                        value={formatMoney(stats.outstanding * 100)}
                         accent="text-[#b08d3e]"
                     />
                 </div>
@@ -296,15 +291,15 @@ export default function BudgetIndex({ items, categories, stats }: PageProps) {
                                                     {i.category_name ?? '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
-                                                    {money.format(i.estimated)}
+                                                    {formatMoney(i.estimated * 100)}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
                                                     {i.actual !== null
-                                                        ? money.format(i.actual)
+                                                        ? formatMoney(i.actual * 100)
                                                         : '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
-                                                    {money.format(i.paid)}
+                                                    {formatMoney(i.paid * 100)}
                                                 </td>
                                                 {writable && (
                                                     <td className="px-4 py-3">

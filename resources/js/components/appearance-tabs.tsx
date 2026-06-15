@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
@@ -10,6 +11,17 @@ export default function AppearanceToggleTab({
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
     const { appearance, updateAppearance } = useAppearance();
+    const { auth } = usePage().props;
+
+    // Couples' workspace is locked to the light Atelier theme — no toggle.
+    if ((auth?.user?.account_type ?? 'couple') === 'couple') {
+        return (
+            <div className={cn('flex items-center gap-2 text-sm text-muted-foreground', className)}>
+                <Sun className="size-4 text-[#8a651c]" />
+                Your wedding workspace uses the light Atelier theme.
+            </div>
+        );
+    }
 
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
         { value: 'light', icon: Sun, label: 'Light' },

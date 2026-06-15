@@ -23,7 +23,7 @@ class LocalisationController extends Controller
         'public.rsvp_heading' => 'Kindly Respond',
         'public.rsvp_subheading' => 'Find your name to reply.',
         'public.seat_heading' => 'Find your seat',
-        'public.footer' => 'Made with WedFlow Atelier',
+        'public.footer' => 'Made with VowNook',
     ];
 
     public function index(Request $request): Response

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GalleryPhoto;
 use App\Support\CurrentWedding;
+use App\Support\ImageOptimizer;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,14 +59,14 @@ class GalleryController extends Controller
 
         $file = $data['photo'];
         $weddingId = $this->current->id();
-        $path = $file->store("galleries/{$weddingId}");
+        $path = ImageOptimizer::store($file, "galleries/{$weddingId}", 2000);
 
         GalleryPhoto::create([
             'wedding_id' => $weddingId,
             'path' => $path,
             'original_name' => $file->getClientOriginalName(),
-            'mime' => $file->getMimeType(),
-            'size' => $file->getSize(),
+            'mime' => Storage::mimeType($path) ?: $file->getMimeType(),
+            'size' => Storage::size($path),
             'caption' => $data['caption'] ?? null,
         ]);
 

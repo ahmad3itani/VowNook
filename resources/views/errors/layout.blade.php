@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') — WedFlow Atelier</title>
+    <title>@yield('title') — VowNook</title>
     <style>
         :root { color-scheme: light dark; }
         * { box-sizing: border-box; }
@@ -50,6 +50,6 @@
     <h1>@yield('title')</h1>
     <p>@yield('message')</p>
     <a class="button" href="{{ url('/') }}">Back to home</a>
-    <footer>WedFlow Atelier</footer>
+    <footer>VowNook</footer>
 </body>
 </html>

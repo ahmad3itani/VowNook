@@ -42,9 +42,14 @@ class VendorController extends Controller
                 'cost' => $v->cost_cents !== null ? $v->cost_cents / 100 : null,
                 'paid' => $v->paid_cents / 100,
                 'notes' => $v->notes,
+                'follow_up_at' => $v->follow_up_at?->toDateString(),
+                'contract_status' => $v->contract_status,
+                'coi_status' => $v->coi_status,
+                'vendor_user_id' => $v->vendor_user_id,
             ]),
             'stats' => $this->stats($vendors),
             'options' => $this->options(),
+            'quote_badge' => \App\Models\Inquiry::offersAwaiting($this->current->id()),
         ]);
     }
 
@@ -208,6 +213,9 @@ class VendorController extends Controller
                 : null,
             'paid_cents' => (int) round(((float) $data['paid_amount']) * 100),
             'notes' => $data['notes'] ?? null,
+            'follow_up_at' => isset($data['follow_up_at']) && $data['follow_up_at'] !== '' ? $data['follow_up_at'] : null,
+            'contract_status' => isset($data['contract_status']) && $data['contract_status'] !== '' ? $data['contract_status'] : null,
+            'coi_status' => isset($data['coi_status']) && $data['coi_status'] !== '' ? $data['coi_status'] : null,
         ];
     }
 

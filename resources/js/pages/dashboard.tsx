@@ -1,17 +1,31 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { formatMoney } from '@/lib/format';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
+    AlertTriangle,
     Armchair,
     Briefcase,
     CalendarClock,
     CalendarHeart,
     CheckCircle2,
+    Circle,
+    Clock,
     ListChecks,
+    MessageSquare,
+    UtensilsCrossed,
     Users,
     Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { dashboard } from '@/routes';
+
+type OverdueTask = { id: number; title: string; priority: string; days_overdue: number };
+type UpcomingTask = { id: number; title: string; priority: string; due_date: string };
+type UnbookedVendor = { id: number; name: string; category: string; status: string };
 
 type DashboardProps = {
     summary: {
@@ -23,13 +37,19 @@ type DashboardProps = {
     budget?: { estimated: number; actual: number; paid: number };
     tasks?: { total: number; completed: number; outstanding: number; overdue: number };
     counts?: { vendors: number; events: number; tables: number; seated: number };
+    attention?: {
+        overdue_tasks: OverdueTask[];
+        upcoming_tasks: UpcomingTask[];
+        unbooked_vendors: UnbookedVendor[];
+        no_meal_count: number;
+        unseated_count: number;
+    };
+    quotes?: {
+        open: number;
+        offers_awaiting: number;
+        items: { id: number; vendor_name: string | null }[];
+    };
 };
-
-const currency = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    maximumFractionDigits: 0,
-});
 
 function StatCard({
     title,
@@ -44,12 +64,14 @@ function StatCard({
 }) {
     return (
         <Link href={href} className="group">
-            <Card className="h-full transition-colors group-hover:border-[#775a19]/50">
+            <Card className="lift h-full transition-all group-hover:border-[#775a19]/50 group-hover:shadow-atelier">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-xs font-medium tracking-[0.15em] text-muted-foreground uppercase">
                         {title}
                     </CardTitle>
-                    <Icon className="size-4 text-[#775a19]" />
+                    <span className="flex size-7 items-center justify-center rounded-full bg-[#775a19]/10 text-[#775a19] transition-colors group-hover:bg-[#775a19]/15">
+                        <Icon className="size-3.5" />
+                    </span>
                 </CardHeader>
                 <CardContent>{children}</CardContent>
             </Card>
@@ -57,34 +79,99 @@ function StatCard({
     );
 }
 
-function Bar({ value, total }: { value: number; total: number }) {
+function Bar({ value, total, danger }: { value: number; total: number; danger?: boolean }) {
     const pct = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
-
     return (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-[#775a19]" style={{ width: `${pct}%` }} />
+            <div
+                className={`h-full rounded-full ${danger ? 'bg-destructive' : 'bg-gradient-to-r from-[#8a651c] to-[#c5a059]'}`}
+                style={{ width: `${pct}%` }}
+            />
         </div>
     );
 }
 
-function QuickStat({ label, value }: { label: string; value: string }) {
+function QuickStat({ label, value, sub }: { label: string; value: string; sub?: string }) {
     return (
-        <div className="flex flex-col items-center border border-border bg-card p-8 text-center">
-            <span className="mb-2 text-xs tracking-[0.2em] text-muted-foreground uppercase">{label}</span>
-            <p className="font-serif text-4xl text-foreground">{value}</p>
+        <div className="flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-card to-secondary/40 p-8 text-center shadow-atelier">
+            <span className="mb-3 text-[11px] tracking-[0.25em] text-muted-foreground uppercase">{label}</span>
+            <p className="font-serif text-5xl leading-none font-light text-foreground">{value}</p>
+            <span className="mt-4 h-px w-10 bg-gradient-to-r from-transparent via-[#8a651c] to-transparent" />
+            {sub && <p className="mt-3 text-xs text-muted-foreground">{sub}</p>}
         </div>
     );
 }
 
-export default function Dashboard({ summary, guests, budget, tasks, counts }: DashboardProps) {
-    if (!summary || !guests || !budget || !tasks || !counts) {
+const PRIORITY_DOT: Record<string, string> = {
+    high: 'bg-destructive',
+    medium: 'bg-amber-500',
+    low: 'bg-muted-foreground',
+};
+
+const STATUS_BADGE: Record<string, string> = {
+    Researching: 'bg-muted text-muted-foreground',
+    Contacted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    Quoted: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+};
+
+function CreateWeddingForm() {
+    const { data, setData, post, processing, errors } = useForm({
+        name: '',
+        event_date: '',
+    });
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        post('/weddings');
+    }
+
+    return (
+        <form onSubmit={submit} className="mt-4 w-full max-w-sm space-y-4 text-left">
+            <div className="grid gap-2">
+                <Label htmlFor="new-wedding-name">Wedding name</Label>
+                <Input
+                    id="new-wedding-name"
+                    value={data.name}
+                    onChange={(e) => setData('name', e.target.value)}
+                    placeholder="Olivia & Noah"
+                    required
+                />
+                <InputError message={errors.name} />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="new-wedding-date">Event date (optional)</Label>
+                <Input
+                    id="new-wedding-date"
+                    type="date"
+                    value={data.event_date}
+                    onChange={(e) => setData('event_date', e.target.value)}
+                />
+                <InputError message={errors.event_date} />
+            </div>
+            <Button type="submit" disabled={processing} className="w-full">
+                {processing ? 'Creating…' : 'Create my wedding'}
+            </Button>
+        </form>
+    );
+}
+
+function formatDate(dateStr: string) {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-CA', {
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+export default function Dashboard({ summary, guests, budget, tasks, counts, attention, quotes }: DashboardProps) {
+    if (!summary || !guests || !budget || !tasks || !counts || !attention) {
         return (
             <>
                 <Head title="Dashboard" />
                 <div className="flex flex-1 flex-col items-center justify-center gap-2 p-12 text-center">
                     <CalendarHeart className="size-10 text-[#775a19]" />
                     <h1 className="font-serif text-2xl">No wedding yet</h1>
-                    <p className="text-muted-foreground">Create or join a wedding to see your overview.</p>
+                    <p className="text-muted-foreground">Create your wedding to start planning.</p>
+                    <CreateWeddingForm />
                 </div>
             </>
         );
@@ -94,26 +181,36 @@ export default function Dashboard({ summary, guests, budget, tasks, counts }: Da
     const days = summary.days_until;
     const rsvpPct = guests.total > 0 ? Math.round((replied / guests.total) * 100) : 0;
 
+    const offersAwaiting = quotes?.offers_awaiting ?? 0;
+
+    const hasAttention =
+        attention.overdue_tasks.length > 0 ||
+        attention.unbooked_vendors.length > 0 ||
+        attention.no_meal_count > 0 ||
+        attention.unseated_count > 0 ||
+        offersAwaiting > 0;
+
     return (
         <>
             <Head title="Dashboard" />
             <div className="flex flex-col gap-6 p-4">
+
+                {/* Header */}
                 <div>
-                    <p className="text-xs tracking-[0.2em] text-[#775a19] uppercase">Welcome back</p>
-                    <h1 className="mt-1 font-serif text-3xl tracking-tight">{summary.name}</h1>
-                    <div className="mt-3 h-px w-12 bg-[#775a19]/50" />
+                    <p className="text-[11px] tracking-[0.25em] text-[#8a651c] uppercase">Welcome back</p>
+                    <h1 className="mt-1.5 font-serif text-4xl leading-tight font-light tracking-tight">{summary.name}</h1>
+                    <div className="mt-3 rule-gold" />
                 </div>
 
                 {/* Quick stats */}
                 <div className="grid gap-4 sm:grid-cols-3">
                     <QuickStat
                         label="Days to go"
-                        value={
-                            days === null ? '—' : days > 0 ? String(days) : days === 0 ? 'Today' : `${Math.abs(days)}d ago`
-                        }
+                        value={days === null ? '—' : days > 0 ? String(days) : days === 0 ? 'Today' : `${Math.abs(days)}d ago`}
+                        sub={summary.event_date ? new Date(summary.event_date + 'T00:00:00').toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined}
                     />
-                    <QuickStat label="RSVPs received" value={`${rsvpPct}%`} />
-                    <QuickStat label="Budget paid" value={currency.format(budget.paid)} />
+                    <QuickStat label="RSVPs received" value={`${rsvpPct}%`} sub={`${replied} of ${guests.total} guests replied`} />
+                    <QuickStat label="Budget paid" value={formatMoney(budget.paid * 100)} sub={`of ${formatMoney(budget.estimated * 100)} estimated`} />
                 </div>
 
                 {/* Module cards */}
@@ -129,9 +226,9 @@ export default function Dashboard({ summary, guests, budget, tasks, counts }: Da
                     </StatCard>
 
                     <StatCard title="Budget" icon={Wallet} href="/budget">
-                        <div className="font-serif text-3xl">{currency.format(budget.estimated)}</div>
+                        <div className="font-serif text-3xl">{formatMoney(budget.estimated * 100)}</div>
                         <p className="text-xs text-muted-foreground">
-                            {currency.format(budget.paid)} paid of {currency.format(budget.actual)} actual
+                            {formatMoney(budget.paid * 100)} paid of {formatMoney(budget.actual * 100)} actual
                         </p>
                         <div className="mt-3">
                             <Bar value={budget.paid} total={budget.actual} />
@@ -143,11 +240,11 @@ export default function Dashboard({ summary, guests, budget, tasks, counts }: Da
                             {tasks.completed}
                             <span className="text-base text-muted-foreground">/{tasks.total}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            {tasks.outstanding} outstanding{tasks.overdue > 0 ? ` · ${tasks.overdue} overdue` : ''}
+                        <p className={`text-xs ${tasks.overdue > 0 ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+                            {tasks.overdue > 0 ? `${tasks.overdue} overdue` : `${tasks.outstanding} outstanding`}
                         </p>
                         <div className="mt-3">
-                            <Bar value={tasks.completed} total={tasks.total} />
+                            <Bar value={tasks.completed} total={tasks.total} danger={tasks.overdue > 0} />
                         </div>
                     </StatCard>
 
@@ -157,81 +254,229 @@ export default function Dashboard({ summary, guests, budget, tasks, counts }: Da
                             seated across {counts.tables} {counts.tables === 1 ? 'table' : 'tables'}
                         </p>
                         <div className="mt-3">
-                            <Bar value={counts.seated} total={guests.total} />
+                            <Bar value={counts.seated} total={guests.attending || guests.total} />
                         </div>
                     </StatCard>
                 </div>
 
+                {/* Needs Attention + Upcoming */}
                 <div className="grid gap-4 lg:grid-cols-3">
+
+                    {/* Needs Attention */}
                     <Card className="lg:col-span-2">
                         <CardHeader>
-                            <CardTitle className="font-serif text-xl font-medium">RSVP breakdown</CardTitle>
-                            <CardDescription>
-                                {replied} of {guests.total} guests have replied
-                            </CardDescription>
+                            <CardTitle className="font-serif text-xl font-medium">Needs attention</CardTitle>
+                            <CardDescription>Action items across your wedding plan</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                            {[
-                                { label: 'Attending', value: guests.attending },
-                                { label: 'Maybe', value: guests.maybe },
-                                { label: 'Declined', value: guests.declined },
-                                { label: 'Pending', value: guests.pending },
-                            ].map((s) => (
-                                <div key={s.label} className="border border-border p-4">
-                                    <div className="font-serif text-3xl">{s.value}</div>
-                                    <div className="mt-1 text-xs tracking-[0.15em] text-muted-foreground uppercase">
-                                        {s.label}
+                        <CardContent className="flex flex-col gap-5">
+                            {!hasAttention && (
+                                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-5">
+                                    <CheckCircle2 className="size-5 shrink-0 text-[#775a19]" />
+                                    <p className="text-sm text-muted-foreground">You're all caught up — nothing needs attention right now.</p>
+                                </div>
+                            )}
+
+                            {/* Overdue tasks */}
+                            {attention.overdue_tasks.length > 0 && (
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <AlertTriangle className="size-3.5 text-destructive" />
+                                        <span className="text-xs font-semibold tracking-[0.15em] text-destructive uppercase">
+                                            {attention.overdue_tasks.length} overdue {attention.overdue_tasks.length === 1 ? 'task' : 'tasks'}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
+                                        {attention.overdue_tasks.map((t) => (
+                                            <Link
+                                                key={t.id}
+                                                href="/checklist"
+                                                className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/40"
+                                            >
+                                                <div className="flex items-center gap-2.5">
+                                                    <span className={`size-2 shrink-0 rounded-full ${PRIORITY_DOT[t.priority] ?? 'bg-muted-foreground'}`} />
+                                                    <span className="text-sm">{t.title}</span>
+                                                </div>
+                                                <span className="shrink-0 text-xs text-destructive">
+                                                    {t.days_overdue}d overdue
+                                                </span>
+                                            </Link>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
+                            )}
+
+                            {/* Unbooked vendors */}
+                            {attention.unbooked_vendors.length > 0 && (
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <Briefcase className="size-3.5 text-amber-600" />
+                                        <span className="text-xs font-semibold tracking-[0.15em] text-amber-600 uppercase">
+                                            {attention.unbooked_vendors.length} {attention.unbooked_vendors.length === 1 ? 'vendor' : 'vendors'} not booked
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
+                                        {attention.unbooked_vendors.map((v) => (
+                                            <Link
+                                                key={v.id}
+                                                href="/vendors"
+                                                className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/40"
+                                            >
+                                                <div className="flex items-center gap-2.5">
+                                                    <Circle className="size-2 shrink-0 text-muted-foreground" />
+                                                    <span className="text-sm">{v.name}</span>
+                                                    <span className="text-xs text-muted-foreground">· {v.category}</span>
+                                                </div>
+                                                <span className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${STATUS_BADGE[v.status] ?? 'bg-muted text-muted-foreground'}`}>
+                                                    {v.status}
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Marketplace offers awaiting a decision */}
+                            {offersAwaiting > 0 && quotes && (
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <MessageSquare className="size-3.5 text-[#775a19]" />
+                                        <span className="text-xs font-semibold tracking-[0.15em] text-[#775a19] uppercase">
+                                            {offersAwaiting} {offersAwaiting === 1 ? 'offer' : 'offers'} awaiting your response
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
+                                        {quotes.items.map((q) => (
+                                            <Link
+                                                key={q.id}
+                                                href={`/vendors/quotes/${q.id}`}
+                                                className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/40"
+                                            >
+                                                <div className="flex items-center gap-2.5">
+                                                    <Circle className="size-2 shrink-0 text-[#775a19]" />
+                                                    <span className="text-sm">{q.vendor_name ?? 'Vendor'}</span>
+                                                </div>
+                                                <span className="shrink-0 rounded bg-[#775a19]/10 px-2 py-0.5 text-[11px] font-medium text-[#775a19]">
+                                                    Review offer
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Guest gaps */}
+                            {(attention.no_meal_count > 0 || attention.unseated_count > 0) && (
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <Users className="size-3.5 text-[#775a19]" />
+                                        <span className="text-xs font-semibold tracking-[0.15em] text-[#775a19] uppercase">
+                                            Guest gaps
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
+                                        {attention.no_meal_count > 0 && (
+                                            <Link href="/guests" className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/40">
+                                                <div className="flex items-center gap-2.5">
+                                                    <UtensilsCrossed className="size-3.5 shrink-0 text-muted-foreground" />
+                                                    <span className="text-sm">
+                                                        {attention.no_meal_count} attending {attention.no_meal_count === 1 ? 'guest has' : 'guests have'} no meal choice
+                                                    </span>
+                                                </div>
+                                                <span className="shrink-0 text-xs text-muted-foreground">→ Guests</span>
+                                            </Link>
+                                        )}
+                                        {attention.unseated_count > 0 && (
+                                            <Link href="/seating" className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/40">
+                                                <div className="flex items-center gap-2.5">
+                                                    <Armchair className="size-3.5 shrink-0 text-muted-foreground" />
+                                                    <span className="text-sm">
+                                                        {attention.unseated_count} attending {attention.unseated_count === 1 ? 'guest is' : 'guests are'} unseated
+                                                    </span>
+                                                </div>
+                                                <span className="shrink-0 text-xs text-muted-foreground">→ Seating</span>
+                                            </Link>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
+                    {/* Upcoming tasks */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-serif text-xl font-medium">Planning</CardTitle>
-                            <CardDescription>Everything coming together</CardDescription>
+                            <CardTitle className="font-serif text-xl font-medium">Coming up</CardTitle>
+                            <CardDescription>Tasks due in the next 14 days</CardDescription>
                         </CardHeader>
-                        <CardContent className="flex flex-col gap-4 text-sm">
-                            {[
-                                { href: '/vendors', icon: Briefcase, label: 'Vendors', value: String(counts.vendors) },
-                                {
-                                    href: '/timeline',
-                                    icon: CalendarClock,
-                                    label: 'Timeline events',
-                                    value: String(counts.events),
-                                },
-                                {
-                                    href: '/checklist',
-                                    icon: CheckCircle2,
-                                    label: 'Tasks done',
-                                    value: `${tasks.completed}/${tasks.total}`,
-                                },
-                            ].map((row) => (
-                                <Link
-                                    key={row.href}
-                                    href={row.href}
-                                    className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0 hover:text-[#775a19]"
-                                >
-                                    <span className="flex items-center gap-2 text-muted-foreground">
-                                        <row.icon className="size-4 text-[#775a19]" /> {row.label}
-                                    </span>
-                                    <span className="font-serif text-lg">{row.value}</span>
-                                </Link>
-                            ))}
+                        <CardContent>
+                            {attention.upcoming_tasks.length === 0 ? (
+                                <div className="flex flex-col items-center gap-2 py-6 text-center">
+                                    <CalendarClock className="size-7 text-muted-foreground opacity-40" />
+                                    <p className="text-sm text-muted-foreground">Nothing due in the next two weeks.</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-1">
+                                    {attention.upcoming_tasks.map((t, i) => {
+                                        const showDate =
+                                            i === 0 || t.due_date !== attention.upcoming_tasks[i - 1].due_date;
+                                        return (
+                                            <div key={t.id}>
+                                                {showDate && (
+                                                    <div className="mb-1 mt-3 flex items-center gap-2 first:mt-0">
+                                                        <Clock className="size-3 text-[#775a19]" />
+                                                        <span className="text-[10px] font-semibold tracking-[0.15em] text-[#775a19] uppercase">
+                                                            {formatDate(t.due_date)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <Link
+                                                    href="/checklist"
+                                                    className="flex items-center gap-2.5 rounded px-2 py-1.5 hover:bg-muted/50"
+                                                >
+                                                    <span className={`size-2 shrink-0 rounded-full ${PRIORITY_DOT[t.priority] ?? 'bg-muted-foreground'}`} />
+                                                    <span className="text-sm leading-snug">{t.title}</span>
+                                                </Link>
+                                            </div>
+                                        );
+                                    })}
+                                    <Link
+                                        href="/checklist"
+                                        className="mt-3 block border-t border-border pt-3 text-center text-xs text-[#775a19] hover:underline"
+                                    >
+                                        View all tasks →
+                                    </Link>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* RSVP breakdown */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-serif text-xl font-medium">RSVP breakdown</CardTitle>
+                        <CardDescription>{replied} of {guests.total} guests have replied</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        {[
+                            { label: 'Attending', value: guests.attending, color: 'text-[#775a19]' },
+                            { label: 'Maybe', value: guests.maybe, color: 'text-amber-600' },
+                            { label: 'Declined', value: guests.declined, color: 'text-muted-foreground' },
+                            { label: 'Pending', value: guests.pending, color: 'text-muted-foreground' },
+                        ].map((s) => (
+                            <Link key={s.label} href="/guests" className="group border border-border p-4 hover:border-[#775a19]/40">
+                                <div className={`font-serif text-3xl ${s.color}`}>{s.value}</div>
+                                <div className="mt-1 text-xs tracking-[0.15em] text-muted-foreground uppercase">{s.label}</div>
+                            </Link>
+                        ))}
+                    </CardContent>
+                </Card>
+
             </div>
         </>
     );
 }
 
 Dashboard.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-        },
-    ],
+    breadcrumbs: [{ title: 'Dashboard', href: dashboard() }],
 };

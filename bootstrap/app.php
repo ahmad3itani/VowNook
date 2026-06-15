@@ -4,6 +4,8 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SetCurrentVendorProfile;
 use App\Http\Middleware\SetCurrentWedding;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -21,10 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Stripe signs webhooks itself; CSRF doesn't apply to server-to-server POSTs.
+        $middleware->validateCsrfTokens(except: ['stripe/webhook']);
+
         $middleware->web(append: [
             HandleAppearance::class,
+            SecurityHeaders::class,
             SetLocale::class,
             SetCurrentWedding::class,
+            SetCurrentVendorProfile::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

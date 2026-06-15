@@ -21,6 +21,7 @@ class PublicWebsiteTest extends TestCase
                 ->component('public/website')
                 ->where('wedding.slug', $wedding->slug)
                 ->where('published', false)
+                // No website row yet → content is still null
                 ->where('content', null)
             );
     }
@@ -42,7 +43,7 @@ class PublicWebsiteTest extends TestCase
             );
     }
 
-    public function test_unpublished_content_is_hidden(): void
+    public function test_unpublished_page_has_published_false(): void
     {
         $wedding = Wedding::factory()->create();
         WeddingWebsite::factory()->create([
@@ -51,11 +52,13 @@ class PublicWebsiteTest extends TestCase
             'venue_name' => 'Secret Venue',
         ]);
 
+        // content is now always passed (template + photos are needed even before
+        // publish). The view gates text sections behind the `published` flag.
         $this->get("/w/{$wedding->slug}")
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('published', false)
-                ->where('content', null)
+                ->where('content.template', 'classic')
             );
     }
 }

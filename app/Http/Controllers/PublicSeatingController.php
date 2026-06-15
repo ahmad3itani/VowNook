@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Guest;
 use App\Models\Wedding;
+use App\Support\Seo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -65,7 +66,12 @@ class PublicSeatingController extends Controller
             'matches' => $matches->values(),
             'searched' => $searched,
             'query' => $term,
-        ]);
+        ])->withViewData(['seo' => Seo::make(
+            title: "Find your seat — {$wedding->name}",
+            description: 'Look up your table for the celebration.',
+            canonical: route('public.seats', $wedding->slug),
+            index: false, // private guest utility page
+        )]);
     }
 
     protected function weddingPayload(Wedding $wedding): array

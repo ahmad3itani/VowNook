@@ -12,7 +12,9 @@
         'DM Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
-    --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+    /* Fraunces is the brand display face (matches the marketing site); Playfair
+       is kept as a graceful fallback. */
+    --font-serif: 'Fraunces', 'Playfair Display', ui-serif, Georgia, serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -142,5 +144,46 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    /* Editorial serif headings get optical sizing + tighter tracking. */
+    .font-serif,
+    [class*='font-serif'] {
+        font-optical-sizing: auto;
+        letter-spacing: -0.01em;
+    }
+}
+
+@layer utilities {
+    /* Warm, espresso-tinted elevation — replaces flat neutral-gray shadows for a
+       more premium, atelier feel. */
+    .shadow-atelier {
+        box-shadow:
+            0 1px 2px rgba(30, 27, 24, 0.04),
+            0 10px 28px -14px rgba(30, 27, 24, 0.16);
+    }
+
+    .shadow-atelier-lg {
+        box-shadow:
+            0 2px 6px rgba(30, 27, 24, 0.05),
+            0 28px 56px -24px rgba(30, 27, 24, 0.26);
+    }
+
+    /* Subtle lift on interactive cards. */
+    .lift {
+        transition:
+            transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .lift:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Hairline gold rule used as an editorial accent under headings. */
+    .rule-gold {
+        height: 2px;
+        width: 2.5rem;
+        background: linear-gradient(90deg, var(--ring), transparent);
     }
 }

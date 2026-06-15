@@ -34,6 +34,9 @@ class VendorRequest extends FormRequest
             'cost_amount' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'paid_amount' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'follow_up_at' => ['nullable', 'date'],
+            'contract_status' => ['nullable', 'in:pending,received,signed'],
+            'coi_status' => ['nullable', 'in:pending,received,on_file'],
         ];
     }
 

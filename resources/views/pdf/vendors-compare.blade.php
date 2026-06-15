@@ -56,6 +56,6 @@
         </tbody>
     </table>
 
-    <div class="footer">Prepared with WedFlow Atelier</div>
+    <div class="footer">Prepared with VowNook</div>
 </body>
 </html>

@@ -50,6 +50,10 @@ class ExportController extends Controller
 
     public function guestsPdf(): Response
     {
+        // DomPDF can exceed the default limits on very large guest lists.
+        @set_time_limit(120);
+        @ini_set('memory_limit', '512M');
+
         $weddingId = $this->current->id();
         $wedding = $this->current->get();
 
@@ -76,6 +80,9 @@ class ExportController extends Controller
 
     public function timelinePdf(): Response
     {
+        @set_time_limit(120);
+        @ini_set('memory_limit', '512M');
+
         $weddingId = $this->current->id();
         $wedding = $this->current->get();
 
@@ -134,7 +141,7 @@ class ExportController extends Controller
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//WedFlow Atelier//Timeline//EN',
+            'PRODID:-//VowNook//Timeline//EN',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'X-WR-CALNAME:'.$this->escapeIcs($weddingName.' — Timeline'),
@@ -150,7 +157,7 @@ class ExportController extends Controller
             ])->filter()->implode("\n");
 
             $lines[] = 'BEGIN:VEVENT';
-            $lines[] = 'UID:timeline-'.$event->id.'@wedflow';
+            $lines[] = 'UID:timeline-'.$event->id.'@vownook';
             $lines[] = 'DTSTAMP:'.now()->utc()->format('Ymd\THis\Z');
             $lines[] = 'DTSTART:'.$start->format('Ymd\THis\Z');
             $lines[] = 'DTEND:'.$end->format('Ymd\THis\Z');

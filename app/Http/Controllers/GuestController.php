@@ -8,6 +8,7 @@ use App\Enums\RsvpStatus;
 use App\Http\Requests\GuestRequest;
 use App\Models\Guest;
 use App\Support\CurrentWedding;
+use App\Support\MealOptions;
 use App\Support\PlanLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -44,6 +45,8 @@ class GuestController extends Controller
                 'is_plus_one' => $g->is_plus_one,
                 'rsvp_status' => $g->rsvp_status->value,
                 'meal_choice' => $g->meal_choice,
+                'appetizer_choice' => $g->appetizer_choice,
+                'dessert_choice' => $g->dessert_choice,
                 'dietary_notes' => $g->dietary_notes,
                 'notes' => $g->notes,
                 'group_id' => $g->group_id,
@@ -54,6 +57,7 @@ class GuestController extends Controller
                 ->get(['id', 'name', 'notes']) ?? [],
             'stats' => $this->stats($guests),
             'options' => $this->options(),
+            'meals' => MealOptions::forWedding($this->current->get()),
             'plan' => [
                 'used' => $guests->count(),
                 'limit' => $this->limits->limit($this->current->get(), 'max_guests_per_wedding'),

@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { formatMoney } from '@/lib/format';
 import { ArrowLeft, FileDown, Globe, Mail, Phone, Star } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -34,12 +35,6 @@ type PageProps = {
     bestValueId: number | null;
     statuses: Option[];
 };
-
-const currency = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    maximumFractionDigits: 0,
-});
 
 function Stars({ rating }: { rating: number | null }) {
     if (!rating) {
@@ -173,7 +168,7 @@ export default function VendorCompare({ categories, active, vendors, bestValueId
                                                 Estimated cost
                                             </dt>
                                             <dd className="font-serif text-xl">
-                                                {v.cost !== null ? currency.format(v.cost) : '—'}
+                                                {v.cost !== null ? formatMoney(v.cost * 100) : '—'}
                                             </dd>
                                         </div>
                                         {(v.contact_name || v.email || v.phone || v.website) && (

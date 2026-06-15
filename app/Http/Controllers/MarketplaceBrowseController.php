@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\InquiryStatus;
+use App\Enums\VendorCategory;
+use App\Models\Inquiry;
+use App\Support\CurrentWedding;
+use App\Support\MarketplaceCatalog;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+/**
+ * In-portal marketplace browse for couples — same catalog as the public
+ * `/marketplace`, but rendered inside the couple layout (sidebar + Vendors hub
+ * tabs) so discovery never leaves the planning app.
+ */
+class MarketplaceBrowseController extends Controller
+{
+    public function __construct(
+        protected MarketplaceCatalog $catalog,
+        protected CurrentWedding $wedding,
+    ) {}
+
+    public function index(Request $request): Response
+    {
+        $filters = [
+            'category'  => $request->query('category', ''),
+            'city'      => $request->query('city', ''),
+            'region'    => $request->query('region', ''),
+            'min_price' => $request->query('min_price', ''),
+            'max_price' => $request->query('max_price', ''),
+        ];
+
+        $profiles = $this->catalog->browse($filters);
+
+        return Inertia::render('vendors/marketplace', [
+            'profiles'   => $profiles->map(fn ($p) => $this->catalog->cardData($p)),
+            'categories' => collect(VendorCategory::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
+            ]),
+            'filters'     => $filters,
+            'total'       => $profiles->count(),
+            'quote_badge' => Inquiry::offersAwaiting($this->wedding->id()),
+        ]);
+    }
+
+    public function show(string $slug): Response
+    {
+        $profile = $this->catalog->findPublished($slug);
+        $weddingId = $this->wedding->id();
+
+        $existingInquiry = $weddingId
+            ? Inquiry::where('wedding_id', $weddingId)
+                ->where('vendor_profile_id', $profile->id)
+                ->whereIn('status', [InquiryStatus::Requested->value, InquiryStatus::Offered->value])
+                ->first()
+            : null;
+
+        return Inertia::render('vendors/marketplace-show', [
+            'profile'           => $this->catalog->profileData($profile),
+            'auth_context'      => [
+                'is_couple'        => true,
+                'has_wedding'      => (bool) $weddingId,
+                'existing_inquiry' => $existingInquiry?->id,
+            ],
+            'services_for_select' => $this->catalog->serviceOptions($profile),
+            'quote_badge'         => Inquiry::offersAwaiting($weddingId),
+        ]);
+    }
+}

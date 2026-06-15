@@ -28,29 +28,34 @@
 <body>
     {{-- PAGE 1 — visual floor plan --}}
     <h1>{{ $wedding->name }}</h1>
-    <div class="subtitle">Floor Plan · {{ $plan['room_width'] }} × {{ $plan['room_height'] }} ft</div>
+    <div class="subtitle">Floor Plan</div>
 
-    <div class="canvas" style="width: {{ $plan['width'] }}px; height: {{ $plan['height'] }}px;">
-        @foreach ($plan['elements'] as $el)
-            <div class="el" style="left: {{ $el['cx'] - $el['w'] / 2 }}px; top: {{ $el['cy'] - $el['h'] / 2 }}px; width: {{ $el['w'] }}px; height: {{ $el['h'] }}px; line-height: {{ $el['h'] }}px;">
-                {{ $el['label'] }}
-            </div>
-        @endforeach
-
-        @foreach ($plan['tables'] as $t)
-            @foreach ($t['chairs'] as $c)
-                <div class="chair {{ $c['occupied'] ? 'chair-on' : 'chair-off' }}"
-                     style="left: {{ $c['x'] - $t['chair'] / 2 }}px; top: {{ $c['y'] - $t['chair'] / 2 }}px; width: {{ $t['chair'] }}px; height: {{ $t['chair'] }}px; line-height: {{ $t['chair'] }}px; font-size: {{ max(5, round($t['chair'] * 0.4)) }}px;">
-                    {{ $c['label'] }}
+    @if (!empty($screenshotImagePath))
+        <img src="{{ $screenshotImagePath }}" style="display:block; max-width:100%; max-height:530px;" />
+    @else
+        <div class="subtitle">{{ $plan['room_width'] }} × {{ $plan['room_height'] }} ft</div>
+        <div class="canvas" style="width: {{ $plan['width'] }}px; height: {{ $plan['height'] }}px;">
+            @foreach ($plan['elements'] as $el)
+                <div class="el" style="left: {{ $el['cx'] - $el['w'] / 2 }}px; top: {{ $el['cy'] - $el['h'] / 2 }}px; width: {{ $el['w'] }}px; height: {{ $el['h'] }}px; line-height: {{ $el['h'] }}px;">
+                    {{ $el['label'] }}
                 </div>
             @endforeach
-            <div class="table"
-                 style="left: {{ $t['cx'] - $t['w'] / 2 }}px; top: {{ $t['cy'] - $t['h'] / 2 }}px; width: {{ $t['w'] }}px; height: {{ $t['h'] }}px; border-radius: {{ $t['round'] ? '50%' : '4px' }};"></div>
-            <div class="table-label" style="left: {{ $t['cx'] - 36 }}px; top: {{ $t['cy'] - 4 }}px; width: 72px;">
-                <span>{{ $t['name'] }}</span>
-            </div>
-        @endforeach
-    </div>
+
+            @foreach ($plan['tables'] as $t)
+                @foreach ($t['chairs'] as $c)
+                    <div class="chair {{ $c['occupied'] ? 'chair-on' : 'chair-off' }}"
+                         style="left: {{ $c['x'] - $t['chair'] / 2 }}px; top: {{ $c['y'] - $t['chair'] / 2 }}px; width: {{ $t['chair'] }}px; height: {{ $t['chair'] }}px; line-height: {{ $t['chair'] }}px; font-size: {{ max(5, round($t['chair'] * 0.4)) }}px;">
+                        {{ $c['label'] }}
+                    </div>
+                @endforeach
+                <div class="table"
+                     style="left: {{ $t['cx'] - $t['w'] / 2 }}px; top: {{ $t['cy'] - $t['h'] / 2 }}px; width: {{ $t['w'] }}px; height: {{ $t['h'] }}px; border-radius: {{ $t['round'] ? '50%' : '4px' }};"></div>
+                <div class="table-label" style="left: {{ $t['cx'] - 36 }}px; top: {{ $t['cy'] - 4 }}px; width: 72px;">
+                    <span>{{ $t['name'] }}</span>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     {{-- PAGE 2 — seating chart with meals & allergies --}}
     <div style="page-break-before: always;">
@@ -96,7 +101,7 @@
             <p>{{ $unseated->implode(' · ') }}</p>
         @endif
 
-        <div class="footer">Prepared with WedFlow Atelier</div>
+        <div class="footer">Prepared with VowNook</div>
     </div>
 </body>
 </html>

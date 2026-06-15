@@ -37,31 +37,36 @@ class CollaboratorWorkspaceTest extends TestCase
             );
     }
 
-    public function test_owner_can_add_an_existing_user_as_collaborator(): void
+    public function test_owner_can_invite_a_collaborator_by_email(): void
     {
         [$owner, $wedding] = $this->ownerWithWedding();
-        $invitee = User::factory()->create(['email' => 'helper@example.com']);
 
         $this->actingAs($owner)->post('/collaborators', [
             'email' => 'helper@example.com',
             'role' => 'collaborator',
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('wedding_user', [
+        // An invitation is created (membership happens on accept), not an immediate member.
+        $this->assertDatabaseHas('wedding_invitations', [
             'wedding_id' => $wedding->id,
-            'user_id' => $invitee->id,
+            'email' => 'helper@example.com',
             'role' => 'collaborator',
         ]);
     }
 
-    public function test_adding_an_unknown_email_is_rejected(): void
+    public function test_can_invite_an_email_without_an_account(): void
     {
-        [$owner] = $this->ownerWithWedding();
+        [$owner, $wedding] = $this->ownerWithWedding();
 
         $this->actingAs($owner)->post('/collaborators', [
             'email' => 'nobody@example.com',
             'role' => 'collaborator',
-        ])->assertSessionHasErrors('email');
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('wedding_invitations', [
+            'wedding_id' => $wedding->id,
+            'email' => 'nobody@example.com',
+        ]);
     }
 
     public function test_cannot_assign_the_owner_role(): void

@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\VendorCategory;
+use App\Models\BlogPost;
+use App\Models\VendorProfile;
+use App\Models\WeddingWebsite;
+use App\Support\MarketplaceCatalog;
+use App\Support\OntarioCities;
+use Illuminate\Http\Response;
+
+/**
+ * Plain XML sitemap for the public surface: home, the marketplace, the
+ * programmatic Ontario category + city pages (only those that pass the
+ * indexing quality gate), every published vendor profile, and published
+ * wedding websites.
+ */
+class SitemapController extends Controller
+{
+    /** Mirror PublicLocalController's indexing threshold. */
+    private const CITY_INDEX_THRESHOLD = 3;
+
+    public function __construct(protected MarketplaceCatalog $catalog) {}
+
+    public function __invoke(): Response
+    {
+        $today = now()->toAtomString();
+
+        $urls = [
+            ['loc' => url('/'), 'changefreq' => 'weekly', 'lastmod' => $today],
+            ['loc' => route('public.marketplace'), 'changefreq' => 'daily', 'lastmod' => $today],
+            ['loc' => url('/how-it-works'), 'changefreq' => 'monthly'],
+            ['loc' => route('blog.index'), 'changefreq' => 'weekly'],
+        ];
+
+        // Published blog articles (cover image attached for Google Images).
+        BlogPost::query()
+            ->published()
+            ->orderByDesc('published_at')
+            ->get(['slug', 'updated_at', 'cover_image_path'])
+            ->each(function (BlogPost $post) use (&$urls) {
+                $urls[] = [
+                    'loc' => route('blog.show', $post->slug),
+                    'lastmod' => $post->updated_at?->toAtomString(),
+                    'changefreq' => 'monthly',
+                    'images' => array_filter([$post->coverUrl()]),
+                ];
+            });
+
+        // Programmatic local-SEO pages: every category hub, plus city pages that
+        // clear the vendor-count quality gate (we never list noindex'd thin pages).
+        foreach (VendorCategory::seoCases() as $category) {
+            $urls[] = [
+                'loc' => route('local.category', $category->seoSlug()),
+                'changefreq' => 'weekly',
+            ];
+
+            foreach (OntarioCities::all() as $citySlug => $city) {
+                $count = $this->catalog->browse([
+                    'category' => $category->value,
+                    'city' => $city['name'],
+                ])->count();
+
+                if ($count >= self::CITY_INDEX_THRESHOLD) {
+                    $urls[] = [
+                        'loc' => route('local.city-category', [$category->seoSlug(), $citySlug]),
+                        'changefreq' => 'weekly',
+                    ];
+                }
+            }
+        }
+
+        VendorProfile::query()
+            ->published()
+            ->with('media:id,vendor_profile_id')
+            ->orderBy('slug')
+            ->get()
+            ->each(function (VendorProfile $profile) use (&$urls) {
+                $images = [];
+                if ($profile->cover_path) {
+                    $images[] = route('public.vendor.cover', $profile->slug);
+                }
+                foreach ($profile->media as $m) {
+                    $images[] = route('public.vendor.media', [$profile->slug, $m->id]);
+                }
+
+                $urls[] = [
+                    'loc' => route('public.vendor.show', $profile->slug),
+                    'lastmod' => $profile->updated_at?->toAtomString(),
+                    'changefreq' => 'weekly',
+                    'images' => $images,
+                ];
+            });
+
+        WeddingWebsite::query()
+            ->where('is_published', true)
+            ->with('wedding:id,slug')
+            ->get()
+            ->each(function (WeddingWebsite $website) use (&$urls) {
+                if ($website->wedding === null) {
+                    return;
+                }
+
+                $urls[] = [
+                    'loc' => route('public.website', $website->wedding->slug),
+                    'lastmod' => $website->updated_at?->toAtomString(),
+                    'changefreq' => 'monthly',
+                ];
+            });
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+            .'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'."\n";
+
+        foreach ($urls as $url) {
+            $xml .= "  <url>\n";
+            $xml .= '    <loc>'.e($url['loc'])."</loc>\n";
+
+            if (! empty($url['lastmod'])) {
+                $xml .= '    <lastmod>'.e($url['lastmod'])."</lastmod>\n";
+            }
+
+            $xml .= '    <changefreq>'.$url['changefreq']."</changefreq>\n";
+
+            foreach ($url['images'] ?? [] as $image) {
+                $xml .= "    <image:image><image:loc>".e($image)."</image:loc></image:image>\n";
+            }
+
+            $xml .= "  </url>\n";
+        }
+
+        $xml .= '</urlset>';
+
+        return response($xml)->header('Content-Type', 'application/xml');
+    }
+}

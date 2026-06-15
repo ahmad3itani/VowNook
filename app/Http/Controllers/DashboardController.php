@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InquiryStatus;
+use App\Enums\Role;
 use App\Enums\RsvpStatus;
+use App\Enums\VendorStatus;
 use App\Models\BudgetItem;
 use App\Models\Guest;
+use App\Models\Inquiry;
 use App\Models\SeatingTable;
 use App\Models\Task;
 use App\Models\TimelineEvent;
 use App\Models\Vendor;
 use App\Support\CurrentWedding;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,32 +23,114 @@ class DashboardController extends Controller
 {
     public function __construct(protected CurrentWedding $current) {}
 
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
+        $user = auth()->user();
+
+        // Platform admin → dedicated admin console, unless actively in a support
+        // session for a specific wedding (then fall through to that workspace).
+        if ($user->is_admin && ! session()->has('support_wedding_id')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Marketplace vendor account → vendor business dashboard.
+        if ($user->isVendor()) {
+            return redirect()->route('vendor.dashboard');
+        }
+
+        // Planner account → portfolio HQ across all client weddings.
+        // ?workspace=1 (from an HQ wedding card) opens the per-wedding
+        // overview below instead.
+        if ($user->isPlanner() && ! request()->boolean('workspace')) {
+            return redirect()->route('planner.dashboard');
+        }
+
         $wedding = $this->current->get();
+
+        // Vendor-role members see the vendor portal instead.
+        if ($wedding && $wedding->roleFor($user) === Role::Vendor) {
+            return redirect()->route('vendor-portal.index');
+        }
 
         if ($wedding === null) {
             return Inertia::render('dashboard', ['summary' => null]);
         }
 
         $weddingId = $wedding->id;
-
-        $guests = Guest::query()->forWedding($weddingId)->get(['rsvp_status', 'table_id']);
-        $budget = BudgetItem::query()->forWedding($weddingId)->get(['estimated_cents', 'actual_cents', 'paid_cents']);
-        $tasks = Task::query()->forWedding($weddingId)->get(['is_complete', 'due_date']);
-
         $today = Carbon::today();
         $eventDate = $wedding->event_date;
+
+        $guests = Guest::query()->forWedding($weddingId)->get(['rsvp_status', 'table_id', 'meal_choice']);
+        $budget = BudgetItem::query()->forWedding($weddingId)->get(['estimated_cents', 'actual_cents', 'paid_cents']);
+        $allTasks = Task::query()->forWedding($weddingId)->get(['id', 'title', 'priority', 'is_complete', 'due_date']);
+
+        $attending = $guests->where('rsvp_status', RsvpStatus::Attending);
+
+        // Overdue incomplete tasks, high priority first
+        $overdueTasks = $allTasks
+            ->where('is_complete', false)
+            ->filter(fn (Task $t) => $t->due_date !== null && $t->due_date->lt($today))
+            ->sortByDesc(fn (Task $t) => match ($t->priority->value) {
+                'high' => 3, 'medium' => 2, default => 1,
+            })
+            ->take(5)
+            ->map(fn (Task $t) => [
+                'id' => $t->id,
+                'title' => $t->title,
+                'priority' => $t->priority->value,
+                'days_overdue' => $today->diffInDays($t->due_date),
+            ])
+            ->values();
+
+        // Upcoming tasks due in the next 14 days
+        $upcomingTasks = $allTasks
+            ->where('is_complete', false)
+            ->filter(fn (Task $t) => $t->due_date !== null
+                && $t->due_date->gte($today)
+                && $t->due_date->lte($today->copy()->addDays(14)))
+            ->sortBy('due_date')
+            ->take(6)
+            ->map(fn (Task $t) => [
+                'id' => $t->id,
+                'title' => $t->title,
+                'priority' => $t->priority->value,
+                'due_date' => $t->due_date->toDateString(),
+            ])
+            ->values();
+
+        // Vendors not yet booked or declined
+        $unbookedVendors = Vendor::query()
+            ->forWedding($weddingId)
+            ->whereNotIn('status', [VendorStatus::Booked->value, VendorStatus::Declined->value])
+            ->orderBy('name')
+            ->get(['id', 'name', 'category', 'status'])
+            ->map(fn (Vendor $v) => [
+                'id' => $v->id,
+                'name' => $v->name,
+                'category' => $v->category->label(),
+                'status' => $v->status->label(),
+            ])
+            ->values();
+
+        // Marketplace quotes the couple has open (and offers needing a decision).
+        $openInquiries = Inquiry::query()
+            ->forWedding($weddingId)
+            ->whereIn('status', [InquiryStatus::Requested->value, InquiryStatus::Offered->value])
+            ->with('vendorProfile:id,business_name')
+            ->latest()
+            ->get();
+
+        $offersAwaiting = $openInquiries->where('status', InquiryStatus::Offered);
 
         return Inertia::render('dashboard', [
             'summary' => [
                 'name' => $wedding->name,
                 'event_date' => $eventDate?->toDateString(),
-                'days_until' => $eventDate ? $today->diffInDays($eventDate, false) : null,
+                'days_until' => $eventDate ? (int) $today->diffInDays($eventDate, false) : null,
             ],
             'guests' => [
                 'total' => $guests->count(),
-                'attending' => $guests->where('rsvp_status', RsvpStatus::Attending)->count(),
+                'attending' => $attending->count(),
                 'declined' => $guests->where('rsvp_status', RsvpStatus::Declined)->count(),
                 'maybe' => $guests->where('rsvp_status', RsvpStatus::Maybe)->count(),
                 'pending' => $guests->where('rsvp_status', RsvpStatus::Pending)->count(),
@@ -54,19 +141,31 @@ class DashboardController extends Controller
                 'paid' => $budget->sum('paid_cents') / 100,
             ],
             'tasks' => [
-                'total' => $tasks->count(),
-                'completed' => $tasks->where('is_complete', true)->count(),
-                'outstanding' => $tasks->where('is_complete', false)->count(),
-                'overdue' => $tasks
-                    ->where('is_complete', false)
-                    ->filter(fn (Task $t) => $t->due_date !== null && $t->due_date->lt($today))
-                    ->count(),
+                'total' => $allTasks->count(),
+                'completed' => $allTasks->where('is_complete', true)->count(),
+                'outstanding' => $allTasks->where('is_complete', false)->count(),
+                'overdue' => $overdueTasks->count(),
             ],
             'counts' => [
                 'vendors' => Vendor::query()->forWedding($weddingId)->count(),
                 'events' => TimelineEvent::query()->forWedding($weddingId)->count(),
                 'tables' => SeatingTable::query()->forWedding($weddingId)->count(),
                 'seated' => $guests->whereNotNull('table_id')->count(),
+            ],
+            'attention' => [
+                'overdue_tasks' => $overdueTasks,
+                'upcoming_tasks' => $upcomingTasks,
+                'unbooked_vendors' => $unbookedVendors,
+                'no_meal_count' => $attending->whereNull('meal_choice')->count(),
+                'unseated_count' => $attending->whereNull('table_id')->count(),
+            ],
+            'quotes' => [
+                'open' => $openInquiries->count(),
+                'offers_awaiting' => $offersAwaiting->count(),
+                'items' => $offersAwaiting->take(5)->map(fn (Inquiry $i) => [
+                    'id' => $i->id,
+                    'vendor_name' => $i->vendorProfile?->business_name,
+                ])->values(),
             ],
         ]);
     }

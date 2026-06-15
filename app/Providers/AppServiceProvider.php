@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Wedding;
 use App\Policies\WeddingPolicy;
+use App\Support\CurrentVendorProfile;
 use App\Support\CurrentWedding;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -19,8 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Request-scoped holder for the active wedding.
+        // Request-scoped holders for the active wedding / vendor profile.
         $this->app->singleton(CurrentWedding::class);
+        $this->app->singleton(CurrentVendorProfile::class);
     }
 
     /**

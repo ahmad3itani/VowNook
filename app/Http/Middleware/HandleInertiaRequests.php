@@ -41,6 +41,12 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $current = app(CurrentWedding::class)->get();
 
+        // Admin "support mode" — viewing another couple's workspace. Drives the
+        // support banner in the couple chrome; couples never see this.
+        $support = ($user?->is_admin && $request->session()->has('support_wedding_id') && $current)
+            ? ['active' => true, 'wedding' => ['name' => $current->name]]
+            : null;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -64,6 +70,19 @@ class HandleInertiaRequests extends Middleware
                     ? app(PermissionService::class)->mapFor($user, $current)
                     : (object) [],
             ],
+            'support' => $support,
+            'notifications' => $user ? [
+                'unread' => $user->unreadNotifications()->count(),
+                'items' => $user->notifications()->latest()->limit(8)->get()->map(fn ($n) => [
+                    'id' => $n->id,
+                    'read' => $n->read_at !== null,
+                    'title' => $n->data['title'] ?? 'Notification',
+                    'body' => $n->data['body'] ?? null,
+                    'url' => $n->data['url'] ?? null,
+                    'icon' => $n->data['icon'] ?? null,
+                    'created_at' => $n->created_at?->toIso8601String(),
+                ])->values(),
+            ] : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'locale' => app()->getLocale(),
             'locales' => Translation::LOCALES,

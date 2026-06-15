@@ -1,3 +1,4 @@
+import { toPng } from 'html-to-image';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
     Armchair,
@@ -7,6 +8,7 @@ import {
     Camera,
     Disc3,
     DoorOpen,
+    ClipboardList,
     FileDown,
     Gift,
     GripVertical,
@@ -69,6 +71,8 @@ type SeatGuest = {
     table_id: number | null;
     seat_number: number | null;
     rsvp_status: string;
+    meal_choice: string | null;
+    dietary_notes: string | null;
 };
 
 type FloorElement = {
@@ -85,6 +89,7 @@ type FloorElement = {
 type Stats = { tables: number; capacity: number; seated: number; unseated: number };
 
 type PageProps = {
+    weddingName: string;
     tables: Table[];
     guests: SeatGuest[];
     elements: FloorElement[];
@@ -214,11 +219,399 @@ type Drag =
     | { kind: 'move-element'; id: number }
     | { kind: 'resize-element'; id: number; startX: number; startY: number; startW: number; startH: number };
 
-export default function SeatingIndex({ tables, guests, elements, layout, stats, options }: PageProps) {
+export default function SeatingIndex({ weddingName, tables, guests, elements, layout, stats, options }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('seating');
 
     const canvasRef = useRef<HTMLDivElement>(null);
+    const [exporting, setExporting] = useState(false);
+    const [exportingFnb, setExportingFnb] = useState(false);
+
+    async function exportFloorPlan() {
+        if (!canvasRef.current || exporting) return;
+        setExporting(true);
+        try {
+            // Capture the canvas at 2× for crisp print quality
+            const dataUrl = await toPng(canvasRef.current, {
+                pixelRatio: 2,
+                backgroundColor: '#efe7da',
+            });
+
+            const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+                import('jspdf'),
+                import('jspdf-autotable'),
+            ]);
+
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+            const margin = 10;
+            const gold: [number, number, number] = [119, 90, 25];
+            const dark: [number, number, number] = [30, 27, 23];
+
+            // ── Page 1: floor plan screenshot ──────────────────────────
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(15);
+            doc.setTextColor(...dark);
+            doc.text(weddingName, margin, 13);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(...gold);
+            doc.text(`FLOOR PLAN  ·  ${layout.room_width} × ${layout.room_height} FT`, margin, 19);
+
+            // Fit the screenshot to the remaining page area
+            const imgStartY = 23;
+            const maxImgW = pageW - margin * 2;
+            const maxImgH = pageH - imgStartY - margin;
+
+            const imgEl = new Image();
+            imgEl.src = dataUrl;
+            await new Promise<void>((res) => { imgEl.onload = () => res(); });
+            const ratio = imgEl.naturalWidth / imgEl.naturalHeight;
+            let imgW = maxImgW;
+            let imgH = imgW / ratio;
+            if (imgH > maxImgH) { imgH = maxImgH; imgW = imgH * ratio; }
+
+            doc.addImage(dataUrl, 'PNG', margin, imgStartY, imgW, imgH);
+
+            // ── Page 2: seating chart table ─────────────────────────────
+            doc.addPage();
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(15);
+            doc.setTextColor(...dark);
+            doc.text(weddingName, margin, 13);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(...gold);
+            doc.text('SEATING CHART', margin, 19);
+
+            let cursorY = 24;
+
+            for (const table of tables) {
+                const seated = guests
+                    .filter((g) => g.table_id === table.id)
+                    .sort((a, b) => (a.seat_number ?? 999) - (b.seat_number ?? 999));
+
+                const body = seated.map((g) => [
+                    g.seat_number ?? '·',
+                    g.name,
+                    g.meal_choice ?? '—',
+                    g.dietary_notes ?? '—',
+                ]);
+
+                autoTable(doc, {
+                    startY: cursorY,
+                    head: [[
+                        { content: `${table.name}  ·  ${table.shape} · ${seated.length}/${table.capacity}`, colSpan: 4 },
+                    ], ['Seat', 'Guest', 'Meal', 'Allergies / dietary']],
+                    body: body.length ? body : [['', 'No one seated yet.', '', '']],
+                    theme: 'plain',
+                    styles: { fontSize: 8, cellPadding: 2, textColor: dark },
+                    alternateRowStyles: { fillColor: [253, 249, 243] },
+                    columnStyles: {
+                        0: { cellWidth: 12, halign: 'center' },
+                        1: { cellWidth: 60 },
+                        2: { cellWidth: 55 },
+                        3: { cellWidth: 'auto' },
+                    },
+                    margin: { left: margin, right: margin },
+                    didParseCell: (data) => {
+                        if (data.section === 'head') {
+                            if (data.row.index === 0) {
+                                data.cell.styles.fillColor = [253, 245, 230];
+                                data.cell.styles.textColor = gold;
+                                data.cell.styles.fontStyle = 'bold';
+                                data.cell.styles.fontSize = 9;
+                            } else {
+                                data.cell.styles.fillColor = [240, 235, 225];
+                                data.cell.styles.textColor = [111, 103, 94];
+                                data.cell.styles.fontSize = 7;
+                            }
+                        }
+                    },
+                    didDrawPage: () => { cursorY = margin; },
+                });
+
+                cursorY = (doc as any).lastAutoTable.finalY + 5;
+            }
+
+            // Unseated guests
+            const unseated = guests.filter((g) => g.table_id === null);
+            if (unseated.length) {
+                autoTable(doc, {
+                    startY: cursorY,
+                    head: [[{ content: `Not yet seated  ·  ${unseated.length}`, colSpan: 2 }]],
+                    body: unseated.map((g) => [g.name]),
+                    theme: 'plain',
+                    styles: { fontSize: 8, cellPadding: 2, textColor: dark },
+                    headStyles: { fillColor: [253, 245, 230], textColor: gold, fontStyle: 'bold', fontSize: 8 },
+                    margin: { left: margin, right: margin },
+                });
+            }
+
+            const slug = weddingName.toLowerCase().replace(/\s+/g, '-');
+            doc.save(`${slug}-seating-chart.pdf`);
+        } catch (err) {
+            console.error('[exportFloorPlan]', err);
+            toast.error(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+        } finally {
+            setExporting(false);
+        }
+    }
+
+    async function exportFnbSheet() {
+        if (exportingFnb) return;
+        setExportingFnb(true);
+        try {
+            const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+                import('jspdf'),
+                import('jspdf-autotable'),
+            ]);
+
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const pageW = doc.internal.pageSize.getWidth();
+            const margin = 10;
+            const gold: [number, number, number] = [119, 90, 25];
+            const dark: [number, number, number] = [30, 27, 23];
+            const red: [number, number, number] = [180, 60, 50];
+            const cream: [number, number, number] = [253, 245, 230];
+            const lightCream: [number, number, number] = [253, 249, 243];
+            const muted: [number, number, number] = [111, 103, 94];
+
+            // ── helpers ────────────────────────────────────────────────
+            function pageHeader(doc: InstanceType<typeof jsPDF>, subtitle: string) {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(15);
+                doc.setTextColor(...dark);
+                doc.text(weddingName, margin, 13);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.setTextColor(...gold);
+                doc.text(subtitle, margin, 19);
+                doc.setTextColor(...dark);
+            }
+
+            // Collect all distinct meal choices from seated guests
+            const seatedGuests = guests.filter((g) => g.table_id !== null);
+            const allMealTypes = [...new Set(
+                seatedGuests.map((g) => g.meal_choice?.trim() ?? '').filter(Boolean)
+            )].sort();
+            const noMealCount = seatedGuests.filter((g) => !g.meal_choice?.trim()).length;
+
+            // Per-table meal data
+            const tableData = tables.map((table) => {
+                const seated = guests
+                    .filter((g) => g.table_id === table.id)
+                    .sort((a, b) => (a.seat_number ?? 999) - (b.seat_number ?? 999));
+                const mealCounts: Record<string, number> = {};
+                for (const g of seated) {
+                    const key = g.meal_choice?.trim() || '(no selection)';
+                    mealCounts[key] = (mealCounts[key] ?? 0) + 1;
+                }
+                return { table, seated, mealCounts };
+            });
+
+            // ── PAGE 1: Kitchen Summary ────────────────────────────────
+            pageHeader(doc, 'F&B SERVICE SHEET  ·  KITCHEN SUMMARY');
+
+            // Overall totals row
+            const totalByMeal: Record<string, number> = {};
+            for (const g of seatedGuests) {
+                const key = g.meal_choice?.trim() || '(no selection)';
+                totalByMeal[key] = (totalByMeal[key] ?? 0) + 1;
+            }
+
+            // Big summary table
+            const summaryHead = [['Meal', 'Total', '% of guests']];
+            const summaryBody = Object.entries(totalByMeal)
+                .sort((a, b) => b[1] - a[1])
+                .map(([meal, count]) => [
+                    meal,
+                    String(count),
+                    seatedGuests.length ? `${Math.round((count / seatedGuests.length) * 100)}%` : '—',
+                ]);
+
+            autoTable(doc, {
+                startY: 24,
+                head: summaryHead,
+                body: summaryBody.length ? summaryBody : [['No meal data', '—', '—']],
+                theme: 'plain',
+                styles: { fontSize: 10, cellPadding: 3, textColor: dark },
+                headStyles: { fillColor: gold, textColor: [255, 255, 255] as [number,number,number], fontStyle: 'bold', fontSize: 9 },
+                alternateRowStyles: { fillColor: lightCream },
+                columnStyles: {
+                    0: { cellWidth: 'auto', fontStyle: 'bold' },
+                    1: { cellWidth: 25, halign: 'center', fontSize: 14, fontStyle: 'bold' },
+                    2: { cellWidth: 30, halign: 'center' },
+                },
+                margin: { left: margin, right: margin },
+            });
+
+            // Per-table meal breakdown
+            const breakdownStartY = (doc as any).lastAutoTable.finalY + 10;
+            const mealCols = allMealTypes.length ? allMealTypes : ['(no selection)'];
+            const breakdownHead = [['Table', 'Seated', ...mealCols]];
+            const breakdownBody = tableData.map(({ table, seated, mealCounts }) => [
+                table.name,
+                String(seated.length),
+                ...mealCols.map((m) => (mealCounts[m] ? String(mealCounts[m]) : '—')),
+            ]);
+
+            // Totals row
+            breakdownBody.push([
+                'TOTAL',
+                String(seatedGuests.length),
+                ...mealCols.map((m) => String(totalByMeal[m] ?? 0)),
+            ]);
+
+            autoTable(doc, {
+                startY: breakdownStartY,
+                head: breakdownHead,
+                body: breakdownBody,
+                theme: 'grid',
+                styles: { fontSize: 8, cellPadding: 2, textColor: dark },
+                headStyles: { fillColor: cream, textColor: gold, fontStyle: 'bold', fontSize: 8 },
+                alternateRowStyles: { fillColor: lightCream },
+                didParseCell: (data) => {
+                    // Bold the totals row
+                    if (data.section === 'body' && data.row.index === breakdownBody.length - 1) {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = cream;
+                    }
+                },
+                margin: { left: margin, right: margin },
+            });
+
+            // ── PAGE 2: Runner Sheets ──────────────────────────────────
+            doc.addPage();
+            pageHeader(doc, 'F&B SERVICE SHEET  ·  RUNNER REFERENCE');
+
+            let cursorY = 24;
+
+            for (const { table, seated } of tableData) {
+                const hasAllergy = seated.some((g) => g.dietary_notes?.trim());
+                const tableLabel = `${table.name.toUpperCase()}  ·  ${seated.length}/${table.capacity} SEATED${hasAllergy ? '  ⚠ ALLERGY' : ''}`;
+
+                const runnerBody = seated.map((g) => [
+                    g.seat_number ?? '·',
+                    g.name,
+                    g.meal_choice?.trim() || '—',
+                    g.dietary_notes?.trim() || '',
+                ]);
+
+                if (runnerBody.length === 0) continue;
+
+                autoTable(doc, {
+                    startY: cursorY,
+                    head: [
+                        [{ content: tableLabel, colSpan: 4 }],
+                        ['Seat', 'Guest', 'Meal', 'Dietary / allergies'],
+                    ],
+                    body: runnerBody,
+                    theme: 'plain',
+                    styles: { fontSize: 8, cellPadding: 2, textColor: dark },
+                    alternateRowStyles: { fillColor: lightCream },
+                    columnStyles: {
+                        0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
+                        1: { cellWidth: 60 },
+                        2: { cellWidth: 60 },
+                        3: { cellWidth: 'auto' },
+                    },
+                    margin: { left: margin, right: margin },
+                    didParseCell: (data) => {
+                        if (data.section === 'head') {
+                            if (data.row.index === 0) {
+                                data.cell.styles.fillColor = hasAllergy ? [255, 243, 230] : cream;
+                                data.cell.styles.textColor = hasAllergy ? red : gold;
+                                data.cell.styles.fontStyle = 'bold';
+                                data.cell.styles.fontSize = 8;
+                            } else {
+                                data.cell.styles.fillColor = [240, 235, 225];
+                                data.cell.styles.textColor = muted;
+                                data.cell.styles.fontSize = 7;
+                            }
+                        }
+                        // Highlight allergy rows
+                        if (data.section === 'body' && data.column.index === 3) {
+                            const row = data.row.raw as (string | number)[];
+                            if (row[3]) {
+                                data.cell.styles.textColor = red;
+                                data.cell.styles.fontStyle = 'bold';
+                            }
+                        }
+                    },
+                    didDrawPage: () => { cursorY = margin; },
+                });
+
+                cursorY = (doc as any).lastAutoTable.finalY + 4;
+            }
+
+            // ── PAGE 3: Allergy Alerts ─────────────────────────────────
+            const allergyGuests = guests.filter((g) => g.dietary_notes?.trim());
+            if (allergyGuests.length) {
+                doc.addPage();
+                pageHeader(doc, `F&B SERVICE SHEET  ·  ALLERGY & DIETARY ALERTS  ·  ${allergyGuests.length} GUESTS`);
+
+                // Warning banner
+                doc.setFillColor(255, 235, 230);
+                doc.rect(margin, 22, pageW - margin * 2, 8, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
+                doc.setTextColor(...red);
+                doc.text('⚠  VERIFY EVERY FLAGGED GUEST PERSONALLY BEFORE SERVICE. DO NOT SWAP PLATES.', margin + 3, 27.5);
+
+                const allergyBody = allergyGuests
+                    .sort((a, b) => {
+                        const ta = tables.find((t) => t.id === a.table_id)?.name ?? 'ZZZ';
+                        const tb = tables.find((t) => t.id === b.table_id)?.name ?? 'ZZZ';
+                        return ta.localeCompare(tb) || (a.seat_number ?? 999) - (b.seat_number ?? 999);
+                    })
+                    .map((g) => [
+                        tables.find((t) => t.id === g.table_id)?.name ?? '—',
+                        g.seat_number ?? '·',
+                        g.name,
+                        g.meal_choice?.trim() || '—',
+                        g.dietary_notes?.trim() ?? '',
+                    ]);
+
+                autoTable(doc, {
+                    startY: 33,
+                    head: [['Table', 'Seat', 'Guest', 'Meal', 'Dietary / allergies']],
+                    body: allergyBody,
+                    theme: 'plain',
+                    styles: { fontSize: 9, cellPadding: 3, textColor: dark },
+                    headStyles: { fillColor: [255, 220, 210] as [number,number,number], textColor: red, fontStyle: 'bold', fontSize: 8 },
+                    alternateRowStyles: { fillColor: [255, 248, 245] },
+                    columnStyles: {
+                        0: { cellWidth: 40, fontStyle: 'bold' },
+                        1: { cellWidth: 12, halign: 'center' },
+                        2: { cellWidth: 55 },
+                        3: { cellWidth: 50 },
+                        4: { cellWidth: 'auto', textColor: red, fontStyle: 'bold' },
+                    },
+                    margin: { left: margin, right: margin },
+                    didParseCell: (data) => {
+                        if (data.section === 'body') {
+                            data.cell.styles.fillColor = data.row.index % 2 === 0
+                                ? [255, 248, 245]
+                                : [255, 255, 255];
+                        }
+                    },
+                });
+            }
+
+            const slug = weddingName.toLowerCase().replace(/\s+/g, '-');
+            doc.save(`${slug}-fnb-sheet.pdf`);
+        } catch (err) {
+            console.error('[exportFnbSheet]', err);
+            toast.error(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+        } finally {
+            setExportingFnb(false);
+        }
+    }
 
     // Optimistic positions/sizes while dragging.
     const [tablePos, setTablePos] = useState<Record<number, { x: number; y: number }>>({});
@@ -496,11 +889,13 @@ return;
                         title="Seating studio"
                         description="Size the room, place tables and elements, and seat guests chair by chair."
                     />
-                    <Button variant="outline" asChild>
-                        <a href="/seating/export/pdf">
-                            <FileDown className="size-4" />
-                            Export PDF
-                        </a>
+                    <Button variant="outline" onClick={exportFnbSheet} disabled={exportingFnb}>
+                        {exportingFnb ? <Spinner className="size-4" /> : <ClipboardList className="size-4" />}
+                        {exportingFnb ? 'Exporting…' : 'F&B Sheet'}
+                    </Button>
+                    <Button variant="outline" onClick={exportFloorPlan} disabled={exporting}>
+                        {exporting ? <Spinner className="size-4" /> : <FileDown className="size-4" />}
+                        {exporting ? 'Exporting…' : 'Export PDF'}
                     </Button>
                 </div>
 

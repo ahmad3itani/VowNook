@@ -1,7 +1,8 @@
 import { Link } from '@inertiajs/react';
-import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
+
+const fraunces = "font-['Fraunces']";
 
 export default function AuthSimpleLayout({
     children,
@@ -9,28 +10,43 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-            <div className="w-full max-w-sm">
-                <div className="flex flex-col gap-8">
-                    <div className="flex flex-col items-center gap-4">
-                        <Link
-                            href={home()}
-                            className="flex flex-col items-center gap-2 font-medium"
-                        >
-                            <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />
-                            </div>
-                            <span className="sr-only">{title}</span>
-                        </Link>
+        <div className="flex min-h-svh bg-[#faf6ef] font-['DM_Sans'] text-[#191613]">
+            {/* Editorial image panel */}
+            <div className="relative hidden w-[44%] overflow-hidden lg:block">
+                <img
+                    src="/images/landing/hero.jpg"
+                    alt=""
+                    className="absolute inset-0 size-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/80 via-[#191613]/20 to-[#191613]/30" />
+                <div className="absolute inset-x-0 bottom-0 p-12">
+                    <p className="mb-4 text-[10px] tracking-[0.35em] text-[#e9c176] uppercase">
+                        VowNook
+                    </p>
+                    <p className={`${fraunces} max-w-md text-3xl leading-snug font-light text-white`}>
+                        The best days are <em className="text-[#e9c176]">planned together.</em>
+                    </p>
+                </div>
+            </div>
 
-                        <div className="space-y-2 text-center">
-                            <h1 className="text-xl font-medium">{title}</h1>
-                            <p className="text-center text-sm text-muted-foreground">
-                                {description}
-                            </p>
+            {/* Form panel */}
+            <div className="flex flex-1 flex-col items-center justify-center p-6 md:p-10">
+                <div className="w-full max-w-sm">
+                    <div className="flex flex-col gap-8">
+                        <div className="flex flex-col gap-4">
+                            <Link href={home()} className="w-fit">
+                                <span className={`${fraunces} text-2xl font-medium tracking-tight`}>
+                                    VowNook <span className="italic font-light text-[#8a651c]">Atelier</span>
+                                </span>
+                            </Link>
+
+                            <div className="space-y-1.5">
+                                <h1 className={`${fraunces} text-2xl font-light`}>{title}</h1>
+                                <p className="text-sm text-[#52493d]">{description}</p>
+                            </div>
                         </div>
+                        {children}
                     </div>
-                    {children}
                 </div>
             </div>
         </div>

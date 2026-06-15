@@ -131,7 +131,7 @@ export default function PublicSeats({ wedding, matches, searched, query }: PageP
                     )}
                 </motion.div>
 
-                <p className="mt-10 text-xs tracking-[0.15em] text-[#4c4640]/60 uppercase">Made with WedFlow Atelier</p>
+                <p className="mt-10 text-xs tracking-[0.15em] text-[#4c4640]/60 uppercase">Made with VowNook</p>
             </div>
         </div>
     );

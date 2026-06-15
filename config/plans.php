@@ -20,6 +20,7 @@ return [
             'max_guests_per_wedding' => 50,
             'max_collaborators_per_wedding' => 1,
             'max_gallery_photos' => 30,
+            'features' => ['ai' => false],
         ],
 
         'premium' => [
@@ -29,6 +30,7 @@ return [
             'max_guests_per_wedding' => 500,
             'max_collaborators_per_wedding' => 10,
             'max_gallery_photos' => 1000,
+            'features' => ['ai' => true],
         ],
 
         'planner' => [
@@ -38,6 +40,7 @@ return [
             'max_guests_per_wedding' => null,
             'max_collaborators_per_wedding' => null,
             'max_gallery_photos' => null,
+            'features' => ['ai' => true],
         ],
     ],
 ];

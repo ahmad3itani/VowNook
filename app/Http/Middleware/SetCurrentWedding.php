@@ -23,6 +23,18 @@ class SetCurrentWedding
         $user = $request->user();
 
         if ($user) {
+            // Admin support mode: an admin may be viewing any wedding for support.
+            // The target lives in the session and bypasses the accessibility
+            // check (admins own no weddings) without touching their own
+            // current_wedding_id.
+            if ($user->is_admin && $request->session()->has('support_wedding_id')) {
+                $this->current->set(
+                    Wedding::find($request->session()->get('support_wedding_id'))
+                );
+
+                return $next($request);
+            }
+
             $accessible = $user->accessibleWeddings();
 
             $wedding = null;

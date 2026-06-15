@@ -34,6 +34,8 @@ class GuestRequest extends FormRequest
             'is_plus_one' => ['boolean'],
             'rsvp_status' => ['required', Rule::enum(RsvpStatus::class)],
             'meal_choice' => ['nullable', 'string', 'max:120'],
+            'appetizer_choice' => ['nullable', 'string', 'max:120'],
+            'dessert_choice' => ['nullable', 'string', 'max:120'],
             'dietary_notes' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'group_id' => [

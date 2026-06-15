@@ -29,6 +29,10 @@ class Vendor extends Model
         'cost_cents',
         'paid_cents',
         'notes',
+        'follow_up_at',
+        'contract_status',
+        'coi_status',
+        'vendor_user_id',
     ];
 
     protected function casts(): array
@@ -40,12 +44,18 @@ class Vendor extends Model
             'price_level' => 'integer',
             'cost_cents' => 'integer',
             'paid_cents' => 'integer',
+            'follow_up_at' => 'date',
         ];
     }
 
     public function wedding(): BelongsTo
     {
         return $this->belongsTo(Wedding::class);
+    }
+
+    public function vendorUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'vendor_user_id');
     }
 
     public function scopeForWedding(Builder $query, int $weddingId): Builder

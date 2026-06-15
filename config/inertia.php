@@ -16,9 +16,15 @@ return [
     */
 
     'ssr' => [
-        'enabled' => true,
-        'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
+        // Opt-in per environment. Enable on staging/production where a managed
+        // SSR process runs (`php artisan inertia:start-ssr` under Supervisor).
+        // Leave off for local `php artisan serve` — its single-threaded dev
+        // server cannot reliably reach the SSR process mid-request.
+        'enabled' => env('INERTIA_SSR_ENABLED', false),
+        'url' => env('INERTIA_SSR_URL', 'http://127.0.0.1:13714'),
+        // @inertiajs/vite emits the SSR entry as bootstrap/ssr/app.js.
+        'bundle' => base_path('bootstrap/ssr/app.js'),
+        'throw_on_error' => env('INERTIA_SSR_THROW', false),
 
     ],
 

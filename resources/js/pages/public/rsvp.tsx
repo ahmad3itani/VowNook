@@ -8,14 +8,25 @@ type Match = {
     name: string;
     rsvp_status: string;
     meal_choice: string | null;
+    appetizer_choice: string | null;
+    dessert_choice: string | null;
     dietary_notes: string | null;
 };
+
+type MealCourse = { course: 'appetizer' | 'main' | 'dessert'; label: string; options: string[] };
 
 type PageProps = {
     wedding: { name: string; slug: string; event_date: string | null };
     matches: Match[];
     searched: boolean;
     query: string;
+    meals: MealCourse[];
+};
+
+const COURSE_FIELD: Record<string, 'meal_choice' | 'appetizer_choice' | 'dessert_choice'> = {
+    appetizer: 'appetizer_choice',
+    main: 'meal_choice',
+    dessert: 'dessert_choice',
 };
 
 const REPLIES: { value: string; label: string }[] = [
@@ -33,12 +44,19 @@ const dateFormat = new Intl.DateTimeFormat('en-CA', {
     day: 'numeric',
 });
 
-export default function PublicRsvp({ wedding, matches, searched, query }: PageProps) {
+export default function PublicRsvp({ wedding, matches, searched, query, meals }: PageProps) {
     const [selected, setSelected] = useState<Match | null>(null);
     const [done, setDone] = useState(false);
 
     const lookup = useForm({ name: query ?? '' });
-    const respond = useForm({ guest_id: 0, rsvp_status: 'attending', meal_choice: '', dietary_notes: '' });
+    const respond = useForm({
+        guest_id: 0,
+        rsvp_status: 'attending',
+        meal_choice: '',
+        appetizer_choice: '',
+        dessert_choice: '',
+        dietary_notes: '',
+    });
 
     function submitLookup(e: React.FormEvent) {
         e.preventDefault();
@@ -58,6 +76,8 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
             guest_id: match.id,
             rsvp_status: match.rsvp_status === 'pending' ? 'attending' : match.rsvp_status,
             meal_choice: match.meal_choice ?? '',
+            appetizer_choice: match.appetizer_choice ?? '',
+            dessert_choice: match.dessert_choice ?? '',
             dietary_notes: match.dietary_notes ?? '',
         });
     }
@@ -140,17 +160,24 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
 
                             {respond.data.rsvp_status === 'attending' && (
                                 <>
-                                    <div className="grid gap-2">
-                                        <label className="text-xs tracking-widest text-[#4c4640] uppercase">
-                                            Meal preference
-                                        </label>
-                                        <input
-                                            value={respond.data.meal_choice}
-                                            onChange={(e) => respond.setData('meal_choice', e.target.value)}
-                                            placeholder="Beef, fish, vegetarian…"
-                                            className={inputClass}
-                                        />
-                                    </div>
+                                    {meals.map((m) => {
+                                        const field = COURSE_FIELD[m.course];
+                                        return (
+                                            <div key={m.course} className="grid gap-2">
+                                                <label className="text-xs tracking-widest text-[#4c4640] uppercase">
+                                                    {m.label}
+                                                </label>
+                                                <select
+                                                    value={respond.data[field]}
+                                                    onChange={(e) => respond.setData(field, e.target.value)}
+                                                    className={inputClass}
+                                                >
+                                                    <option value="">Please choose…</option>
+                                                    {m.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                                                </select>
+                                            </div>
+                                        );
+                                    })}
                                     <div className="grid gap-2">
                                         <label className="text-xs tracking-widest text-[#4c4640] uppercase">
                                             Dietary notes
@@ -234,7 +261,7 @@ export default function PublicRsvp({ wedding, matches, searched, query }: PagePr
                     )}
                 </div>
 
-                <p className="mt-10 text-xs tracking-[0.15em] text-[#4c4640]/60 uppercase">Made with WedFlow Atelier</p>
+                <p className="mt-10 text-xs tracking-[0.15em] text-[#4c4640]/60 uppercase">Made with VowNook</p>
             </div>
         </div>
     );

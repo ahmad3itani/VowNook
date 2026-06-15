@@ -1,9 +1,10 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Download, FileText, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { AlertTriangle, Download, FileText, MailCheck, Pencil, Plus, Search, Trash2, UtensilsCrossed, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { type MealConfig, MealOptionsSheet } from '@/components/meal-options-sheet';
 import { PlanUsage } from '@/components/plan-usage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,8 @@ type Guest = {
     is_plus_one: boolean;
     rsvp_status: string;
     meal_choice: string | null;
+    appetizer_choice: string | null;
+    dessert_choice: string | null;
     dietary_notes: string | null;
     notes: string | null;
     group_id: number | null;
@@ -67,6 +70,7 @@ type PageProps = {
         ageGroups: Option[];
         statuses: Option[];
     };
+    meals: MealConfig;
     plan: { used: number; limit: number | null };
 };
 
@@ -92,6 +96,8 @@ type GuestFormData = {
     is_plus_one: boolean;
     rsvp_status: string;
     meal_choice: string;
+    appetizer_choice: string;
+    dessert_choice: string;
     dietary_notes: string;
     notes: string;
     group_id: string;
@@ -108,10 +114,55 @@ function emptyForm(options: PageProps['options']): GuestFormData {
         is_plus_one: false,
         rsvp_status: 'pending',
         meal_choice: '',
+        appetizer_choice: '',
+        dessert_choice: '',
         dietary_notes: '',
         notes: '',
         group_id: NO_GROUP,
     };
+}
+
+const NO_CHOICE = '__none';
+
+/** A single course field in the guest form: a dropdown of the couple's options
+ *  (or a free-text input for the main course when no options are configured). */
+function CourseField({
+    label, enabled, options, value, onChange, error, fallbackFreeText = false,
+}: {
+    label: string;
+    enabled: boolean;
+    options: string[];
+    value: string;
+    onChange: (v: string) => void;
+    error?: string;
+    fallbackFreeText?: boolean;
+}) {
+    if (!enabled) return null;
+
+    if (options.length === 0) {
+        if (!fallbackFreeText) return null;
+        return (
+            <div className="grid gap-2">
+                <Label>{label} choice</Label>
+                <Input value={value} onChange={(e) => onChange(e.target.value)} />
+                <InputError message={error} />
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid gap-2">
+            <Label>{label} choice</Label>
+            <Select value={value === '' ? NO_CHOICE : value} onValueChange={(v) => onChange(v === NO_CHOICE ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="No choice yet" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value={NO_CHOICE}>No choice yet</SelectItem>
+                    {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <InputError message={error} />
+        </div>
+    );
 }
 
 export default function GuestsIndex({
@@ -119,13 +170,16 @@ export default function GuestsIndex({
     groups,
     stats,
     options,
+    meals,
     plan,
 }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('guests');
+    const [mealSheetOpen, setMealSheetOpen] = useState(false);
 
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [mealFilter, setMealFilter] = useState(false); // show attending with no meal choice
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [groupsOpen, setGroupsOpen] = useState(false);
@@ -134,6 +188,11 @@ export default function GuestsIndex({
 
     const labelFor = (list: Option[], value: string) =>
         list.find((o) => o.value === value)?.label ?? value;
+
+    const noMealCount = useMemo(
+        () => guests.filter((g) => g.rsvp_status === 'attending' && !g.meal_choice).length,
+        [guests],
+    );
 
     const filtered = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -147,10 +206,12 @@ export default function GuestsIndex({
                 name.includes(term) ||
                 (g.email ?? '').toLowerCase().includes(term) ||
                 (g.group_name ?? '').toLowerCase().includes(term);
+            const matchesMeal =
+                !mealFilter || (g.rsvp_status === 'attending' && !g.meal_choice);
 
-            return matchesStatus && matchesSearch;
+            return matchesStatus && matchesSearch && matchesMeal;
         });
-    }, [guests, search, statusFilter]);
+    }, [guests, search, statusFilter, mealFilter]);
 
     function openCreate() {
         form.clearErrors();
@@ -172,6 +233,8 @@ export default function GuestsIndex({
             is_plus_one: guest.is_plus_one,
             rsvp_status: guest.rsvp_status,
             meal_choice: guest.meal_choice ?? '',
+            appetizer_choice: guest.appetizer_choice ?? '',
+            dessert_choice: guest.dessert_choice ?? '',
             dietary_notes: guest.dietary_notes ?? '',
             notes: guest.notes ?? '',
             group_id: guest.group_id ? String(guest.group_id) : NO_GROUP,
@@ -219,6 +282,8 @@ export default function GuestsIndex({
         <>
             <Head title="Guests" />
 
+            {writable && <MealOptionsSheet key={JSON.stringify(meals)} open={mealSheetOpen} onOpenChange={setMealSheetOpen} meals={meals} />}
+
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading
@@ -240,6 +305,26 @@ export default function GuestsIndex({
                         </Button>
                         {writable && (
                             <>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setMealSheetOpen(true)}
+                                >
+                                    <UtensilsCrossed className="size-4" />
+                                    Meal options
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        if (!confirm('Email everyone who hasn’t replied yet a friendly RSVP reminder?')) return;
+                                        router.post('/guests/remind-rsvp', {}, {
+                                            preserveScroll: true,
+                                            onSuccess: () => toast.success('RSVP reminders sent to guests who haven’t replied.'),
+                                        });
+                                    }}
+                                >
+                                    <MailCheck className="size-4" />
+                                    Remind RSVPs
+                                </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => setGroupsOpen(true)}
@@ -312,6 +397,20 @@ export default function GuestsIndex({
                             ))}
                         </SelectContent>
                     </Select>
+                    {noMealCount > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setMealFilter((v) => !v)}
+                            className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                mealFilter
+                                    ? 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
+                                    : 'border-border text-muted-foreground hover:bg-muted'
+                            }`}
+                        >
+                            <AlertTriangle className="size-3.5" />
+                            No meal choice ({noMealCount})
+                        </button>
+                    )}
                 </div>
 
                 <Card>
@@ -339,6 +438,9 @@ export default function GuestsIndex({
                                             </th>
                                             <th className="px-4 py-3 font-medium">
                                                 RSVP
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Meal
                                             </th>
                                             <th className="px-4 py-3 font-medium">
                                                 Contact
@@ -387,6 +489,26 @@ export default function GuestsIndex({
                                                             g.rsvp_status,
                                                         )}
                                                     </Badge>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {g.meal_choice ? (
+                                                        <div>
+                                                            <span className="text-sm">{g.meal_choice}</span>
+                                                            {g.dietary_notes && (
+                                                                <span
+                                                                    title={g.dietary_notes}
+                                                                    className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                                                                >
+                                                                    <AlertTriangle className="size-2.5" />
+                                                                    Allergy
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : g.rsvp_status === 'attending' ? (
+                                                        <span className="text-xs text-amber-600">Not set</span>
+                                                    ) : (
+                                                        <span className="text-muted-foreground">—</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-muted-foreground">
                                                     {g.email ?? g.phone ?? '—'}
@@ -616,17 +738,9 @@ export default function GuestsIndex({
                             This guest is a plus-one
                         </label>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="meal_choice">Meal choice</Label>
-                            <Input
-                                id="meal_choice"
-                                value={form.data.meal_choice}
-                                onChange={(e) =>
-                                    form.setData('meal_choice', e.target.value)
-                                }
-                            />
-                            <InputError message={form.errors.meal_choice} />
-                        </div>
+                        <CourseField label="Appetizer" enabled={meals.appetizer.enabled} options={meals.appetizer.options} value={form.data.appetizer_choice} onChange={(v) => form.setData('appetizer_choice', v)} error={form.errors.appetizer_choice} />
+                        <CourseField label="Main" enabled fallbackFreeText options={meals.main.options} value={form.data.meal_choice} onChange={(v) => form.setData('meal_choice', v)} error={form.errors.meal_choice} />
+                        <CourseField label="Dessert" enabled={meals.dessert.enabled} options={meals.dessert.options} value={form.data.dessert_choice} onChange={(v) => form.setData('dessert_choice', v)} error={form.errors.dessert_choice} />
 
                         <div className="grid gap-2">
                             <Label htmlFor="dietary_notes">Dietary notes</Label>
