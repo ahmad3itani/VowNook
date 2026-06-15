@@ -22,9 +22,17 @@ class MakeAdmin extends Command
             return self::FAILURE;
         }
 
-        $user->forceFill(['is_admin' => ! $this->option('revoke')])->save();
+        $attrs = ['is_admin' => ! $this->option('revoke')];
 
-        $this->info($user->email.($this->option('revoke') ? ' is no longer an admin.' : ' is now an admin.'));
+        // Bootstrap convenience: mark the email verified so the admin can reach
+        // admin pages before outbound email is configured.
+        if (! $this->option('revoke') && $user->email_verified_at === null) {
+            $attrs['email_verified_at'] = now();
+        }
+
+        $user->forceFill($attrs)->save();
+
+        $this->info($user->email.($this->option('revoke') ? ' is no longer an admin.' : ' is now an admin (and email verified).'));
 
         return self::SUCCESS;
     }
