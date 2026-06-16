@@ -173,7 +173,7 @@ export default function BudgetIndex({ items, categories, stats }: PageProps) {
                         title="Budget"
                         description="Plan estimated costs, track what you actually spend, and stay on target."
                     />
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                         <Button variant="outline" asChild>
                             <a href="/exports/budget">
                                 <Download className="size-4" />

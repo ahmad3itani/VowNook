@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { AlertTriangle, Download, FileText, MailCheck, Pencil, Plus, Search, Trash2, UtensilsCrossed, Users } from 'lucide-react';
+import { AlertTriangle, Download, FileText, MailCheck, MoreHorizontal, Pencil, Plus, Search, Trash2, UtensilsCrossed, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -9,6 +9,12 @@ import { PlanUsage } from '@/components/plan-usage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -278,6 +284,14 @@ export default function GuestsIndex({
         });
     }
 
+    function remindRsvps() {
+        if (!confirm('Email everyone who hasn’t replied yet a friendly RSVP reminder?')) return;
+        router.post('/guests/remind-rsvp', {}, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('RSVP reminders sent to guests who haven’t replied.'),
+        });
+    }
+
     return (
         <>
             <Head title="Guests" />
@@ -290,56 +304,85 @@ export default function GuestsIndex({
                         title="Guests"
                         description="Track invitations, RSVPs, and households for your celebration."
                     />
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <a href="/exports/guests">
-                                <Download className="size-4" />
-                                CSV
-                            </a>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <a href="/exports/guests/pdf">
-                                <FileText className="size-4" />
-                                PDF
-                            </a>
-                        </Button>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {/* Secondary actions: inline from sm up, collapsed into a "More" menu on phones */}
+                        <div className="hidden flex-wrap items-center gap-2 sm:flex">
+                            <Button variant="outline" asChild>
+                                <a href="/exports/guests">
+                                    <Download className="size-4" />
+                                    CSV
+                                </a>
+                            </Button>
+                            <Button variant="outline" asChild>
+                                <a href="/exports/guests/pdf">
+                                    <FileText className="size-4" />
+                                    PDF
+                                </a>
+                            </Button>
+                            {writable && (
+                                <>
+                                    <Button variant="outline" onClick={() => setMealSheetOpen(true)}>
+                                        <UtensilsCrossed className="size-4" />
+                                        Meal options
+                                    </Button>
+                                    <Button variant="outline" onClick={remindRsvps}>
+                                        <MailCheck className="size-4" />
+                                        Remind RSVPs
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setGroupsOpen(true)}>
+                                        <Users className="size-4" />
+                                        Households
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="sm:hidden">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon" aria-label="More guest actions">
+                                        <MoreHorizontal className="size-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                        <a href="/exports/guests">
+                                            <Download className="size-4" />
+                                            Export CSV
+                                        </a>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <a href="/exports/guests/pdf">
+                                            <FileText className="size-4" />
+                                            Export PDF
+                                        </a>
+                                    </DropdownMenuItem>
+                                    {writable && (
+                                        <>
+                                            <DropdownMenuItem onClick={() => setMealSheetOpen(true)}>
+                                                <UtensilsCrossed className="size-4" />
+                                                Meal options
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={remindRsvps}>
+                                                <MailCheck className="size-4" />
+                                                Remind RSVPs
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setGroupsOpen(true)}>
+                                                <Users className="size-4" />
+                                                Households
+                                            </DropdownMenuItem>
+                                        </>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+
+                        {/* Primary action — always visible, never pushed off-screen */}
                         {writable && (
-                            <>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setMealSheetOpen(true)}
-                                >
-                                    <UtensilsCrossed className="size-4" />
-                                    Meal options
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        if (!confirm('Email everyone who hasn’t replied yet a friendly RSVP reminder?')) return;
-                                        router.post('/guests/remind-rsvp', {}, {
-                                            preserveScroll: true,
-                                            onSuccess: () => toast.success('RSVP reminders sent to guests who haven’t replied.'),
-                                        });
-                                    }}
-                                >
-                                    <MailCheck className="size-4" />
-                                    Remind RSVPs
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setGroupsOpen(true)}
-                                >
-                                    <Users className="size-4" />
-                                    Households
-                                </Button>
-                                <Button
-                                    onClick={openCreate}
-                                    data-test="add-guest"
-                                >
-                                    <Plus className="size-4" />
-                                    Add guest
-                                </Button>
-                            </>
+                            <Button onClick={openCreate} data-test="add-guest">
+                                <Plus className="size-4" />
+                                Add guest
+                            </Button>
                         )}
                     </div>
                 </div>

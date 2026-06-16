@@ -221,7 +221,7 @@ export default function TimelineIndex({
                         title="Timeline"
                         description="Build the run-of-show and tie each moment to the vendors who make it happen."
                     />
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                         <Button variant="outline" asChild>
                             <a href="/exports/timeline">
                                 <Download className="size-4" />
