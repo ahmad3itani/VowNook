@@ -1,4 +1,6 @@
 import { Link } from '@inertiajs/react';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 const fraunces = "font-['Fraunces']";
 
@@ -6,19 +8,24 @@ const fraunces = "font-['Fraunces']";
  * Shared editorial header for the public marketplace surface (marketplace,
  * vendor profiles, programmatic city/category pages). Token-based so it adapts
  * to light/dark, with the Fraunces wordmark + gold accent for brand cohesion.
+ * Collapses the nav into a tap-to-open menu on phones.
  */
 export function SiteHeader() {
+    const [open, setOpen] = useState(false);
+
     return (
         <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
                 <Link href="/" className={`${fraunces} text-xl font-medium tracking-tight`}>
                     VowNook <span className="font-light text-[#8a651c] italic">Atelier</span>
                 </Link>
-                <nav className="flex items-center gap-4 text-sm sm:gap-6">
-                    <Link href="/marketplace" className="hidden text-muted-foreground transition-colors hover:text-foreground sm:block">
+
+                {/* Desktop nav */}
+                <nav className="hidden items-center gap-6 text-sm sm:flex">
+                    <Link href="/marketplace" className="text-muted-foreground transition-colors hover:text-foreground">
                         Marketplace
                     </Link>
-                    <Link href="/how-it-works" className="hidden text-muted-foreground transition-colors hover:text-foreground sm:block">
+                    <Link href="/how-it-works" className="text-muted-foreground transition-colors hover:text-foreground">
                         How it works
                     </Link>
                     <Link href="/login" className="text-muted-foreground transition-colors hover:text-foreground">
@@ -31,7 +38,41 @@ export function SiteHeader() {
                         Get started
                     </Link>
                 </nav>
+
+                {/* Mobile: primary CTA stays visible + hamburger toggles the rest */}
+                <div className="flex items-center gap-2 sm:hidden">
+                    <Link
+                        href="/register"
+                        className="rounded-full bg-foreground px-4 py-2 text-[11px] font-semibold tracking-[0.15em] text-background uppercase"
+                    >
+                        Get started
+                    </Link>
+                    <button
+                        type="button"
+                        onClick={() => setOpen((o) => !o)}
+                        aria-label={open ? 'Close menu' : 'Open menu'}
+                        aria-expanded={open}
+                        className="flex size-9 items-center justify-center rounded-full border border-border text-foreground"
+                    >
+                        {open ? <X className="size-5" /> : <Menu className="size-5" />}
+                    </button>
+                </div>
             </div>
+
+            {/* Mobile dropdown */}
+            {open && (
+                <nav className="flex flex-col border-t border-border bg-background px-4 py-2 sm:hidden">
+                    <Link href="/marketplace" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
+                        Marketplace
+                    </Link>
+                    <Link href="/how-it-works" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
+                        How it works
+                    </Link>
+                    <Link href="/login" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
+                        Sign in
+                    </Link>
+                </nav>
+            )}
         </header>
     );
 }

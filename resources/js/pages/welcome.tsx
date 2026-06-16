@@ -8,10 +8,13 @@ import {
     Inbox,
     LayoutGrid,
     MailOpen,
+    Menu,
     PenLine,
     Users,
     Wallet,
+    X,
 } from 'lucide-react';
+import { useState } from 'react';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
 
@@ -97,6 +100,7 @@ const tiers = [
 export default function Welcome() {
     const { auth } = usePage().props;
     const authed = !!auth?.user;
+    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
@@ -133,27 +137,64 @@ export default function Welcome() {
                             Pricing
                         </a>
                     </div>
-                    {authed ? (
-                        <Link
-                            href={dashboard()}
-                            className="bg-[#191613] px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                    <div className="flex items-center gap-3">
+                        {authed ? (
+                            <Link
+                                href={dashboard()}
+                                className="bg-[#191613] px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] md:px-6"
+                            >
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href={login()} className="hidden text-[13px] text-[#52493d] hover:text-[#8a651c] sm:block">
+                                    Sign in
+                                </Link>
+                                <Link
+                                    href={register()}
+                                    className="bg-[#191613] px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] md:px-6"
+                                >
+                                    Get started
+                                </Link>
+                            </>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setMenuOpen((o) => !o)}
+                            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                            aria-expanded={menuOpen}
+                            className="flex size-10 items-center justify-center text-[#191613] md:hidden"
                         >
-                            Dashboard
+                            {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+                        </button>
+                    </div>
+                </nav>
+
+                {/* Mobile menu */}
+                {menuOpen && (
+                    <div className="flex flex-col border-t border-[#191613]/8 bg-[#faf6ef] px-5 py-2 md:hidden">
+                        <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
+                            For couples
+                        </a>
+                        <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
+                            Marketplace
                         </Link>
-                    ) : (
-                        <div className="flex items-center gap-4">
-                            <Link href={login()} className="hidden text-[13px] text-[#52493d] hover:text-[#8a651c] sm:block">
+                        <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
+                            For vendors
+                        </a>
+                        <Link href="/how-it-works" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
+                            How it works
+                        </Link>
+                        <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
+                            Pricing
+                        </a>
+                        {!authed && (
+                            <Link href={login()} onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
                                 Sign in
                             </Link>
-                            <Link
-                                href={register()}
-                                className="bg-[#191613] px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
-                            >
-                                Get started
-                            </Link>
-                        </div>
-                    )}
-                </nav>
+                        )}
+                    </div>
+                )}
             </header>
 
             {/* ── Hero ───────────────────────────────────────────────────── */}
@@ -189,7 +230,7 @@ export default function Welcome() {
                         Planning studio · Vendor marketplace
                     </motion.p>
                     <motion.h1
-                        className={`${fraunces} max-w-5xl text-[13vw] leading-[0.95] font-light text-white sm:text-7xl md:text-[6.5rem]`}
+                        className={`${fraunces} max-w-5xl text-[clamp(2.4rem,11vw,6.5rem)] leading-[0.95] font-light text-white`}
                         initial={{ opacity: 0, y: 28 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
