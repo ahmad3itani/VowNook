@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Check, Gift, Ticket } from 'lucide-react';
+import { Check, Gift, Store, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -16,29 +16,50 @@ type Tier = {
     max_guests_per_wedding: number | null;
     max_collaborators_per_wedding: number | null;
     max_gallery_photos: number | null;
+    features: Record<string, boolean>;
 };
 
 type PageProps = {
     current: string;
+    account_type: string;
     tiers: Tier[];
     comped_until: string | null;
     referral: { code: string; url: string; count: number; reward_days: number };
+};
+
+const FEATURE_LABELS: Record<string, string> = {
+    website_publish: 'Publish your wedding website',
+    seating: 'Seating chart & floor plan',
+    ai: 'AI planning assistant',
 };
 
 function cap(value: number | null): string {
     return value === null ? 'Unlimited' : value.toLocaleString();
 }
 
-function features(tier: Tier): string[] {
-    return [
-        `${cap(tier.max_weddings)} ${tier.max_weddings === 1 ? 'wedding' : 'weddings'}`,
-        `${cap(tier.max_guests_per_wedding)} guests per wedding`,
+function cadence(key: string): string {
+    if (key === 'premium') return 'per wedding';
+    if (key === 'planner') return 'per year';
+    return 'forever';
+}
+
+function featureLines(tier: Tier): string[] {
+    const lines = [
+        tier.max_weddings === null
+            ? 'Unlimited weddings'
+            : `${tier.max_weddings} wedding${tier.max_weddings === 1 ? '' : 's'}`,
+        `${cap(tier.max_guests_per_wedding)} guests`,
         `${cap(tier.max_collaborators_per_wedding)} collaborators`,
         `${cap(tier.max_gallery_photos)} gallery photos`,
     ];
+    const flags = Object.entries(tier.features ?? {})
+        .filter(([, on]) => on)
+        .map(([key]) => FEATURE_LABELS[key] ?? key);
+
+    return [...lines, ...flags];
 }
 
-export default function Plan({ current, tiers, comped_until, referral }: PageProps) {
+export default function Plan({ current, account_type, tiers, comped_until, referral }: PageProps) {
     const promo = useForm({ code: '' });
 
     function redeem(e: React.FormEvent) {
@@ -71,6 +92,27 @@ export default function Plan({ current, tiers, comped_until, referral }: PagePro
                     </div>
                 )}
 
+                {account_type === 'vendor' ? (
+                    <div className="rounded-xl border border-border p-5">
+                        <div className="flex items-center gap-2 font-medium">
+                            <Store className="size-4 text-[#775a19]" />
+                            No subscription — you only pay when you book
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            VowNook is free to list on. You pay an <strong>8% success fee</strong> only when a
+                            couple books you through the platform (lower on large bookings, capped at $1,000).
+                            Manage your payouts and earnings from your vendor dashboard.
+                        </p>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="mt-3"
+                            onClick={() => (window.location.href = '/vendor')}
+                        >
+                            Go to vendor dashboard
+                        </Button>
+                    </div>
+                ) : (
                 <div className="grid gap-4 md:grid-cols-3">
                     {tiers.map((tier) => {
                         const isCurrent = tier.key === current;
@@ -102,12 +144,12 @@ export default function Plan({ current, tiers, comped_until, referral }: PagePro
                                     </span>
                                     <span className="text-sm text-muted-foreground">
                                         {' '}
-                                        /year
+                                        {cadence(tier.key)}
                                     </span>
                                 </div>
 
                                 <ul className="mt-4 flex flex-col gap-2 text-sm">
-                                    {features(tier).map((f) => (
+                                    {featureLines(tier).map((f) => (
                                         <li
                                             key={f}
                                             className="flex items-center gap-2"
@@ -121,6 +163,7 @@ export default function Plan({ current, tiers, comped_until, referral }: PagePro
                         );
                     })}
                 </div>
+                )}
 
                 {/* Redeem a promo code */}
                 <form onSubmit={redeem} className="rounded-xl border border-border p-5">

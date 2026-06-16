@@ -19,7 +19,7 @@ class CollaboratorInvitationTest extends TestCase
     /** @return array{0: User, 1: Wedding} */
     protected function ownerWithWedding(array $userAttrs = []): array
     {
-        $owner = User::factory()->create($userAttrs);
+        $owner = User::factory()->plan('premium')->create($userAttrs); // collaborators are a paid feature
         $wedding = Wedding::factory()->create(['owner_id' => $owner->id]);
         $wedding->members()->attach($owner->id, ['role' => Role::Owner->value, 'accepted_at' => now()]);
         $owner->forceFill(['current_wedding_id' => $wedding->id])->save();

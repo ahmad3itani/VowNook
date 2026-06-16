@@ -77,6 +77,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->account_type === AccountType::Planner;
     }
 
+    public function isCouple(): bool
+    {
+        return $this->account_type === AccountType::Couple;
+    }
+
     public function vendorProfile(): HasOne
     {
         return $this->hasOne(VendorProfile::class);
@@ -121,10 +126,31 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->plan()[$key] ?? null;
     }
 
+    /**
+     * The plan tier KEY (e.g. "free"/"premium"/"planner"), read safely from the
+     * raw attribute — `$this->plan` collides with the plan() method when the
+     * attribute isn't loaded (e.g. on an actingAs() model in tests).
+     */
+    public function planKey(): string
+    {
+        return $this->getAttributes()['plan'] ?? config('plans.default');
+    }
+
     /** Whether the user's plan tier includes a named feature flag. */
     public function hasFeature(string $key): bool
     {
         return (bool) ($this->plan()['features'][$key] ?? false);
+    }
+
+    /**
+     * Whether the user can use a named plan feature. Planner accounts and
+     * admins are always entitled; everyone else depends on their plan tier's
+     * feature flag. This is the single gate for paid capabilities
+     * (`ai`, `website_publish`, `seating`, …).
+     */
+    public function canUseFeature(string $key): bool
+    {
+        return $this->is_admin || $this->isPlanner() || $this->hasFeature($key);
     }
 
     /**
@@ -133,6 +159,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function canUseAi(): bool
     {
-        return $this->is_admin || $this->isPlanner() || $this->hasFeature('ai');
+        return $this->canUseFeature('ai');
     }
 }

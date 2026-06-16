@@ -17,20 +17,29 @@ class PlanController extends Controller
     {
         $user = $request->user();
 
-        $tiers = collect(config('plans.tiers'))
-            ->map(fn (array $tier, string $key) => [
-                'key' => $key,
-                'name' => $tier['name'],
-                'price' => $tier['price'],
-                'max_weddings' => $tier['max_weddings'],
-                'max_guests_per_wedding' => $tier['max_guests_per_wedding'],
-                'max_collaborators_per_wedding' => $tier['max_collaborators_per_wedding'],
-                'max_gallery_photos' => $tier['max_gallery_photos'],
-            ])
-            ->values();
+        // Couples see couple tiers, planners see the planner tier; vendors are
+        // commission-based and see no subscription tiers at all.
+        $audience = $user->isPlanner() ? 'planner' : 'couple';
+
+        $tiers = $user->isVendor()
+            ? collect()
+            : collect(config('plans.tiers'))
+                ->filter(fn (array $tier) => ($tier['audience'] ?? 'couple') === $audience)
+                ->map(fn (array $tier, string $key) => [
+                    'key' => $key,
+                    'name' => $tier['name'],
+                    'price' => $tier['price'],
+                    'max_weddings' => $tier['max_weddings'],
+                    'max_guests_per_wedding' => $tier['max_guests_per_wedding'],
+                    'max_collaborators_per_wedding' => $tier['max_collaborators_per_wedding'],
+                    'max_gallery_photos' => $tier['max_gallery_photos'],
+                    'features' => $tier['features'] ?? [],
+                ])
+                ->values();
 
         return Inertia::render('settings/plan', [
-            'current' => $user->plan,
+            'current' => $user->planKey(),
+            'account_type' => $user->account_type?->value ?? 'couple',
             'tiers' => $tiers,
             'comped_until' => $user->plan_comped_until?->toFormattedDateString(),
             'referral' => [

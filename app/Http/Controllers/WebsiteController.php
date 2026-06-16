@@ -17,7 +17,7 @@ class WebsiteController extends Controller
 {
     public function __construct(protected CurrentWedding $current) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $wedding = $this->current->get();
         $website = $wedding->website;
@@ -25,24 +25,40 @@ class WebsiteController extends Controller
         return Inertia::render('website/index', [
             'website' => $this->serialize($wedding, $website),
             'public_url' => route('public.website', $wedding),
+            'can_publish' => $this->canPublish($wedding, $request->user()),
         ]);
     }
 
     public function update(WeddingWebsiteRequest $request): RedirectResponse
     {
         $wedding = $this->current->get();
+        $data = $request->validated();
+
+        // Going live with the website is an Atelier (paid) feature. Free couples
+        // can build and preview, but the site stays a draft until they upgrade —
+        // we coerce rather than reject so saving the rest of the page still works.
+        if (! $this->canPublish($wedding, $request->user())) {
+            $data['is_published'] = false;
+        }
 
         $wedding->website()->updateOrCreate(
             ['wedding_id' => $wedding->id],
-            $request->validated(),
+            $data,
         );
 
         // Publishing the website is the qualifying action that rewards a referrer.
-        if ($request->boolean('is_published')) {
+        if (! empty($data['is_published'])) {
             \App\Support\Referrals::rewardForActivation($wedding);
         }
 
         return back()->with('status', 'website-saved');
+    }
+
+    /** Entitlement to publish: admins, or a wedding owner on a paid plan. */
+    private function canPublish(Wedding $wedding, ?\App\Models\User $actor): bool
+    {
+        return ($actor?->is_admin ?? false)
+            || ($wedding->owner?->canUseFeature('website_publish') ?? false);
     }
 
     public function uploadHero(Request $request): RedirectResponse

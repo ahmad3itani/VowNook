@@ -279,7 +279,9 @@ class MarketingEngineTest extends TestCase
         Notification::fake();
 
         $referrer = User::factory()->create(['plan' => 'free']);
-        $referred = User::factory()->create(['referred_by' => $referrer->id]);
+        // Publishing is an Atelier feature, so the referred couple must be paid
+        // for the publish (the qualifying action) to actually go through.
+        $referred = User::factory()->plan('premium')->create(['referred_by' => $referrer->id]);
         $wedding = Wedding::factory()->create(['owner_id' => $referred->id]);
         $referred->forceFill(['current_wedding_id' => $wedding->id])->save();
 

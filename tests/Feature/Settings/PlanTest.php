@@ -20,7 +20,8 @@ class PlanTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('settings/plan')
                 ->where('current', 'premium')
-                ->has('tiers', 3)
+                // Couples see only the couple tiers (free + Atelier).
+                ->has('tiers', 2)
             );
     }
 

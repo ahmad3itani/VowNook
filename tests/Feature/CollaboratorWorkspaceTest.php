@@ -14,7 +14,7 @@ class CollaboratorWorkspaceTest extends TestCase
 
     protected function ownerWithWedding(): array
     {
-        $user = User::factory()->create();
+        $user = User::factory()->plan('premium')->create(); // collaborators are a paid feature
         $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
         $wedding->members()->attach($user->id, ['role' => Role::Owner->value, 'accepted_at' => now()]);
         $user->forceFill(['current_wedding_id' => $wedding->id])->save();

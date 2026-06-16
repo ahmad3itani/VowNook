@@ -70,7 +70,7 @@ type Website = {
     photos: Photo[];
 };
 
-type PageProps = { website: Website; public_url: string };
+type PageProps = { website: Website; public_url: string; can_publish: boolean };
 
 const TEMPLATES: Array<{
     id: TemplateId;
@@ -89,7 +89,7 @@ const TEMPLATES: Array<{
     { id: 'vibrant', label: 'Vibrant', bg: '#fff5f2', accent: '#d2436a', font: 'Playfair Display' },
 ];
 
-export default function WebsiteIndex({ website, public_url }: PageProps) {
+export default function WebsiteIndex({ website, public_url, can_publish }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('website');
 
@@ -317,18 +317,28 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                     <CardContent className="flex items-center gap-3">
                         <Checkbox
                             id="is_published"
-                            checked={form.data.is_published}
+                            checked={can_publish && form.data.is_published}
                             onCheckedChange={(v) => form.setData('is_published', v === true)}
-                            disabled={!writable}
+                            disabled={!writable || !can_publish}
                         />
                         <div>
                             <Label htmlFor="is_published" className="flex items-center gap-2">
                                 <Globe className="size-4" />
                                 Publish website
                             </Label>
-                            <p className="text-sm text-muted-foreground">
-                                When off, visitors see a simple page with an RSVP link only.
-                            </p>
+                            {can_publish ? (
+                                <p className="text-sm text-muted-foreground">
+                                    When off, visitors see a simple page with an RSVP link only.
+                                </p>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    Going live is an{' '}
+                                    <a href="/settings/plan" className="font-medium text-[#8a651c] underline">
+                                        Atelier feature
+                                    </a>{' '}
+                                    — upgrade to publish. Keep building in the meantime; your draft is saved.
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

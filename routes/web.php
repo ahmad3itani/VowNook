@@ -316,15 +316,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('timeline/{event}', [TimelineController::class, 'destroy'])->name('timeline.destroy');
     });
 
-    // Seating chart workspace.
+    // Seating chart workspace. Premium-gated (free couples are sent to upgrade).
     Route::get('seating', [SeatingController::class, 'index'])
-        ->middleware('permission:seating,read')->name('seating.index');
+        ->middleware(['permission:seating,read', 'plan.feature:seating'])->name('seating.index');
     Route::get('seating/export/pdf', [SeatingController::class, 'exportPdf'])
-        ->middleware('permission:seating,read')->name('seating.export.pdf');
+        ->middleware(['permission:seating,read', 'plan.feature:seating'])->name('seating.export.pdf');
     Route::post('seating/export/screenshot-pdf', [SeatingController::class, 'exportScreenshotPdf'])
-        ->middleware('permission:seating,read')->name('seating.export.screenshot-pdf');
+        ->middleware(['permission:seating,read', 'plan.feature:seating'])->name('seating.export.screenshot-pdf');
 
-    Route::middleware('permission:seating,write')->group(function () {
+    Route::middleware(['permission:seating,write', 'plan.feature:seating'])->group(function () {
         Route::post('seating', [SeatingController::class, 'store'])->name('seating.store');
         Route::put('seating/{table}', [SeatingController::class, 'update'])->name('seating.update');
         Route::patch('seating/{table}/move', [SeatingController::class, 'move'])->name('seating.move');

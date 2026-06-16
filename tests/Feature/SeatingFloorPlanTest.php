@@ -17,7 +17,7 @@ class SeatingFloorPlanTest extends TestCase
 
     protected function ownerWithWedding(): array
     {
-        $user = User::factory()->create();
+        $user = User::factory()->plan('premium')->create(); // seating is a paid feature
         $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
         $user->forceFill(['current_wedding_id' => $wedding->id])->save();
 
