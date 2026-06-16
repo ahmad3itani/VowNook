@@ -49,7 +49,7 @@
     <div class="code">@yield('code')</div>
     <h1>@yield('title')</h1>
     <p>@yield('message')</p>
-    <a class="button" href="{{ url('/') }}">Back to home</a>
+    <a class="button" href="{{ url('/') }}" target="_top">Back to home</a>
     <footer>VowNook</footer>
 </body>
 </html>
