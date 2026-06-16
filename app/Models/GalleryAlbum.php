@@ -2,32 +2,22 @@
 
 namespace App\Models;
 
-use Database\Factories\GalleryPhotoFactory;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class GalleryPhoto extends Model
+class GalleryAlbum extends Model
 {
-    /** @use HasFactory<GalleryPhotoFactory> */
-    use HasFactory;
-
     protected $fillable = [
         'wedding_id',
-        'album_id',
-        'path',
-        'original_name',
-        'mime',
-        'size',
-        'caption',
+        'name',
         'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
-            'size' => 'integer',
             'sort_order' => 'integer',
         ];
     }
@@ -37,9 +27,9 @@ class GalleryPhoto extends Model
         return $this->belongsTo(Wedding::class);
     }
 
-    public function album(): BelongsTo
+    public function photos(): HasMany
     {
-        return $this->belongsTo(GalleryAlbum::class);
+        return $this->hasMany(GalleryPhoto::class, 'album_id');
     }
 
     /** Scope to a single wedding (the active tenant). */
@@ -48,9 +38,8 @@ class GalleryPhoto extends Model
         return $query->where('wedding_id', $weddingId);
     }
 
-    /** Couple-defined display order; newest first as a tiebreaker. */
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderByDesc('id');
+        return $query->orderBy('sort_order')->orderBy('name');
     }
 }

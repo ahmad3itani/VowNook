@@ -1,4 +1,4 @@
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import {
     closestCenter,
     DndContext,
@@ -12,11 +12,14 @@ import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@d
 import { CSS } from '@dnd-kit/utilities';
 import {
     CheckCircle2,
+    Download,
+    Folder,
+    FolderPlus,
     GripVertical,
     ImagePlus,
     Images,
-    Loader2,
     Pencil,
+    Star,
     Trash2,
     Upload,
     X,
@@ -36,16 +39,21 @@ import { usePermissions } from '@/hooks/use-permissions';
 
 type Photo = {
     id: number;
+    album_id: number | null;
     caption: string | null;
     original_name: string;
     size: number;
     url: string;
 };
 
+type Album = { id: number; name: string; count: number };
+
 type Stats = { total: number; size: number };
 
 type PageProps = {
     photos: Photo[];
+    albums: Album[];
+    active_album: string;
     stats: Stats;
     plan: { used: number; limit: number | null };
 };
@@ -67,7 +75,7 @@ function formatBytes(bytes: number): string {
     return `${value.toFixed(1)} ${units[unit]}`;
 }
 
-export default function GalleryIndex({ photos: photosProp, stats, plan }: PageProps) {
+export default function GalleryIndex({ photos: photosProp, albums, active_album, stats, plan }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('gallery');
 
@@ -80,8 +88,8 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
     const [selected, setSelected] = useState<Set<number>>(new Set());
 
     // Keep local order/state in sync whenever the server sends fresh props
-    // (after an upload, delete or caption edit). Drag reordering updates the
-    // list optimistically and persists with preserveState so it isn't clobbered.
+    // (after an upload, delete, move, caption edit, or album switch). Drag
+    // reordering updates the list optimistically with preserveState.
     useEffect(() => setPhotos(photosProp), [photosProp]);
 
     const captionForm = useForm<{ caption: string }>({ caption: '' });
@@ -90,6 +98,13 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
         useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
         useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
     );
+
+    const activeAlbum = albums.find((a) => String(a.id) === active_album) ?? null;
+
+    function goToAlbum(key: string) {
+        exitSelectMode();
+        router.get('/gallery', key === 'all' ? {} : { album: key }, { preserveScroll: true });
+    }
 
     function onFilesChosen(e: React.ChangeEvent<HTMLInputElement>) {
         const files = Array.from(e.target.files ?? []);
@@ -100,6 +115,10 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
 
         const fd = new FormData();
         files.forEach((f) => fd.append('photos[]', f));
+        // New photos land in the album you're currently viewing.
+        if (/^\d+$/.test(active_album)) {
+            fd.append('album_id', active_album);
+        }
 
         setUploading(true);
         router.post('/gallery', fd as unknown as Record<string, string>, {
@@ -168,6 +187,47 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
         });
     }
 
+    function setCover(photo: Photo) {
+        if (!confirm('Use this photo as your wedding website cover?')) {
+            return;
+        }
+
+        router.post(`/gallery/${photo.id}/cover`, {} as Record<string, never>, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Set as your website cover.'),
+        });
+    }
+
+    function downloadAll() {
+        window.location.href = '/gallery/download';
+    }
+
+    function newAlbum() {
+        const name = window.prompt('Name your album')?.trim();
+        if (!name) {
+            return;
+        }
+        router.post('/gallery/albums', { name }, { preserveScroll: true, onSuccess: () => toast.success('Album created.') });
+    }
+
+    function renameAlbum(album: Album) {
+        const name = window.prompt('Rename album', album.name)?.trim();
+        if (!name) {
+            return;
+        }
+        router.put(`/gallery/albums/${album.id}`, { name }, { preserveScroll: true, onSuccess: () => toast.success('Album renamed.') });
+    }
+
+    function deleteAlbum(album: Album) {
+        if (!confirm(`Delete album "${album.name}"? The photos move to Unsorted (they aren't deleted).`)) {
+            return;
+        }
+        router.delete(`/gallery/albums/${album.id}`, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Album deleted.'),
+        });
+    }
+
     function toggleSelect(id: number) {
         setSelected((prev) => {
             const next = new Set(prev);
@@ -203,6 +263,27 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
         );
     }
 
+    function moveSelected(value: string) {
+        if (selected.size === 0 || value === '') {
+            return;
+        }
+
+        router.post(
+            '/gallery/move',
+            {
+                ids: Array.from(selected),
+                album_id: value === 'unsorted' ? null : Number(value),
+            } as unknown as Record<string, string>,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Photos moved.');
+                    exitSelectMode();
+                },
+            },
+        );
+    }
+
     return (
         <>
             <Head title="Gallery" />
@@ -211,67 +292,113 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading
                         title="Gallery"
-                        description="Keep your favourite photos in one place — upload in bulk, drag to arrange, caption and curate."
+                        description="Upload in bulk, sort into albums, drag to arrange, caption, and download — all in one place."
                     />
-                    {writable && (
-                        <div className="flex flex-wrap items-center gap-2">
-                            <input
-                                ref={fileInput}
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                className="hidden"
-                                onChange={onFilesChosen}
-                            />
-                            {photos.length > 0 && (
-                                <Button
-                                    variant={selectMode ? 'default' : 'outline'}
-                                    onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
-                                >
-                                    <CheckCircle2 className="size-4" />
-                                    {selectMode ? 'Done' : 'Select'}
-                                </Button>
-                            )}
-                            <Button
-                                onClick={() => fileInput.current?.click()}
-                                disabled={uploading}
-                                data-test="upload-photo"
-                            >
-                                {uploading ? <Spinner /> : <Upload className="size-4" />}
-                                Upload photos
+                    <div className="flex flex-wrap items-center gap-2">
+                        {photos.length > 0 && (
+                            <Button variant="outline" onClick={downloadAll}>
+                                <Download className="size-4" />
+                                Download all
                             </Button>
-                        </div>
+                        )}
+                        {writable && photos.length > 0 && (
+                            <Button
+                                variant={selectMode ? 'default' : 'outline'}
+                                onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+                            >
+                                <CheckCircle2 className="size-4" />
+                                {selectMode ? 'Done' : 'Select'}
+                            </Button>
+                        )}
+                        {writable && (
+                            <>
+                                <input
+                                    ref={fileInput}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={onFilesChosen}
+                                />
+                                <Button onClick={() => fileInput.current?.click()} disabled={uploading} data-test="upload-photo">
+                                    {uploading ? <Spinner /> : <Upload className="size-4" />}
+                                    Upload photos
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Album bar */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <AlbumChip label="All photos" active={active_album === 'all'} onClick={() => goToAlbum('all')} />
+                    <AlbumChip label="Unsorted" active={active_album === 'unsorted'} onClick={() => goToAlbum('unsorted')} />
+                    {albums.map((a) => (
+                        <AlbumChip
+                            key={a.id}
+                            label={`${a.name} · ${a.count}`}
+                            active={active_album === String(a.id)}
+                            onClick={() => goToAlbum(String(a.id))}
+                        />
+                    ))}
+                    {writable && (
+                        <button
+                            type="button"
+                            onClick={newAlbum}
+                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[#8a651c] hover:text-[#8a651c]"
+                        >
+                            <FolderPlus className="size-3.5" />
+                            New album
+                        </button>
+                    )}
+                    {writable && activeAlbum && (
+                        <span className="ml-1 flex items-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => renameAlbum(activeAlbum)}>
+                                <Pencil className="size-3.5" />
+                                Rename
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => deleteAlbum(activeAlbum)}>
+                                <Trash2 className="size-3.5" />
+                                Delete album
+                            </Button>
+                        </span>
                     )}
                 </div>
 
                 {/* Selection action bar */}
                 {selectMode && (
                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 px-4 py-3">
-                        <span className="text-sm font-medium">
-                            {selected.size} selected
-                        </span>
-                        <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{selected.size} selected</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <select
+                                defaultValue=""
+                                onChange={(e) => moveSelected(e.target.value)}
+                                disabled={selected.size === 0}
+                                className="h-9 rounded-md border bg-background px-2 text-sm disabled:opacity-50"
+                                aria-label="Move selected photos to an album"
+                            >
+                                <option value="">Move to…</option>
+                                <option value="unsorted">Unsorted</option>
+                                {albums.map((a) => (
+                                    <option key={a.id} value={String(a.id)}>
+                                        {a.name}
+                                    </option>
+                                ))}
+                            </select>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() =>
                                     setSelected(
-                                        selected.size === photos.length
-                                            ? new Set()
-                                            : new Set(photos.map((p) => p.id)),
+                                        selected.size === photos.length ? new Set() : new Set(photos.map((p) => p.id)),
                                     )
                                 }
                             >
                                 {selected.size === photos.length ? 'Clear all' : 'Select all'}
                             </Button>
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                disabled={selected.size === 0}
-                                onClick={deleteSelected}
-                            >
+                            <Button variant="destructive" size="sm" disabled={selected.size === 0} onClick={deleteSelected}>
                                 <Trash2 className="size-4" />
-                                Delete selected
+                                Delete
                             </Button>
                         </div>
                     </div>
@@ -287,8 +414,12 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
                 {photos.length === 0 ? (
                     <Card>
                         <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
-                            <Images className="size-8 opacity-40" />
-                            {writable ? 'No photos yet. Upload your first shots.' : 'No photos have been added yet.'}
+                            {activeAlbum ? <Folder className="size-8 opacity-40" /> : <Images className="size-8 opacity-40" />}
+                            {writable
+                                ? activeAlbum
+                                    ? `No photos in “${activeAlbum.name}” yet. Upload some, or move photos here.`
+                                    : 'No photos yet. Upload your first shots.'
+                                : 'No photos have been added yet.'}
                             {writable && (
                                 <Button variant="outline" className="mt-2" onClick={() => fileInput.current?.click()}>
                                     <ImagePlus className="size-4" />
@@ -300,7 +431,7 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
                 ) : (
                     <>
                         {writable && !selectMode && photos.length > 1 && (
-                            <p className="-mt-2 text-xs text-muted-foreground">Drag any photo to rearrange your gallery.</p>
+                            <p className="-mt-2 text-xs text-muted-foreground">Drag any photo to rearrange this view.</p>
                         )}
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <SortableContext items={photos.map((p) => p.id)} strategy={rectSortingStrategy}>
@@ -316,6 +447,7 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
                                             onToggleSelect={() => toggleSelect(photo.id)}
                                             onEdit={() => openEdit(photo)}
                                             onDelete={() => destroy(photo)}
+                                            onCover={() => setCover(photo)}
                                         />
                                     ))}
                                 </div>
@@ -374,6 +506,22 @@ export default function GalleryIndex({ photos: photosProp, stats, plan }: PagePr
     );
 }
 
+function AlbumChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+                active
+                    ? 'bg-[#8a651c] text-white'
+                    : 'border border-border text-muted-foreground hover:border-[#8a651c] hover:text-foreground'
+            }`}
+        >
+            {label}
+        </button>
+    );
+}
+
 function SortablePhoto({
     photo,
     writable,
@@ -383,6 +531,7 @@ function SortablePhoto({
     onToggleSelect,
     onEdit,
     onDelete,
+    onCover,
 }: {
     photo: Photo;
     writable: boolean;
@@ -392,6 +541,7 @@ function SortablePhoto({
     onToggleSelect: () => void;
     onEdit: () => void;
     onDelete: () => void;
+    onCover: () => void;
 }) {
     // Dragging is disabled while selecting so taps register as selection.
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -433,7 +583,6 @@ function SortablePhoto({
                 </div>
             )}
 
-            {/* Selection checkbox */}
             {selectMode && (
                 <div
                     className={`absolute left-2 top-2 flex size-6 items-center justify-center rounded-full border-2 ${
@@ -444,7 +593,6 @@ function SortablePhoto({
                 </div>
             )}
 
-            {/* Drag handle */}
             {writable && !selectMode && (
                 <button
                     type="button"
@@ -457,9 +605,11 @@ function SortablePhoto({
                 </button>
             )}
 
-            {/* Edit + delete */}
             {writable && !selectMode && (
                 <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button variant="secondary" size="icon" className="size-7" onClick={onCover} aria-label="Set as website cover">
+                        <Star className="size-3.5" />
+                    </Button>
                     <Button variant="secondary" size="icon" className="size-7" onClick={onEdit} aria-label="Edit caption">
                         <Pencil className="size-3.5" />
                     </Button>

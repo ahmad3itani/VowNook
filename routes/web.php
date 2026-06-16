@@ -402,6 +402,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Photo gallery workspace.
     Route::middleware('permission:gallery,read')->group(function () {
         Route::get('gallery', [GalleryController::class, 'index'])->name('gallery.index');
+        Route::get('gallery/download', [GalleryController::class, 'downloadAll'])->name('gallery.download');
         Route::get('gallery/{photo}/file', [GalleryController::class, 'file'])->name('gallery.file');
     });
 
@@ -409,6 +410,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('gallery', [GalleryController::class, 'store'])->name('gallery.store');
         Route::post('gallery/reorder', [GalleryController::class, 'reorder'])->name('gallery.reorder');
         Route::post('gallery/bulk-delete', [GalleryController::class, 'destroyMany'])->name('gallery.bulk-delete');
+        Route::post('gallery/move', [GalleryController::class, 'moveToAlbum'])->name('gallery.move');
+        Route::post('gallery/albums', [GalleryController::class, 'storeAlbum'])->name('gallery.albums.store');
+        Route::put('gallery/albums/{album}', [GalleryController::class, 'updateAlbum'])->name('gallery.albums.update');
+        Route::delete('gallery/albums/{album}', [GalleryController::class, 'destroyAlbum'])->name('gallery.albums.destroy');
+        Route::post('gallery/{photo}/cover', [GalleryController::class, 'setAsCover'])->name('gallery.cover');
         Route::put('gallery/{photo}', [GalleryController::class, 'update'])->name('gallery.update');
         Route::delete('gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
     });

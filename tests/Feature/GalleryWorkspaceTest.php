@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\GalleryAlbum;
 use App\Models\GalleryPhoto;
 use App\Models\User;
 use App\Models\Wedding;
@@ -137,6 +138,121 @@ class GalleryWorkspaceTest extends TestCase
         $this->assertDatabaseMissing('gallery_photos', ['id' => $mine[0]->id]);
         $this->assertDatabaseMissing('gallery_photos', ['id' => $mine[1]->id]);
         $this->assertDatabaseHas('gallery_photos', ['id' => $foreign->id]);
+    }
+
+    public function test_albums_can_be_created_renamed_and_deleted(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+
+        $this->actingAs($user)->post('/gallery/albums', ['name' => 'Engagement'])->assertRedirect();
+        $album = GalleryAlbum::firstOrFail();
+        $this->assertSame($wedding->id, $album->wedding_id);
+        $this->assertSame('Engagement', $album->name);
+
+        $this->actingAs($user)->put("/gallery/albums/{$album->id}", ['name' => 'Engagement Shoot'])->assertRedirect();
+        $this->assertSame('Engagement Shoot', $album->fresh()->name);
+
+        $this->actingAs($user)->delete("/gallery/albums/{$album->id}")->assertRedirect();
+        $this->assertDatabaseMissing('gallery_albums', ['id' => $album->id]);
+    }
+
+    public function test_deleting_an_album_unsorts_its_photos(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $album = GalleryAlbum::create(['wedding_id' => $wedding->id, 'name' => 'A', 'sort_order' => 1]);
+        $photo = GalleryPhoto::factory()->create(['wedding_id' => $wedding->id, 'album_id' => $album->id]);
+
+        $this->actingAs($user)->delete("/gallery/albums/{$album->id}")->assertRedirect();
+
+        $this->assertNull($photo->fresh()->album_id);
+        $this->assertDatabaseHas('gallery_photos', ['id' => $photo->id]);
+    }
+
+    public function test_photos_can_be_moved_between_albums(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $album = GalleryAlbum::create(['wedding_id' => $wedding->id, 'name' => 'A', 'sort_order' => 1]);
+        $a = GalleryPhoto::factory()->create(['wedding_id' => $wedding->id]);
+        $b = GalleryPhoto::factory()->create(['wedding_id' => $wedding->id]);
+
+        $this->actingAs($user)->post('/gallery/move', [
+            'ids' => [$a->id, $b->id],
+            'album_id' => $album->id,
+        ])->assertRedirect();
+
+        $this->assertSame($album->id, $a->fresh()->album_id);
+        $this->assertSame($album->id, $b->fresh()->album_id);
+
+        $this->actingAs($user)->post('/gallery/move', [
+            'ids' => [$a->id],
+            'album_id' => null,
+        ])->assertRedirect();
+
+        $this->assertNull($a->fresh()->album_id);
+    }
+
+    public function test_index_filters_photos_by_album(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $album = GalleryAlbum::create(['wedding_id' => $wedding->id, 'name' => 'A', 'sort_order' => 1]);
+        GalleryPhoto::factory()->create(['wedding_id' => $wedding->id, 'album_id' => $album->id]);
+        GalleryPhoto::factory()->count(2)->create(['wedding_id' => $wedding->id]);
+
+        $this->actingAs($user)->get("/gallery?album={$album->id}")
+            ->assertInertia(fn ($page) => $page->component('gallery/index')->has('photos', 1)->has('albums', 1));
+
+        $this->actingAs($user)->get('/gallery?album=unsorted')
+            ->assertInertia(fn ($page) => $page->has('photos', 2));
+
+        $this->actingAs($user)->get('/gallery')
+            ->assertInertia(fn ($page) => $page->has('photos', 3));
+    }
+
+    public function test_cannot_modify_another_weddings_album(): void
+    {
+        [$user] = $this->ownerWithWedding();
+        $foreignWedding = Wedding::factory()->create();
+        $foreign = GalleryAlbum::create(['wedding_id' => $foreignWedding->id, 'name' => 'X', 'sort_order' => 1]);
+
+        $this->actingAs($user)->put("/gallery/albums/{$foreign->id}", ['name' => 'hacked'])->assertNotFound();
+        $this->actingAs($user)->delete("/gallery/albums/{$foreign->id}")->assertNotFound();
+    }
+
+    public function test_set_as_cover_copies_photo_to_website_hero(): void
+    {
+        Storage::fake();
+        [$user, $wedding] = $this->ownerWithWedding();
+
+        $this->actingAs($user)->post('/gallery', [
+            'photos' => [UploadedFile::fake()->image('hero.jpg', 1200, 800)],
+        ]);
+        $photo = GalleryPhoto::firstOrFail();
+
+        $this->actingAs($user)->post("/gallery/{$photo->id}/cover")->assertRedirect();
+
+        $hero = $wedding->website()->first()?->hero_image_path;
+        $this->assertNotNull($hero);
+        $this->assertStringContainsString("websites/{$wedding->id}/hero/", $hero);
+        Storage::assertExists($hero);
+    }
+
+    public function test_download_all_returns_a_zip(): void
+    {
+        Storage::fake();
+        [$user] = $this->ownerWithWedding();
+
+        $this->actingAs($user)->post('/gallery', [
+            'photos' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')],
+        ]);
+
+        $this->actingAs($user)->get('/gallery/download')->assertDownload('vownook-gallery.zip');
+    }
+
+    public function test_download_all_redirects_when_empty(): void
+    {
+        [$user] = $this->ownerWithWedding();
+
+        $this->actingAs($user)->get('/gallery/download')->assertRedirect();
     }
 
     public function test_file_route_is_scoped_to_the_active_wedding(): void
