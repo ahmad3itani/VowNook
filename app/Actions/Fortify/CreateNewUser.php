@@ -66,6 +66,12 @@ class CreateNewUser implements CreatesNewUsers
 
         $user->notify(new \App\Notifications\WelcomeNotification());
 
+        // Let admins know a new account joined (email + in-app bell).
+        \Illuminate\Support\Facades\Notification::send(
+            User::where('is_admin', true)->get(),
+            new \App\Notifications\NewUserRegistered($user),
+        );
+
         return $user;
     }
 }

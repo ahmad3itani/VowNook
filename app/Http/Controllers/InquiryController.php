@@ -169,6 +169,16 @@ class InquiryController extends Controller
             $inquiry->vendorProfile?->user?->notify(new OfferAccepted($inquiry, $inquiry->offer));
         }
 
+        // Tell admins a booking just landed on the platform.
+        $booking = Booking::where('inquiry_id', $inquiry->id)->latest('id')->first();
+        if ($booking) {
+            $booking->loadMissing(['vendorProfile', 'wedding']);
+            \Illuminate\Support\Facades\Notification::send(
+                \App\Models\User::where('is_admin', true)->get(),
+                new \App\Notifications\NewBookingPlaced($booking),
+            );
+        }
+
         return redirect()->route('quotes.show', $inquiry)
             ->with('status', 'offer-accepted');
     }

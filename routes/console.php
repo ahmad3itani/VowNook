@@ -17,3 +17,4 @@ Schedule::command('vendors:unanswered-inquiries')->dailyAt('15:00');
 Schedule::command('weddings:weekly-digest')->weeklyOn(1, '14:30'); // Mondays
 Schedule::command('plans:expire-comps')->dailyAt('02:00');
 Schedule::command('weddings:post-wedding')->dailyAt('16:00');
+Schedule::command('admin:daily-digest')->dailyAt('08:00');

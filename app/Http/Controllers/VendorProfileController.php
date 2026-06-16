@@ -259,6 +259,12 @@ class VendorProfileController extends Controller
             'agreement_accepted_at' => now(),
         ]);
 
+        // Notify admins so the moderation queue gets actioned promptly.
+        \Illuminate\Support\Facades\Notification::send(
+            \App\Models\User::where('is_admin', true)->get(),
+            new \App\Notifications\VendorSubmittedForReview($profile),
+        );
+
         return back()->with('status', 'submitted-for-review');
     }
 
