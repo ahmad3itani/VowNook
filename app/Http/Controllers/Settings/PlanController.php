@@ -40,6 +40,7 @@ class PlanController extends Controller
         return Inertia::render('settings/plan', [
             'current' => $user->planKey(),
             'account_type' => $user->account_type?->value ?? 'couple',
+            'stripe_enabled' => filled(config('services.stripe.secret')),
             'tiers' => $tiers,
             'comped_until' => $user->plan_comped_until?->toFormattedDateString(),
             'referral' => [

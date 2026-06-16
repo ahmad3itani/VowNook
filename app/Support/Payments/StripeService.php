@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\User;
 use App\Models\VendorProfile;
 use Illuminate\Support\Facades\Log;
 use Stripe\Event;
@@ -89,7 +90,65 @@ class StripeService
         ])->save();
     }
 
-    // ── Checkout ────────────────────────────────────────────────────────────
+    // ── SaaS plan billing ────────────────────────────────────────────────────
+
+    /** Ensure the user has a Stripe Customer; returns its id. */
+    public function ensureCustomer(User $user): string
+    {
+        if (filled($user->stripe_customer_id)) {
+            return $user->stripe_customer_id;
+        }
+
+        $customer = $this->client()->customers->create([
+            'email' => $user->email,
+            'name' => $user->name,
+            'metadata' => ['user_id' => $user->id],
+        ]);
+
+        $user->forceFill(['stripe_customer_id' => $customer->id])->save();
+
+        return $customer->id;
+    }
+
+    /**
+     * Hosted Checkout to upgrade a user's plan: a one-time payment for the
+     * couple Atelier tier (priced per wedding) or an annual subscription for
+     * Planner HQ. Returns the URL to redirect the user to.
+     */
+    public function planCheckout(User $user, string $tier, string $successUrl, string $cancelUrl): string
+    {
+        $config = config("plans.tiers.{$tier}");
+        $isSubscription = $tier === 'planner';
+
+        $params = [
+            'mode' => $isSubscription ? 'subscription' : 'payment',
+            'customer' => $this->ensureCustomer($user),
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => array_filter([
+                    'currency' => 'cad',
+                    'unit_amount' => ((int) $config['price']) * 100,
+                    'product_data' => ['name' => 'VowNook — '.$config['name']],
+                    'recurring' => $isSubscription ? ['interval' => 'year'] : null,
+                ]),
+            ]],
+            'metadata' => ['user_id' => $user->id, 'plan_tier' => $tier],
+        ];
+
+        // Mirror metadata onto the subscription so subscription.* webhooks can
+        // resolve the user even without the original Checkout session.
+        if ($isSubscription) {
+            $params['subscription_data'] = [
+                'metadata' => ['user_id' => $user->id, 'plan_tier' => $tier],
+            ];
+        }
+
+        return $this->client()->checkout->sessions->create($params)->url;
+    }
+
+    // ── Checkout (marketplace bookings) ──────────────────────────────────────
 
     /** The amount (cents) due for a given payment stage on a booking. */
     public function amountFor(Booking $booking, PaymentType $type): int
@@ -203,6 +262,8 @@ class StripeService
     {
         match ($event->type) {
             'checkout.session.completed' => $this->onCheckoutCompleted($event->data->object),
+            'customer.subscription.updated' => $this->onSubscriptionUpdated($event->data->object),
+            'customer.subscription.deleted' => $this->onSubscriptionEnded($event->data->object),
             'account.updated' => $this->onAccountUpdated($event->data->object),
             'charge.refunded' => $this->onChargeRefunded($event->data->object),
             default => null,
@@ -211,6 +272,14 @@ class StripeService
 
     protected function onCheckoutCompleted($session): void
     {
+        // SaaS plan purchases carry a plan_tier in metadata; bookings don't.
+        $tier = $session->metadata->plan_tier ?? null;
+        if ($tier !== null) {
+            $this->onPlanPurchased($session, $tier);
+
+            return;
+        }
+
         $payment = Payment::where('stripe_session_id', $session->id)->first();
 
         if ($payment === null || $payment->status === PaymentStatus::Succeeded) {
@@ -241,6 +310,52 @@ class StripeService
             ->sum('amount_cents');
 
         $booking->vendor?->update(['paid_cents' => $paid]);
+    }
+
+    /** A completed plan Checkout (one-time Atelier or the first HQ invoice). */
+    protected function onPlanPurchased($session, string $tier): void
+    {
+        $userId = $session->metadata->user_id ?? null;
+        $user = $userId ? User::find($userId) : null;
+
+        if ($user === null) {
+            return;
+        }
+
+        $user->forceFill([
+            'plan' => $tier,
+            'stripe_subscription_id' => $session->subscription ?? $user->stripe_subscription_id,
+            // A real purchase supersedes any comp-code grant.
+            'plan_comped_until' => null,
+        ])->save();
+    }
+
+    /** Keep the planner subscription's plan in sync with its Stripe status. */
+    protected function onSubscriptionUpdated($subscription): void
+    {
+        $user = User::where('stripe_subscription_id', $subscription->id)->first();
+
+        if ($user === null) {
+            return;
+        }
+
+        if (in_array($subscription->status, ['active', 'trialing'], true)) {
+            $user->forceFill(['plan' => 'planner'])->save();
+        } elseif (in_array($subscription->status, ['canceled', 'unpaid'], true)) {
+            $user->forceFill(['plan' => config('plans.default'), 'stripe_subscription_id' => null])->save();
+        }
+        // past_due / incomplete: leave the plan in place (Stripe is retrying).
+    }
+
+    /** The planner subscription was cancelled — revert to the free plan. */
+    protected function onSubscriptionEnded($subscription): void
+    {
+        $user = User::where('stripe_subscription_id', $subscription->id)->first();
+
+        $user?->forceFill([
+            'plan' => config('plans.default'),
+            'stripe_subscription_id' => null,
+        ])->save();
     }
 
     protected function onAccountUpdated($account): void

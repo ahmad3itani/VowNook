@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\NotificationController;
+use App\Http\Controllers\Settings\PlanCheckoutController;
 use App\Http\Controllers\Settings\PlanController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\RedeemPromoController;
@@ -31,6 +32,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/plan', [PlanController::class, 'edit'])->name('plan.edit');
     Route::post('settings/plan/redeem', [RedeemPromoController::class, 'store'])
         ->middleware('throttle:6,1')->name('plan.redeem');
+    Route::post('settings/plan/checkout', [PlanCheckoutController::class, 'checkout'])
+        ->middleware('throttle:12,1')->name('plan.checkout');
 
     Route::get('settings/notifications', [NotificationController::class, 'edit'])->name('notifications.edit');
     Route::put('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');

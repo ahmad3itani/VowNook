@@ -1,5 +1,6 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Check, Gift, Store, Ticket } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -22,6 +23,7 @@ type Tier = {
 type PageProps = {
     current: string;
     account_type: string;
+    stripe_enabled: boolean;
     tiers: Tier[];
     comped_until: string | null;
     referral: { code: string; url: string; count: number; reward_days: number };
@@ -59,8 +61,32 @@ function featureLines(tier: Tier): string[] {
     return [...lines, ...flags];
 }
 
-export default function Plan({ current, account_type, tiers, comped_until, referral }: PageProps) {
+export default function Plan({ current, account_type, stripe_enabled, tiers, comped_until, referral }: PageProps) {
     const promo = useForm({ code: '' });
+    const [checkingOut, setCheckingOut] = useState<string | null>(null);
+
+    // Surface the Stripe Checkout outcome when the user is redirected back.
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const result = params.get('checkout');
+        if (result === 'success') {
+            toast.success('Payment received — your plan upgrades within a moment.');
+        } else if (result === 'cancel') {
+            toast('Checkout cancelled — no charge was made.');
+        }
+        if (result) {
+            window.history.replaceState({}, '', '/settings/plan');
+        }
+    }, []);
+
+    function upgrade(tierKey: string) {
+        setCheckingOut(tierKey);
+        router.post(
+            '/settings/plan/checkout',
+            { tier: tierKey },
+            { onFinish: () => setCheckingOut(null) },
+        );
+    }
 
     function redeem(e: React.FormEvent) {
         e.preventDefault();
@@ -159,6 +185,20 @@ export default function Plan({ current, account_type, tiers, comped_until, refer
                                         </li>
                                     ))}
                                 </ul>
+
+                                {stripe_enabled && !isCurrent && tier.price > 0 && (
+                                    <Button
+                                        className="mt-2 w-full"
+                                        disabled={checkingOut !== null}
+                                        onClick={() => upgrade(tier.key)}
+                                    >
+                                        {checkingOut === tier.key
+                                            ? 'Redirecting…'
+                                            : tier.key === 'planner'
+                                              ? 'Subscribe — $499/yr'
+                                              : 'Upgrade — $99'}
+                                    </Button>
+                                )}
                             </div>
                         );
                     })}
@@ -214,10 +254,16 @@ export default function Plan({ current, account_type, tiers, comped_until, refer
                     </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
-                    Online billing is coming soon. To change your plan in the
-                    meantime, redeem a code above or contact your administrator.
-                </p>
+                {stripe_enabled ? (
+                    <p className="text-sm text-muted-foreground">
+                        Payments are processed securely by Stripe. Have a promo code instead? Redeem it above.
+                    </p>
+                ) : (
+                    <p className="text-sm text-muted-foreground">
+                        Online billing isn’t enabled yet. To change your plan in the meantime, redeem a code
+                        above or contact your administrator.
+                    </p>
+                )}
             </div>
         </>
     );
