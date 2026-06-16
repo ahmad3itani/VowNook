@@ -83,6 +83,29 @@ Without these, **no emails send and none of the lifecycle/marketing/post-wedding
   `https://vownook.com/stripe/webhook`.
 - Optional: enable **SSR** (`INERTIA_SSR_ENABLED=true` + an SSR worker) for full-body crawlability.
 
+## 11. Optional: enable SSR (server-rendered page bodies)
+
+The SEO `<head>` (titles, meta, canonical, JSON-LD) is already server-rendered, so Google
+indexes you fine without this. SSR additionally server-renders the **page body** so non-JS
+crawlers and AI assistants see full content. The code is SSR-ready (`pnpm build:ssr` builds
+`bootstrap/ssr/app.js`; `config/inertia.php` is env-gated). To turn it on in Laravel Cloud:
+
+1. **Build command** → change `pnpm run build` to **`pnpm run build:ssr`** (builds the SSR bundle).
+2. **Env vars** → add:
+   ```
+   INERTIA_SSR_ENABLED=true
+   INERTIA_SSR_THROW=false
+   ```
+   (`THROW=false` means if a page errors under SSR it silently falls back to client rendering —
+   safe.)
+3. **SSR process** → add a Worker/daemon running **`php artisan inertia:start-ssr`** (a
+   long-running Node process; costs a bit of compute).
+4. **Deploy**, then `curl https://vownook.com` and confirm `<div id="app">` contains rendered
+   markup (not an empty div).
+
+Trade-off: extra compute for the SSR process, modest SEO upside (Google renders JS anyway).
+Prioritize recruiting vendors over this.
+
 ---
 
 ### What only you can do (I can't)
