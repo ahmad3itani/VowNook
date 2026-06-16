@@ -71,6 +71,33 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
 
+// TEMPORARY diagnostic — reports what the live WEB workers actually see for the
+// S3/R2 filesystem adapter. Remove once uploads are confirmed working.
+Route::get('__fsdebug', function () {
+    $out = [
+        'php' => PHP_VERSION,
+        'filesystem_disk' => config('filesystems.default'),
+        'flysystem_aws_version' => class_exists(\Composer\InstalledVersions::class)
+            ? \Composer\InstalledVersions::getPrettyVersion('league/flysystem-aws-s3-v3')
+            : 'InstalledVersions unavailable',
+        'class_exists' => class_exists('League\\Flysystem\\AwsS3V3\\PortableVisibilityConverter'),
+        'autoloader_file_on_disk' => is_file(base_path('vendor/league/flysystem-aws-s3-v3/PortableVisibilityConverter.php')),
+        'opcache' => function_exists('opcache_get_status')
+            ? (($s = @opcache_get_status(false)) ? ['enabled' => $s['opcache_enabled'] ?? null] : 'disabled')
+            : 'no_opcache',
+    ];
+    try {
+        // Resolving the s3 disk runs createS3Driver(), which instantiates
+        // PortableVisibilityConverter — the exact line that 500s on upload.
+        $disk = \Illuminate\Support\Facades\Storage::disk('s3');
+        $out['build_s3_disk'] = 'ok ('.get_class($disk).')';
+    } catch (\Throwable $e) {
+        $out['build_s3_disk'] = get_class($e).': '.$e->getMessage();
+    }
+
+    return response()->json($out);
+});
+
 // Stripe webhook — public, CSRF-exempt (see bootstrap/app.php), signature-verified.
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
