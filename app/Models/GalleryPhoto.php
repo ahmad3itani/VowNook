@@ -20,12 +20,14 @@ class GalleryPhoto extends Model
         'mime',
         'size',
         'caption',
+        'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
             'size' => 'integer',
+            'sort_order' => 'integer',
         ];
     }
 
@@ -38,5 +40,11 @@ class GalleryPhoto extends Model
     public function scopeForWedding(Builder $query, int $weddingId): Builder
     {
         return $query->where('wedding_id', $weddingId);
+    }
+
+    /** Couple-defined display order; newest first as a tiebreaker. */
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('sort_order')->orderByDesc('id');
     }
 }

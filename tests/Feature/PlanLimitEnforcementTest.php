@@ -72,11 +72,11 @@ class PlanLimitEnforcementTest extends TestCase
         ]);
 
         $this->actingAs($user)->post('/gallery', [
-            'photo' => UploadedFile::fake()->image('one.jpg'),
+            'photos' => [UploadedFile::fake()->image('one.jpg')],
         ])->assertRedirect();
 
         $this->actingAs($user)->post('/gallery', [
-            'photo' => UploadedFile::fake()->image('two.jpg'),
+            'photos' => [UploadedFile::fake()->image('two.jpg')],
         ])->assertSessionHasErrors('photo');
     }
 

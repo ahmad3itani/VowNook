@@ -39,20 +39,21 @@ class GalleryWorkspaceTest extends TestCase
             );
     }
 
-    public function test_member_can_upload_a_photo(): void
+    public function test_member_can_upload_photos(): void
     {
         Storage::fake();
         [$user, $wedding] = $this->ownerWithWedding();
 
         $this->actingAs($user)->post('/gallery', [
-            'photo' => UploadedFile::fake()->image('first-dance.jpg', 800, 600),
-            'caption' => 'Our first dance',
+            'photos' => [
+                UploadedFile::fake()->image('first-dance.jpg', 800, 600),
+                UploadedFile::fake()->image('cake.jpg', 800, 600),
+            ],
         ])->assertRedirect();
 
-        $photo = GalleryPhoto::firstOrFail();
+        $this->assertSame(2, GalleryPhoto::where('wedding_id', $wedding->id)->count());
+        $photo = GalleryPhoto::where('original_name', 'first-dance.jpg')->firstOrFail();
         $this->assertSame($wedding->id, $photo->wedding_id);
-        $this->assertSame('first-dance.jpg', $photo->original_name);
-        $this->assertSame('Our first dance', $photo->caption);
         Storage::assertExists($photo->path);
     }
 
@@ -62,8 +63,8 @@ class GalleryWorkspaceTest extends TestCase
         [$user] = $this->ownerWithWedding();
 
         $this->actingAs($user)->post('/gallery', [
-            'photo' => UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
-        ])->assertSessionHasErrors('photo');
+            'photos' => [UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf')],
+        ])->assertSessionHasErrors('photos.0');
     }
 
     public function test_viewer_cannot_upload(): void
@@ -77,8 +78,65 @@ class GalleryWorkspaceTest extends TestCase
         $viewer->forceFill(['current_wedding_id' => $wedding->id])->save();
 
         $this->actingAs($viewer)->post('/gallery', [
-            'photo' => UploadedFile::fake()->image('nope.jpg'),
+            'photos' => [UploadedFile::fake()->image('nope.jpg')],
         ])->assertForbidden();
+    }
+
+    public function test_caption_can_be_updated(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $photo = GalleryPhoto::factory()->create(['wedding_id' => $wedding->id]);
+
+        $this->actingAs($user)
+            ->put("/gallery/{$photo->id}", ['caption' => 'Golden hour'])
+            ->assertRedirect();
+
+        $this->assertSame('Golden hour', $photo->fresh()->caption);
+    }
+
+    public function test_photos_can_be_reordered(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $a = GalleryPhoto::factory()->create(['wedding_id' => $wedding->id, 'sort_order' => 0]);
+        $b = GalleryPhoto::factory()->create(['wedding_id' => $wedding->id, 'sort_order' => 1]);
+
+        $this->actingAs($user)->post('/gallery/reorder', [
+            'items' => [
+                ['id' => $a->id, 'sort_order' => 1],
+                ['id' => $b->id, 'sort_order' => 0],
+            ],
+        ])->assertRedirect();
+
+        $this->assertSame(1, $a->fresh()->sort_order);
+        $this->assertSame(0, $b->fresh()->sort_order);
+    }
+
+    public function test_reorder_ignores_photos_from_other_weddings(): void
+    {
+        [$user] = $this->ownerWithWedding();
+        $foreign = GalleryPhoto::factory()->create(['sort_order' => 5]);
+
+        $this->actingAs($user)->post('/gallery/reorder', [
+            'items' => [['id' => $foreign->id, 'sort_order' => 99]],
+        ])->assertRedirect();
+
+        $this->assertSame(5, $foreign->fresh()->sort_order);
+    }
+
+    public function test_bulk_delete_removes_only_own_photos(): void
+    {
+        Storage::fake();
+        [$user, $wedding] = $this->ownerWithWedding();
+        $mine = GalleryPhoto::factory()->count(2)->create(['wedding_id' => $wedding->id]);
+        $foreign = GalleryPhoto::factory()->create();
+
+        $this->actingAs($user)->post('/gallery/bulk-delete', [
+            'ids' => [$mine[0]->id, $mine[1]->id, $foreign->id],
+        ])->assertRedirect();
+
+        $this->assertDatabaseMissing('gallery_photos', ['id' => $mine[0]->id]);
+        $this->assertDatabaseMissing('gallery_photos', ['id' => $mine[1]->id]);
+        $this->assertDatabaseHas('gallery_photos', ['id' => $foreign->id]);
     }
 
     public function test_file_route_is_scoped_to_the_active_wedding(): void
@@ -98,7 +156,7 @@ class GalleryWorkspaceTest extends TestCase
         [$user, $wedding] = $this->ownerWithWedding();
 
         $this->actingAs($user)->post('/gallery', [
-            'photo' => UploadedFile::fake()->image('shot.jpg'),
+            'photos' => [UploadedFile::fake()->image('shot.jpg')],
         ]);
 
         $photo = GalleryPhoto::firstOrFail();

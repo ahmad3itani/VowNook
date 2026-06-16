@@ -363,10 +363,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:website,write')->name('website.music.remove');
     Route::post('website/gallery', [WebsiteGalleryController::class, 'store'])
         ->middleware('permission:website,write')->name('website.gallery.store');
-    Route::delete('website/gallery/{photo}', [WebsiteGalleryController::class, 'destroy'])
-        ->middleware('permission:website,write')->name('website.gallery.destroy');
     Route::post('website/gallery/reorder', [WebsiteGalleryController::class, 'reorder'])
         ->middleware('permission:website,write')->name('website.gallery.reorder');
+    Route::post('website/gallery/bulk-delete', [WebsiteGalleryController::class, 'destroyMany'])
+        ->middleware('permission:website,write')->name('website.gallery.bulk-delete');
+    Route::put('website/gallery/{photo}', [WebsiteGalleryController::class, 'update'])
+        ->middleware('permission:website,write')->name('website.gallery.update');
+    Route::delete('website/gallery/{photo}', [WebsiteGalleryController::class, 'destroy'])
+        ->middleware('permission:website,write')->name('website.gallery.destroy');
 
     // Collaborators (team access & roles).
     Route::get('collaborators', [CollaboratorController::class, 'index'])
@@ -403,6 +407,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:gallery,write')->group(function () {
         Route::post('gallery', [GalleryController::class, 'store'])->name('gallery.store');
+        Route::post('gallery/reorder', [GalleryController::class, 'reorder'])->name('gallery.reorder');
+        Route::post('gallery/bulk-delete', [GalleryController::class, 'destroyMany'])->name('gallery.bulk-delete');
         Route::put('gallery/{photo}', [GalleryController::class, 'update'])->name('gallery.update');
         Route::delete('gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
     });

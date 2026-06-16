@@ -15,16 +15,19 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
+    CheckCircle2,
     ExternalLink,
     GripVertical,
     Globe,
     Image,
     Loader2,
     Music,
+    Pencil,
     Plus,
     Trash2,
     Upload,
     Video,
+    X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -113,6 +116,10 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
     const [storyPreview, setStoryPreview] = useState<string | null>(website.story_image_preview);
     const [musicUrl, setMusicUrl] = useState<string | null>(website.music_url);
     const [uploading, setUploading] = useState<Record<string, boolean>>({});
+    const [selecting, setSelecting] = useState(false);
+    const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(new Set());
+    const [captionEdit, setCaptionEdit] = useState<Photo | null>(null);
+    const [captionText, setCaptionText] = useState('');
 
     // Timeline editor state
     const [newItem, setNewItem] = useState<TimelineItem>({ year: '', title: '', body: '' });
@@ -202,6 +209,57 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                 setPhotos(fresh);
             },
         });
+    }
+
+    function toggleSelectPhoto(id: number) {
+        setSelectedPhotos((prev) => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    }
+
+    function exitSelecting() {
+        setSelecting(false);
+        setSelectedPhotos(new Set());
+    }
+
+    function deleteSelectedPhotos() {
+        if (selectedPhotos.size === 0) return;
+        if (!confirm(`Delete ${selectedPhotos.size} selected photo${selectedPhotos.size > 1 ? 's' : ''}?`)) return;
+        router.post(
+            '/website/gallery/bulk-delete',
+            { ids: Array.from(selectedPhotos) } as unknown as Record<string, string>,
+            {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    setPhotos((page.props as unknown as PageProps).website.photos);
+                    exitSelecting();
+                    toast.success('Photos deleted.');
+                },
+            },
+        );
+    }
+
+    function openCaptionEdit(photo: Photo) {
+        setCaptionText(photo.caption ?? '');
+        setCaptionEdit(photo);
+    }
+
+    function saveCaption() {
+        if (!captionEdit) return;
+        router.put(
+            `/website/gallery/${captionEdit.id}`,
+            { caption: captionText } as unknown as Record<string, string>,
+            {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    setPhotos((page.props as unknown as PageProps).website.photos);
+                    setCaptionEdit(null);
+                    toast.success('Caption saved.');
+                },
+            },
+        );
     }
 
     const sensors = useSensors(useSensor(PointerSensor));
@@ -567,6 +625,38 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
+                            {writable && photos.length > 0 && (
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-xs text-muted-foreground">
+                                        {selecting
+                                            ? `${selectedPhotos.size} selected`
+                                            : 'Drag to reorder · hover a photo to caption or remove it.'}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        {selecting && (
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="sm"
+                                                disabled={selectedPhotos.size === 0}
+                                                onClick={deleteSelectedPhotos}
+                                            >
+                                                <Trash2 className="mr-1.5 size-3.5" />
+                                                Delete selected
+                                            </Button>
+                                        )}
+                                        <Button
+                                            type="button"
+                                            variant={selecting ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => (selecting ? exitSelecting() : setSelecting(true))}
+                                        >
+                                            <CheckCircle2 className="mr-1.5 size-3.5" />
+                                            {selecting ? 'Done' : 'Select'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                             <DndContext
                                 sensors={sensors}
                                 collisionDetection={closestCenter}
@@ -582,6 +672,10 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                                                 key={photo.id}
                                                 photo={photo}
                                                 onDelete={deletePhoto}
+                                                onEdit={openCaptionEdit}
+                                                selecting={selecting}
+                                                selected={selectedPhotos.has(photo.id)}
+                                                onToggleSelect={toggleSelectPhoto}
                                                 disabled={!writable}
                                             />
                                         ))}
@@ -647,6 +741,46 @@ export default function WebsiteIndex({ website, public_url }: PageProps) {
                     )}
                 </form>
             </div>
+
+            {/* Caption editor */}
+            {captionEdit && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
+                    onClick={() => setCaptionEdit(null)}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-xl bg-background p-5 shadow-xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mb-3 flex items-center justify-between">
+                            <h3 className="text-sm font-semibold">Edit caption</h3>
+                            <button type="button" onClick={() => setCaptionEdit(null)} aria-label="Close">
+                                <X className="size-4 text-muted-foreground" />
+                            </button>
+                        </div>
+                        <img
+                            src={captionEdit.url}
+                            alt=""
+                            className="mb-3 aspect-video w-full rounded-lg object-cover"
+                        />
+                        <Input
+                            value={captionText}
+                            onChange={(e) => setCaptionText(e.target.value)}
+                            placeholder="Add a caption…"
+                            autoFocus
+                            onKeyDown={(e) => e.key === 'Enter' && saveCaption()}
+                        />
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={() => setCaptionEdit(null)}>
+                                Cancel
+                            </Button>
+                            <Button type="button" size="sm" onClick={saveCaption}>
+                                Save caption
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
@@ -794,14 +928,24 @@ function GalleryUploadButton({
 function SortablePhoto({
     photo,
     onDelete,
+    onEdit,
+    selecting,
+    selected,
+    onToggleSelect,
     disabled,
 }: {
     photo: Photo;
     onDelete: (id: number) => void;
+    onEdit: (photo: Photo) => void;
+    selecting: boolean;
+    selected: boolean;
+    onToggleSelect: (id: number) => void;
     disabled: boolean;
 }) {
+    // Dragging is disabled while selecting so taps register as selection.
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: photo.id,
+        disabled: disabled || selecting,
     });
 
     const style: React.CSSProperties = {
@@ -811,25 +955,71 @@ function SortablePhoto({
     };
 
     return (
-        <div ref={setNodeRef} style={style} className="group relative aspect-square overflow-hidden rounded-lg bg-muted">
-            <img src={photo.url} alt={photo.caption ?? ''} className="size-full object-cover" />
-            {!disabled && (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`group relative aspect-square overflow-hidden rounded-lg bg-muted ${
+                selected ? 'ring-2 ring-[#8a651c] ring-offset-2' : ''
+            }`}
+        >
+            {selecting ? (
+                <button
+                    type="button"
+                    onClick={() => onToggleSelect(photo.id)}
+                    className="size-full"
+                    aria-label="Select photo"
+                >
+                    <img src={photo.url} alt={photo.caption ?? ''} className="size-full object-cover" />
+                </button>
+            ) : (
+                <img src={photo.url} alt={photo.caption ?? ''} className="size-full object-cover" />
+            )}
+
+            {photo.caption && !selecting && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 text-[11px] text-white">
+                    {photo.caption}
+                </div>
+            )}
+
+            {selecting && (
+                <div
+                    className={`absolute left-1 top-1 flex size-6 items-center justify-center rounded-full border-2 ${
+                        selected ? 'border-[#8a651c] bg-[#8a651c] text-white' : 'border-white bg-black/30 text-transparent'
+                    }`}
+                >
+                    <CheckCircle2 className="size-4" />
+                </div>
+            )}
+
+            {!disabled && !selecting && (
                 <>
                     <button
                         type="button"
                         {...attributes}
                         {...listeners}
-                        className="absolute left-1 top-1 rounded bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                        className="absolute left-1 top-1 cursor-grab rounded bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                        aria-label="Drag to reorder"
                     >
                         <GripVertical className="size-3" />
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => onDelete(photo.id)}
-                        className="absolute right-1 top-1 rounded bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                        <Trash2 className="size-3" />
-                    </button>
+                    <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                            type="button"
+                            onClick={() => onEdit(photo)}
+                            className="rounded bg-black/50 p-1 text-white"
+                            aria-label="Edit caption"
+                        >
+                            <Pencil className="size-3" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => onDelete(photo.id)}
+                            className="rounded bg-black/50 p-1 text-white"
+                            aria-label="Delete photo"
+                        >
+                            <Trash2 className="size-3" />
+                        </button>
+                    </div>
                 </>
             )}
         </div>

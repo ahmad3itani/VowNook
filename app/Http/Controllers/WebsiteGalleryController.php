@@ -37,6 +37,20 @@ class WebsiteGalleryController extends Controller
         return back()->with('status', 'photo-uploaded');
     }
 
+    public function update(Request $request, WeddingWebsitePhoto $photo): RedirectResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($photo->website->wedding_id === $wedding->id, 403);
+
+        $data = $request->validate([
+            'caption' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $photo->update(['caption' => $data['caption'] ?? null]);
+
+        return back()->with('status', 'photo-updated');
+    }
+
     public function destroy(WeddingWebsitePhoto $photo): RedirectResponse
     {
         $wedding = $this->current->get();
@@ -46,6 +60,28 @@ class WebsiteGalleryController extends Controller
         $photo->delete();
 
         return back()->with('status', 'photo-deleted');
+    }
+
+    /** Delete several gallery photos at once (multi-select), scoped to the tenant. */
+    public function destroyMany(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $wedding = $this->current->get();
+        $website = $wedding->website;
+        abort_if($website === null, 404);
+
+        $photos = $website->photos()->whereIn('id', $data['ids'])->get();
+
+        foreach ($photos as $photo) {
+            Storage::delete($photo->path);
+            $photo->delete();
+        }
+
+        return back()->with('status', 'photos-deleted');
     }
 
     public function reorder(Request $request): RedirectResponse

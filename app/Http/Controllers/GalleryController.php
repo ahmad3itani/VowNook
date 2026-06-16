@@ -26,7 +26,7 @@ class GalleryController extends Controller
 
         $photos = GalleryPhoto::query()
             ->forWedding($weddingId)
-            ->latest()
+            ->ordered()
             ->get();
 
         return Inertia::render('gallery/index', [
@@ -50,25 +50,31 @@ class GalleryController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->limits->enforceGallery($this->current->get());
-
-        $data = $request->validate([
-            'photo' => ['required', 'image', 'max:10240'], // 10 MB
-            'caption' => ['nullable', 'string', 'max:255'],
+        $request->validate([
+            'photos' => ['required', 'array', 'max:30'],
+            'photos.*' => ['image', 'max:10240'], // 10 MB each
         ]);
 
-        $file = $data['photo'];
-        $weddingId = $this->current->id();
-        $path = ImageOptimizer::store($file, "galleries/{$weddingId}", 2000);
+        $wedding = $this->current->get();
+        $weddingId = $wedding->id;
+        $order = (int) GalleryPhoto::forWedding($weddingId)->max('sort_order');
 
-        GalleryPhoto::create([
-            'wedding_id' => $weddingId,
-            'path' => $path,
-            'original_name' => $file->getClientOriginalName(),
-            'mime' => Storage::mimeType($path) ?: $file->getMimeType(),
-            'size' => Storage::size($path),
-            'caption' => $data['caption'] ?? null,
-        ]);
+        foreach ($request->file('photos') as $file) {
+            // Enforce the plan limit per file so a batch upload stops at the
+            // cap instead of silently overshooting it.
+            $this->limits->enforceGallery($wedding);
+
+            $path = ImageOptimizer::store($file, "galleries/{$weddingId}", 2000);
+
+            GalleryPhoto::create([
+                'wedding_id' => $weddingId,
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime' => Storage::mimeType($path) ?: $file->getMimeType(),
+                'size' => Storage::size($path),
+                'sort_order' => ++$order,
+            ]);
+        }
 
         return back()->with('status', 'photo-uploaded');
     }
@@ -94,6 +100,46 @@ class GalleryController extends Controller
         $photo->delete();
 
         return back()->with('status', 'photo-deleted');
+    }
+
+    /** Persist a drag-and-drop reordering (only this wedding's photos). */
+    public function reorder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'items' => ['required', 'array'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $ownIds = GalleryPhoto::forWedding($this->current->id())->pluck('id')->all();
+
+        foreach ($data['items'] as $item) {
+            if (in_array($item['id'], $ownIds, true)) {
+                GalleryPhoto::where('id', $item['id'])->update(['sort_order' => $item['sort_order']]);
+            }
+        }
+
+        return back()->with('status', 'gallery-reordered');
+    }
+
+    /** Delete several photos at once (multi-select), scoped to the tenant. */
+    public function destroyMany(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $photos = GalleryPhoto::forWedding($this->current->id())
+            ->whereIn('id', $data['ids'])
+            ->get();
+
+        foreach ($photos as $photo) {
+            Storage::delete($photo->path);
+            $photo->delete();
+        }
+
+        return back()->with('status', 'photos-deleted');
     }
 
     /** Stream a photo's bytes, gated by tenancy + the gallery read permission. */
