@@ -55,7 +55,15 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            // Cloudflare R2 only accepts path-style addressing
+            // (<account>.r2.cloudflarestorage.com/<bucket>/…), not the AWS
+            // virtual-hosted (<bucket>.<host>) style. Auto-enable path-style for
+            // R2 endpoints so uploads work without an extra env var; still
+            // overridable explicitly for other S3-compatible providers.
+            'use_path_style_endpoint' => env(
+                'AWS_USE_PATH_STYLE_ENDPOINT',
+                str_contains((string) env('AWS_ENDPOINT'), 'r2.cloudflarestorage.com')
+            ),
             'throw' => false,
             'report' => false,
         ],
