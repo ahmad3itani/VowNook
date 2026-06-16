@@ -604,7 +604,7 @@ export default function Welcome() {
                     <span className={`${fraunces} text-xl`}>
                         VowNook <span className="italic text-[#8a651c]">Atelier</span>
                     </span>
-                    <div className="flex items-center gap-8 text-[13px] text-[#52493d]">
+                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-[#52493d]">
                         <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
                         <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
                         <a href={DEMO} className="hover:text-[#8a651c]">Live demo</a>
