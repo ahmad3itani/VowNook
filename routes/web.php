@@ -57,6 +57,7 @@ use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\RegistryController;
 use App\Http\Controllers\PublicRegistryController;
 use App\Http\Controllers\WeddingEventController;
+use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -169,7 +170,7 @@ Route::middleware('throttle:120,1')->group(function () {
 
     // Public media serving for wedding website images (no auth required).
     Route::get('w/{wedding:slug}/media/{type}/{filename}', [WebsiteMediaController::class, 'serve'])
-        ->where('type', 'hero|story|gallery|music|registry')
+        ->where('type', 'hero|story|gallery|music|registry|travel')
         ->name('website.media');
 
     // Guest registry actions on the public wedding site.
@@ -401,6 +402,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('events/{event}', [WeddingEventController::class, 'update'])->name('events.update');
         Route::delete('events/{event}', [WeddingEventController::class, 'destroy'])->name('events.destroy');
         Route::post('events/reorder', [WeddingEventController::class, 'reorder'])->name('events.reorder');
+    });
+
+    // Travel & stays — hotel room blocks + transport. Atelier feature.
+    Route::get('travel', [AccommodationController::class, 'index'])
+        ->middleware(['permission:website,read', 'plan.feature:travel'])->name('travel.index');
+    Route::middleware(['permission:website,write', 'plan.feature:travel'])->group(function () {
+        Route::post('travel', [AccommodationController::class, 'store'])->name('travel.store');
+        Route::put('travel/notes', [AccommodationController::class, 'updateNotes'])->name('travel.notes');
+        Route::put('travel/{accommodation}', [AccommodationController::class, 'update'])->name('travel.update');
+        Route::delete('travel/{accommodation}', [AccommodationController::class, 'destroy'])->name('travel.destroy');
     });
 
     // Collaborators (team access & roles).

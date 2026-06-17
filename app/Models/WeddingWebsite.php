@@ -32,6 +32,7 @@ class WeddingWebsite extends Model
         'video_url',
         'music_path',
         'music_title',
+        'travel_notes',
     ];
 
     protected function casts(): array

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TimelineEvent;
 use App\Models\Wedding;
+use App\Models\WeddingAccommodation;
 use App\Models\WeddingEvent;
 use App\Support\Seo;
 use Illuminate\Support\Facades\Storage;
@@ -113,6 +114,27 @@ class PublicWebsiteController extends Controller
                 ])->values();
         }
 
+        // Travel & stays — hotel blocks / rentals / transport + free-text notes.
+        $travel = ['notes' => null, 'stays' => []];
+
+        if ($published) {
+            $travel['notes'] = $website?->travel_notes;
+            $travel['stays'] = WeddingAccommodation::forWedding($wedding->id)->where('is_active', true)->ordered()->get()
+                ->map(fn (WeddingAccommodation $a) => [
+                    'id' => $a->id,
+                    'name' => $a->name,
+                    'type' => $a->type,
+                    'address' => $a->address,
+                    'blurb' => $a->blurb,
+                    'booking_url' => $a->booking_url,
+                    'block_code' => $a->block_code,
+                    'price_note' => $a->price_note,
+                    'distance_note' => $a->distance_note,
+                    'image_url' => $a->image_path && Storage::exists($a->image_path)
+                        ? route('website.media', [$wedding->slug, 'travel', basename($a->image_path)]) : null,
+                ])->values();
+        }
+
         // Gift registry — active funds + items, only on a published site.
         $registry = ['funds' => [], 'items' => []];
 
@@ -154,6 +176,7 @@ class PublicWebsiteController extends Controller
             'content'   => $content,
             'schedule'  => $schedule,
             'events'    => $events,
+            'travel'    => $travel,
             'registry'  => $registry,
         ])->withViewData(['seo' => $seo]);
     }

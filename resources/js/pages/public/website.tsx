@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { WebsiteRegistry, type RegistryData } from '@/components/public/website-registry';
 import { WebsiteSchedule, type EventData } from '@/components/public/website-schedule';
+import { WebsiteTravel, type TravelData } from '@/components/public/website-travel';
 import {
     animate,
     AnimatePresence,
@@ -57,6 +58,7 @@ type PageProps = {
     content: Content | null;
     schedule: ScheduleItem[];
     events?: EventData[];
+    travel?: TravelData;
     registry?: RegistryData;
 };
 
@@ -217,7 +219,7 @@ function extractHeroEmbed(url: string): string | null {
 
 // ── Page ────────────────────────────────────────────────────────────────────────
 
-export default function PublicWebsite({ wedding, published, content, schedule = [], events = [], registry = { funds: [], items: [] } }: PageProps) {
+export default function PublicWebsite({ wedding, published, content, schedule = [], events = [], travel = { notes: null, stays: [] }, registry = { funds: [], items: [] } }: PageProps) {
     const { t } = useTranslations();
 
     // "dark" template is remapped to classic — no dark wedding sites.
@@ -385,6 +387,7 @@ export default function PublicWebsite({ wedding, published, content, schedule = 
                             (content?.venue_name || content?.ceremony_time) && { href: '#details', label: 'Details' },
                             events.length > 0 && { href: '#events', label: 'Events' },
                             schedule.length > 0 && { href: '#schedule', label: 'The Day' },
+                            (travel.stays.length > 0 || travel.notes) && { href: '#travel', label: 'Travel' },
                             timeline.length > 0 && { href: '#timeline', label: 'Journey' },
                             photos.length > 0 && { href: '#gallery', label: 'Gallery' },
                         ].filter(Boolean).map((link) => link && (
@@ -670,6 +673,8 @@ export default function PublicWebsite({ wedding, published, content, schedule = 
             )}
 
             {/* Registry */}
+            {published && <WebsiteTravel travel={travel} />}
+
             <WebsiteRegistry registry={registry} slug={wedding.slug} />
 
             {/* RSVP CTA */}

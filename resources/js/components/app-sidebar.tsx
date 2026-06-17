@@ -13,6 +13,7 @@ import {
     ListChecks,
     QrCode,
     Languages,
+    Plane,
     Settings2,
     Sparkles,
     UserCog,
@@ -163,6 +164,11 @@ export function AppSidebar() {
                       title: 'Registry',
                       href: '/registry',
                       icon: Gift,
+                  } satisfies NavItem,
+                  {
+                      title: 'Travel & stays',
+                      href: '/travel',
+                      icon: Plane,
                   } satisfies NavItem,
               ]
             : []),

@@ -10,7 +10,7 @@ class WebsiteMediaController extends Controller
 {
     public function serve(Wedding $wedding, string $type, string $filename): StreamedResponse
     {
-        abort_unless(in_array($type, ['hero', 'story', 'gallery', 'music', 'registry'], true), 404);
+        abort_unless(in_array($type, ['hero', 'story', 'gallery', 'music', 'registry', 'travel'], true), 404);
 
         // basename() guards against ../ traversal in the filename segment.
         $path = "websites/{$wedding->id}/{$type}/" . basename($filename);
