@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TimelineEvent;
 use App\Models\Wedding;
+use App\Models\WeddingEvent;
 use App\Support\Seo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -90,6 +91,28 @@ class PublicWebsiteController extends Controller
                 ->values();
         }
 
+        // Celebration schedule — the multi-event weekend (rehearsal, welcome,
+        // ceremony, reception, brunch …). Distinct from the day-of "Order of the
+        // Day" timeline above. Public only on a published site.
+        $events = [];
+
+        if ($published) {
+            $events = WeddingEvent::forWedding($wedding->id)->ordered()->get()
+                ->map(fn (WeddingEvent $e) => [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'type' => $e->type,
+                    'date' => $e->event_date?->translatedFormat('l, F j, Y'),
+                    'start_time' => $e->start_time,
+                    'end_time' => $e->end_time,
+                    'venue_name' => $e->venue_name,
+                    'address' => $e->address,
+                    'dress_code' => $e->dress_code,
+                    'description' => $e->description,
+                    'is_rsvpable' => $e->is_rsvpable,
+                ])->values();
+        }
+
         // Gift registry — active funds + items, only on a published site.
         $registry = ['funds' => [], 'items' => []];
 
@@ -130,6 +153,7 @@ class PublicWebsiteController extends Controller
             'published' => $published,
             'content'   => $content,
             'schedule'  => $schedule,
+            'events'    => $events,
             'registry'  => $registry,
         ])->withViewData(['seo' => $seo]);
     }

@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     Briefcase,
     CalendarClock,
+    CalendarDays,
     Gift,
     Globe,
     HeartHandshake,
@@ -75,6 +76,15 @@ export function AppSidebar() {
                       title: 'Guests',
                       href: '/guests',
                       icon: Users,
+                  } satisfies NavItem,
+              ]
+            : []),
+        ...(canRead('guests')
+            ? [
+                  {
+                      title: 'Schedule',
+                      href: '/events',
+                      icon: CalendarDays,
                   } satisfies NavItem,
               ]
             : []),

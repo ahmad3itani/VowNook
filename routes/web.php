@@ -56,6 +56,7 @@ use App\Http\Controllers\PublicSeatingController;
 use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\RegistryController;
 use App\Http\Controllers\PublicRegistryController;
+use App\Http\Controllers\WeddingEventController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -390,6 +391,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('registry/items', [RegistryController::class, 'storeItem'])->name('registry.items.store');
         Route::put('registry/items/{item}', [RegistryController::class, 'updateItem'])->name('registry.items.update');
         Route::delete('registry/items/{item}', [RegistryController::class, 'destroyItem'])->name('registry.items.destroy');
+    });
+
+    // Celebration schedule — multiple events with per-event RSVP. Atelier feature.
+    Route::get('events', [WeddingEventController::class, 'index'])
+        ->middleware(['permission:guests,read', 'plan.feature:events'])->name('events.index');
+    Route::middleware(['permission:guests,write', 'plan.feature:events'])->group(function () {
+        Route::post('events', [WeddingEventController::class, 'store'])->name('events.store');
+        Route::put('events/{event}', [WeddingEventController::class, 'update'])->name('events.update');
+        Route::delete('events/{event}', [WeddingEventController::class, 'destroy'])->name('events.destroy');
+        Route::post('events/reorder', [WeddingEventController::class, 'reorder'])->name('events.reorder');
     });
 
     // Collaborators (team access & roles).

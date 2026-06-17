@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Guest extends Model
 {
@@ -62,6 +63,14 @@ class Guest extends Model
     public function seatingTable(): BelongsTo
     {
         return $this->belongsTo(SeatingTable::class, 'table_id');
+    }
+
+    /** Per-event RSVP replies (multi-event weddings). */
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(WeddingEvent::class, 'event_guest')
+            ->withPivot('rsvp_status')
+            ->withTimestamps();
     }
 
     /** Scope to a single wedding (the active tenant). */
