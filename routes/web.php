@@ -59,6 +59,8 @@ use App\Http\Controllers\PublicRegistryController;
 use App\Http\Controllers\WeddingEventController;
 use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\GuestBroadcastController;
+use App\Http\Controllers\SaveTheDateController;
+use App\Http\Controllers\EmailTrackController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -173,6 +175,10 @@ Route::middleware('throttle:120,1')->group(function () {
     Route::get('w/{wedding:slug}/media/{type}/{filename}', [WebsiteMediaController::class, 'serve'])
         ->where('type', 'hero|story|gallery|music|registry|travel')
         ->name('website.media');
+
+    // Email open-tracking pixel for save-the-dates / invitations.
+    Route::get('e/{token}.gif', [EmailTrackController::class, 'pixel'])
+        ->where('token', '[A-Za-z0-9]+')->middleware('throttle:120,1')->name('email.track');
 
     // Guest registry actions on the public wedding site.
     Route::post('w/{wedding:slug}/registry/funds/{fund}/contribute', [PublicRegistryController::class, 'contribute'])
@@ -420,6 +426,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(['permission:guests,read', 'plan.feature:broadcast'])->name('broadcasts.index');
     Route::post('messages', [GuestBroadcastController::class, 'store'])
         ->middleware(['permission:guests,write', 'plan.feature:broadcast', 'throttle:10,1'])->name('broadcasts.store');
+
+    // Save-the-dates / invitations with open-tracking. Atelier feature.
+    Route::get('save-the-dates', [SaveTheDateController::class, 'index'])
+        ->middleware(['permission:guests,read', 'plan.feature:save_the_dates'])->name('save-the-dates.index');
+    Route::post('save-the-dates/send', [SaveTheDateController::class, 'send'])
+        ->middleware(['permission:guests,write', 'plan.feature:save_the_dates', 'throttle:10,1'])->name('save-the-dates.send');
 
     // Collaborators (team access & roles).
     Route::get('collaborators', [CollaboratorController::class, 'index'])

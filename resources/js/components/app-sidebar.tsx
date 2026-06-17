@@ -13,6 +13,7 @@ import {
     ListChecks,
     QrCode,
     Languages,
+    MailCheck,
     Megaphone,
     Plane,
     Settings2,
@@ -92,6 +93,11 @@ export function AppSidebar() {
                       title: 'Message guests',
                       href: '/messages',
                       icon: Megaphone,
+                  } satisfies NavItem,
+                  {
+                      title: 'Save-the-dates',
+                      href: '/save-the-dates',
+                      icon: MailCheck,
                   } satisfies NavItem,
               ]
             : []),
