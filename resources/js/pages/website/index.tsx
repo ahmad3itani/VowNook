@@ -29,7 +29,7 @@ import {
     Video,
     X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -38,6 +38,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 
@@ -48,6 +49,7 @@ type TemplateId = 'classic' | 'modern' | 'botanical' | 'blush' | 'royal' | 'dolc
 
 type Website = {
     is_published: boolean;
+    subdomain: string | null;
     template: TemplateId;
     headline: string | null;
     welcome_message: string | null;
@@ -70,7 +72,13 @@ type Website = {
     photos: Photo[];
 };
 
-type PageProps = { website: Website; public_url: string; can_publish: boolean };
+type PageProps = {
+    website: Website;
+    public_url: string;
+    can_publish: boolean;
+    subdomain_base: string;
+    subdomain_enabled: boolean;
+};
 
 const TEMPLATES: Array<{
     id: TemplateId;
@@ -89,7 +97,7 @@ const TEMPLATES: Array<{
     { id: 'vibrant', label: 'Vibrant', bg: '#fff5f2', accent: '#d2436a', font: 'Playfair Display' },
 ];
 
-export default function WebsiteIndex({ website, public_url, can_publish }: PageProps) {
+export default function WebsiteIndex({ website, public_url, can_publish, subdomain_base, subdomain_enabled }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('website');
 
@@ -123,6 +131,38 @@ export default function WebsiteIndex({ website, public_url, can_publish }: PageP
 
     // Timeline editor state
     const [newItem, setNewItem] = useState<TimelineItem>({ year: '', title: '', body: '' });
+
+    // Subdomain (free web address) state + live availability check.
+    const subForm = useForm({ subdomain: website.subdomain ?? '' });
+    const [availability, setAvailability] = useState<'idle' | 'checking' | 'ok' | 'taken' | 'reserved' | 'invalid'>('idle');
+    const subValue = subForm.data.subdomain;
+
+    useEffect(() => {
+        const v = subValue.trim().toLowerCase();
+        if (!subdomain_enabled || v === '' || v === (website.subdomain ?? '')) {
+            setAvailability('idle');
+            return;
+        }
+        setAvailability('checking');
+        const id = setTimeout(() => {
+            fetch(`/website/subdomain/check?value=${encodeURIComponent(v)}`, { headers: { Accept: 'application/json' } })
+                .then((r) => r.json())
+                .then((d: { available: boolean; reason: string }) => {
+                    setAvailability(d.available ? 'ok' : (d.reason as 'taken' | 'reserved' | 'invalid'));
+                })
+                .catch(() => setAvailability('idle'));
+        }, 400);
+        return () => clearTimeout(id);
+    }, [subValue, subdomain_enabled, website.subdomain]);
+
+    function saveSubdomain(e: React.FormEvent) {
+        e.preventDefault();
+        subForm.transform((d) => ({ subdomain: d.subdomain.trim().toLowerCase() || null }));
+        subForm.put('/website/subdomain', {
+            preserveScroll: true,
+            onSuccess: () => { setAvailability('idle'); toast.success('Web address saved.'); },
+        });
+    }
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -340,6 +380,60 @@ export default function WebsiteIndex({ website, public_url, can_publish }: PageP
                                 </p>
                             )}
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Your web address (free subdomain) */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Globe className="size-4" /> Your web address
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {!subdomain_enabled ? (
+                            <p className="text-sm text-muted-foreground">
+                                Claim a free, easy-to-share address like{' '}
+                                <span className="font-medium text-[#1e1b17]">amelia-and-julian.{subdomain_base}</span> — an{' '}
+                                <a href="/settings/plan" className="font-medium text-[#8a651c] underline">Atelier feature</a>.
+                            </p>
+                        ) : (
+                            <form onSubmit={saveSubdomain} className="flex flex-col gap-3">
+                                <p className="text-sm text-muted-foreground">
+                                    A short, shareable link to your site. Lowercase letters, numbers and hyphens.
+                                </p>
+                                <div className="flex flex-wrap items-stretch gap-2">
+                                    <div className="flex flex-1 items-center overflow-hidden rounded-md border focus-within:ring-1 focus-within:ring-[#775a19]">
+                                        <input
+                                            value={subForm.data.subdomain}
+                                            onChange={(e) => subForm.setData('subdomain', e.target.value.toLowerCase())}
+                                            placeholder="amelia-and-julian"
+                                            disabled={!writable}
+                                            className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm outline-none"
+                                        />
+                                        <span className="bg-muted px-3 py-2 text-sm text-muted-foreground">.{subdomain_base}</span>
+                                    </div>
+                                    <Button type="submit" disabled={!writable || subForm.processing || availability === 'taken' || availability === 'reserved' || availability === 'invalid'}>
+                                        {subForm.processing ? <Spinner /> : null} Save
+                                    </Button>
+                                </div>
+                                {subForm.errors.subdomain && <p className="text-sm text-red-600">{subForm.errors.subdomain}</p>}
+                                {availability === 'checking' && <p className="text-xs text-muted-foreground">Checking availability…</p>}
+                                {availability === 'ok' && <p className="text-xs text-green-700">✓ {subForm.data.subdomain}.{subdomain_base} is available.</p>}
+                                {availability === 'taken' && <p className="text-xs text-red-600">That address is already taken.</p>}
+                                {availability === 'reserved' && <p className="text-xs text-red-600">That address is reserved — choose another.</p>}
+                                {availability === 'invalid' && <p className="text-xs text-red-600">Use 3+ lowercase letters, numbers or hyphens.</p>}
+                                {website.subdomain && availability === 'idle' && (
+                                    <p className="text-xs text-muted-foreground">
+                                        Live at{' '}
+                                        <a href={`https://${website.subdomain}.${subdomain_base}`} target="_blank" rel="noopener noreferrer" className="font-medium text-[#8a651c] underline">
+                                            {website.subdomain}.{subdomain_base}
+                                        </a>{' '}
+                                        once your site is published.
+                                    </p>
+                                )}
+                            </form>
+                        )}
                     </CardContent>
                 </Card>
 

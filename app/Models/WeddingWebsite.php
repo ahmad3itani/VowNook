@@ -16,6 +16,7 @@ class WeddingWebsite extends Model
     protected $fillable = [
         'wedding_id',
         'is_published',
+        'subdomain',
         'template',
         'headline',
         'welcome_message',

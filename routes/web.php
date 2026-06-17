@@ -75,7 +75,15 @@ use App\Http\Controllers\WeddingController;
 use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\WebsiteGalleryController;
 use App\Http\Controllers\WebsiteMediaController;
+use App\Http\Controllers\SubdomainSiteController;
 use Illuminate\Support\Facades\Route;
+
+// Free personal web address — {name}.vownook.com resolves a couple's published
+// wedding site. Registered first so a matching host wins over the apex `/`.
+Route::domain('{subdomain}.'.config('app.root_domain'))->middleware('throttle:120,1')->group(function () {
+    Route::get('/', [SubdomainSiteController::class, 'show'])
+        ->where('subdomain', '[a-z0-9-]+')->name('subdomain.website');
+});
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
 
@@ -371,6 +379,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:website,read')->name('website.index');
     Route::put('website', [WebsiteController::class, 'update'])
         ->middleware('permission:website,write')->name('website.update');
+    // Free name.vownook.com web address — Atelier feature.
+    Route::get('website/subdomain/check', [WebsiteController::class, 'checkSubdomain'])
+        ->middleware(['permission:website,read', 'plan.feature:subdomain'])->name('website.subdomain.check');
+    Route::put('website/subdomain', [WebsiteController::class, 'updateSubdomain'])
+        ->middleware(['permission:website,write', 'plan.feature:subdomain'])->name('website.subdomain');
     Route::post('website/hero', [WebsiteController::class, 'uploadHero'])
         ->middleware('permission:website,write')->name('website.hero');
     Route::post('website/story-image', [WebsiteController::class, 'uploadStoryImage'])
