@@ -22,10 +22,10 @@ const fraunces = "font-['Fraunces']";
 const DEMO = '/w/amelia-and-julian';
 
 const IMG = {
-    hero: '/images/landing/hero.jpg',
-    florist: '/images/landing/florist.jpg',
-    tablescape: '/images/landing/tablescape.jpg',
-    photographer: '/images/landing/photographer.jpg',
+    hero: '/images/landing/hero.webp',
+    florist: '/images/landing/florist.webp',
+    tablescape: '/images/landing/tablescape.webp',
+    photographer: '/images/landing/photographer.webp',
 };
 
 const CATEGORIES = [

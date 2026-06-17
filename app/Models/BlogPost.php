@@ -57,7 +57,16 @@ class BlogPost extends Model
 
     public function coverUrl(): ?string
     {
-        if (blank($this->cover_image_path) || ! Storage::exists($this->cover_image_path)) {
+        if (blank($this->cover_image_path)) {
+            return null;
+        }
+
+        // Committed marketing/blog imagery under public/images/ serves directly.
+        if (str_starts_with($this->cover_image_path, 'images/')) {
+            return '/'.$this->cover_image_path;
+        }
+
+        if (! Storage::exists($this->cover_image_path)) {
             return null;
         }
 
