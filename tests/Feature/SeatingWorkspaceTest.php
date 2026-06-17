@@ -44,6 +44,26 @@ class SeatingWorkspaceTest extends TestCase
             );
     }
 
+    public function test_index_exposes_the_meal_menu_for_printables(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $wedding->forceFill(['settings' => ['meals' => [
+            'main' => ['enabled' => true, 'options' => ['Beef', 'Salmon', 'Vegetarian']],
+            'dessert' => ['enabled' => true, 'options' => ['Cheesecake']],
+        ]]])->save();
+
+        $this->actingAs($user)
+            ->get('/seating')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('seating/index')
+                ->has('menu', 2) // main + dessert enabled
+                ->where('menu.0.label', 'Main')
+                ->where('menu.0.options', ['Beef', 'Salmon', 'Vegetarian'])
+                ->where('menu.1.label', 'Dessert')
+            );
+    }
+
     public function test_member_can_create_a_table(): void
     {
         [$user, $wedding] = $this->ownerWithWedding();

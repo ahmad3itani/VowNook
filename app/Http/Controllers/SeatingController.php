@@ -11,6 +11,7 @@ use App\Models\Guest;
 use App\Models\SeatingElement;
 use App\Models\SeatingTable;
 use App\Support\CurrentWedding;
+use App\Support\MealOptions;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,16 @@ class SeatingController extends Controller
         $layout = $wedding->seatingLayout;
         $seated = $guests->whereNotNull('table_id')->count();
 
+        // Printable menu card — the couple's enabled courses + their options.
+        $menu = [];
+        foreach (MealOptions::enabledCourses($wedding) as $course) {
+            $menu[] = [
+                'course' => $course,
+                'label' => MealOptions::LABELS[$course],
+                'options' => MealOptions::optionsFor($wedding, $course),
+            ];
+        }
+
         // Infographics — caterer- and planner-ready tallies.
         $capacity = (int) $tables->sum('capacity');
         $attending = $guests->filter(fn (Guest $g) => $g->rsvp_status === RsvpStatus::Attending);
@@ -62,6 +73,7 @@ class SeatingController extends Controller
 
         return Inertia::render('seating/index', [
             'weddingName' => $wedding->name,
+            'menu' => $menu,
             'tables' => $tables->map(fn (SeatingTable $t) => [
                 'id' => $t->id,
                 'name' => $t->name,
