@@ -23,10 +23,10 @@ const coupleSteps: Step[] = [
         title: 'Design your wedding website',
         body: 'Pick a template, add your photos and video, and publish a page guests will actually visit.',
         detail: [
-            'Four design themes — Classic, Modern, Botanical and Dark',
+            'Eight design themes — Classic, Modern, Botanical, Blush, Royal Gold and more',
             'Hero image or video, your story, a timeline of moments and a photo gallery',
-            'Built-in RSVP and a seat-finder page guests open from a QR code at the venue',
-            'Live countdown to your date',
+            'Registry, travel & stays, save-the-dates and a multi-day schedule with per-event RSVP',
+            'A free name.vownook.com web address and a live countdown to your date',
         ],
     },
     {
@@ -191,8 +191,9 @@ export default function HowItWorks() {
             {/* Header */}
             <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
                 <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
-                    <Link href="/" className={`${fraunces} text-[22px] font-medium tracking-tight`}>
-                        VowNook <span className="italic font-light text-[#8a651c]">Atelier</span>
+                    <Link href="/" className="flex items-center gap-2.5" aria-label="VowNook home">
+                        <img src="/images/brand/logo-mark.webp" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+                        <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
                     </Link>
                     <div className="hidden items-center gap-9 md:flex">
                         <a href="#couples" className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">For couples</a>
@@ -210,11 +211,11 @@ export default function HowItWorks() {
             </header>
 
             {/* Hero */}
-            <section className="px-5 pt-36 pb-16 md:px-12 md:pt-44 md:pb-24">
-                <div className="mx-auto max-w-[1480px]">
-                    <Reveal>
+            <section className="px-5 pt-32 pb-16 md:px-12 md:pt-40 md:pb-24">
+                <div className="mx-auto grid max-w-[1480px] items-end gap-12 md:grid-cols-12">
+                    <Reveal className="md:col-span-6">
                         <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">The field guide</p>
-                        <h1 className={`${fraunces} max-w-3xl text-5xl leading-[1.02] font-light sm:text-6xl md:text-7xl`}>
+                        <h1 className={`${fraunces} text-5xl leading-[1.02] font-light sm:text-6xl md:text-7xl`}>
                             How it <em className="text-[#8a651c]">works.</em>
                         </h1>
                         <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-[#52493d]">
@@ -222,6 +223,16 @@ export default function HowItWorks() {
                             marketplace where great vendors meet couples ready to book. Here is the whole
                             journey, step by step.
                         </p>
+                    </Reveal>
+                    <Reveal delay={0.15} className="md:col-span-6">
+                        <div className="relative -rotate-1 bg-white p-3 shadow-[0_30px_60px_-22px_rgba(25,22,19,0.35)]">
+                            <img
+                                src="/images/landing/reception.webp"
+                                alt="Guests raising a toast at a golden-hour wedding reception"
+                                className="aspect-[16/10] w-full object-cover"
+                                loading="lazy"
+                            />
+                        </div>
                     </Reveal>
                 </div>
             </section>
@@ -341,8 +352,9 @@ export default function HowItWorks() {
 
             <footer className="border-t border-[#191613]/10 py-10">
                 <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-4 px-5 md:flex-row md:px-12">
-                    <Link href="/" className={`${fraunces} text-xl`}>
-                        VowNook <span className="italic text-[#8a651c]">Atelier</span>
+                    <Link href="/" className="flex items-center gap-2.5">
+                        <img src="/images/brand/logo-mark.webp" alt="" className="size-8 rounded-md border border-[#191613]/10" />
+                        <span className={`${fraunces} text-xl`}>VowNook</span>
                     </Link>
                     <div className="flex items-center gap-6 text-[13px] text-[#52493d]">
                         <Link href="/terms" className="hover:text-[#8a651c]">Terms</Link>

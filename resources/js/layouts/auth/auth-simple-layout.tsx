@@ -14,7 +14,7 @@ export default function AuthSimpleLayout({
             {/* Editorial image panel */}
             <div className="relative hidden w-[44%] overflow-hidden lg:block">
                 <img
-                    src="/images/landing/hero.jpg"
+                    src="/images/landing/hero.webp"
                     alt=""
                     className="absolute inset-0 size-full object-cover"
                 />
@@ -34,10 +34,9 @@ export default function AuthSimpleLayout({
                 <div className="w-full max-w-sm">
                     <div className="flex flex-col gap-8">
                         <div className="flex flex-col gap-4">
-                            <Link href={home()} className="w-fit">
-                                <span className={`${fraunces} text-2xl font-medium tracking-tight`}>
-                                    VowNook <span className="italic font-light text-[#8a651c]">Atelier</span>
-                                </span>
+                            <Link href={home()} className="flex w-fit items-center gap-2.5" aria-label="VowNook home">
+                                <img src="/images/brand/logo-mark.webp" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+                                <span className={`${fraunces} text-2xl font-medium tracking-tight`}>VowNook</span>
                             </Link>
 
                             <div className="space-y-1.5">

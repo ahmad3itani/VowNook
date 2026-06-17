@@ -54,6 +54,8 @@ class Seo
                 'name'     => $name,
                 'url'      => $base,
                 'logo'     => $base.'/apple-touch-icon.png',
+                'image'    => $base.'/images/og-default.jpg',
+                'description' => 'VowNook is a free wedding planning studio and vendor marketplace for couples and wedding professionals in Ontario — guest lists and RSVP, budgets, a wedding website with registry and save-the-dates, and real quotes from trusted local vendors, all in one place.',
                 'areaServed' => [
                     '@type' => 'State',
                     'name'  => 'Ontario',
