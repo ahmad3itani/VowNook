@@ -54,6 +54,8 @@ use App\Http\Controllers\PlannerTemplateController;
 use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
 use App\Http\Controllers\PublicWebsiteController;
+use App\Http\Controllers\RegistryController;
+use App\Http\Controllers\PublicRegistryController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -166,8 +168,14 @@ Route::middleware('throttle:120,1')->group(function () {
 
     // Public media serving for wedding website images (no auth required).
     Route::get('w/{wedding:slug}/media/{type}/{filename}', [WebsiteMediaController::class, 'serve'])
-        ->where('type', 'hero|story|gallery|music')
+        ->where('type', 'hero|story|gallery|music|registry')
         ->name('website.media');
+
+    // Guest registry actions on the public wedding site.
+    Route::post('w/{wedding:slug}/registry/funds/{fund}/contribute', [PublicRegistryController::class, 'contribute'])
+        ->middleware('throttle:20,1')->name('public.registry.contribute');
+    Route::post('w/{wedding:slug}/registry/items/{item}/claim', [PublicRegistryController::class, 'claim'])
+        ->middleware('throttle:20,1')->name('public.registry.claim');
 
     // Public RSVP site (name search is a ?name= query on the show route).
     Route::get('w/{wedding}/rsvp', [PublicRsvpController::class, 'show'])->name('public.rsvp');
@@ -371,6 +379,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:website,write')->name('website.gallery.update');
     Route::delete('website/gallery/{photo}', [WebsiteGalleryController::class, 'destroy'])
         ->middleware('permission:website,write')->name('website.gallery.destroy');
+
+    // Gift registry (funds + items) — Atelier feature, gated on the website section.
+    Route::get('registry', [RegistryController::class, 'index'])
+        ->middleware(['permission:website,read', 'plan.feature:registry'])->name('registry.index');
+    Route::middleware(['permission:website,write', 'plan.feature:registry'])->group(function () {
+        Route::post('registry/funds', [RegistryController::class, 'storeFund'])->name('registry.funds.store');
+        Route::put('registry/funds/{fund}', [RegistryController::class, 'updateFund'])->name('registry.funds.update');
+        Route::delete('registry/funds/{fund}', [RegistryController::class, 'destroyFund'])->name('registry.funds.destroy');
+        Route::post('registry/items', [RegistryController::class, 'storeItem'])->name('registry.items.store');
+        Route::put('registry/items/{item}', [RegistryController::class, 'updateItem'])->name('registry.items.update');
+        Route::delete('registry/items/{item}', [RegistryController::class, 'destroyItem'])->name('registry.items.destroy');
+    });
 
     // Collaborators (team access & roles).
     Route::get('collaborators', [CollaboratorController::class, 'index'])

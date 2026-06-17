@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     Briefcase,
     CalendarClock,
+    Gift,
     Globe,
     HeartHandshake,
     Images,
@@ -147,6 +148,11 @@ export function AppSidebar() {
                       title: 'Website',
                       href: '/website',
                       icon: Globe,
+                  } satisfies NavItem,
+                  {
+                      title: 'Registry',
+                      href: '/registry',
+                      icon: Gift,
                   } satisfies NavItem,
               ]
             : []),

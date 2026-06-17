@@ -90,6 +90,37 @@ class PublicWebsiteController extends Controller
                 ->values();
         }
 
+        // Gift registry — active funds + items, only on a published site.
+        $registry = ['funds' => [], 'items' => []];
+
+        if ($published) {
+            $registry['funds'] = $wedding->registryFunds()->where('is_active', true)->orderBy('sort_order')->get()
+                ->map(fn ($f) => [
+                    'id' => $f->id,
+                    'title' => $f->title,
+                    'blurb' => $f->blurb,
+                    'type' => $f->type,
+                    'goal_cents' => $f->goal_cents,
+                    'raised_cents' => $f->raised_cents,
+                    'payout_url' => $f->payout_url,
+                    'image_url' => $f->image_path && Storage::exists($f->image_path)
+                        ? route('website.media', [$wedding->slug, 'registry', basename($f->image_path)]) : null,
+                ])->values();
+
+            $registry['items'] = $wedding->registryItems()->orderBy('sort_order')->get()
+                ->map(fn ($i) => [
+                    'id' => $i->id,
+                    'name' => $i->name,
+                    'blurb' => $i->blurb,
+                    'price_cents' => $i->price_cents,
+                    'store_url' => $i->store_url,
+                    'quantity' => $i->quantity,
+                    'claimed_count' => $i->claimed_count,
+                    'image_url' => $i->image_path && Storage::exists($i->image_path)
+                        ? route('website.media', [$wedding->slug, 'registry', basename($i->image_path)]) : null,
+                ])->values();
+        }
+
         return Inertia::render('public/website', [
             'wedding' => [
                 'name'       => $wedding->name,
@@ -99,6 +130,7 @@ class PublicWebsiteController extends Controller
             'published' => $published,
             'content'   => $content,
             'schedule'  => $schedule,
+            'registry'  => $registry,
         ])->withViewData(['seo' => $seo]);
     }
 }

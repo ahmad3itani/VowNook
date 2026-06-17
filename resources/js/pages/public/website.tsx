@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { WebsiteRegistry, type RegistryData } from '@/components/public/website-registry';
 import {
     animate,
     AnimatePresence,
@@ -54,6 +55,7 @@ type PageProps = {
     published: boolean;
     content: Content | null;
     schedule: ScheduleItem[];
+    registry?: RegistryData;
 };
 
 // ── Themes (all light — dark is "bad luck") ─────────────────────────────────────
@@ -213,7 +215,7 @@ function extractHeroEmbed(url: string): string | null {
 
 // ── Page ────────────────────────────────────────────────────────────────────────
 
-export default function PublicWebsite({ wedding, published, content, schedule = [] }: PageProps) {
+export default function PublicWebsite({ wedding, published, content, schedule = [], registry = { funds: [], items: [] } }: PageProps) {
     const { t } = useTranslations();
 
     // "dark" template is remapped to classic — no dark wedding sites.
@@ -660,6 +662,9 @@ export default function PublicWebsite({ wedding, published, content, schedule = 
                     </div>
                 </section>
             )}
+
+            {/* Registry */}
+            <WebsiteRegistry registry={registry} slug={wedding.slug} />
 
             {/* RSVP CTA */}
             <section className="relative overflow-hidden py-28 text-center md:py-44" style={{ background: 'var(--c-bg)' }}>
