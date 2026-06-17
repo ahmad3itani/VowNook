@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GuestSide;
+use App\Enums\RsvpStatus;
 use App\Enums\SeatingElementType;
 use App\Enums\TableShape;
 use App\Http\Requests\SeatingTableRequest;
@@ -35,7 +37,7 @@ class SeatingController extends Controller
         $guests = Guest::query()
             ->forWedding($weddingId)
             ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name', 'table_id', 'seat_number', 'rsvp_status', 'meal_choice', 'dietary_notes']);
+            ->get(['id', 'first_name', 'last_name', 'side', 'table_id', 'seat_number', 'rsvp_status', 'meal_choice', 'dietary_notes']);
 
         $elements = SeatingElement::query()
             ->forWedding($weddingId)
@@ -44,6 +46,19 @@ class SeatingController extends Controller
 
         $layout = $wedding->seatingLayout;
         $seated = $guests->whereNotNull('table_id')->count();
+
+        // Infographics — caterer- and planner-ready tallies.
+        $capacity = (int) $tables->sum('capacity');
+        $attending = $guests->filter(fn (Guest $g) => $g->rsvp_status === RsvpStatus::Attending);
+        $atCapacity = $tables->filter(fn (SeatingTable $t) => $t->capacity > 0 && $t->guests_count >= $t->capacity)->count();
+        $fullest = $tables->sortByDesc('guests_count')->first();
+        $meals = $attending
+            ->filter(fn (Guest $g) => filled($g->meal_choice))
+            ->groupBy('meal_choice')
+            ->map->count()
+            ->sortDesc()
+            ->map(fn (int $count, string $name) => ['name' => $name, 'count' => $count])
+            ->values();
 
         return Inertia::render('seating/index', [
             'weddingName' => $wedding->name,
@@ -82,9 +97,23 @@ class SeatingController extends Controller
             ],
             'stats' => [
                 'tables' => $tables->count(),
-                'capacity' => $tables->sum('capacity'),
+                'capacity' => $capacity,
                 'seated' => $seated,
                 'unseated' => $guests->count() - $seated,
+                'guest_total' => $guests->count(),
+                'attending' => $attending->count(),
+                'unseated_attending' => $attending->whereNull('table_id')->count(),
+                'utilization' => $capacity > 0 ? (int) round($seated / $capacity * 100) : 0,
+                'tables_at_capacity' => $atCapacity,
+                'sides' => [
+                    'partner_one' => $guests->filter(fn (Guest $g) => $g->side === GuestSide::PartnerOne)->count(),
+                    'partner_two' => $guests->filter(fn (Guest $g) => $g->side === GuestSide::PartnerTwo)->count(),
+                    'both' => $guests->filter(fn (Guest $g) => $g->side === GuestSide::Both)->count(),
+                ],
+                'meals' => $meals,
+                'fullest' => $fullest
+                    ? ['name' => $fullest->name, 'seated' => $fullest->guests_count, 'capacity' => $fullest->capacity]
+                    : null,
             ],
             'options' => [
                 'shapes' => array_map(

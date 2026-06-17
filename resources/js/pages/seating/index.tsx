@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { SeatingInfographics, type SeatingStats } from '@/components/seating/seating-infographics';
 import { usePermissions } from '@/hooks/use-permissions';
 
 type Option = { value: string; label: string };
@@ -86,7 +87,7 @@ type FloorElement = {
     rotation: number;
 };
 
-type Stats = { tables: number; capacity: number; seated: number; unseated: number };
+type Stats = SeatingStats;
 
 type PageProps = {
     weddingName: string;
@@ -624,6 +625,8 @@ export default function SeatingIndex({ weddingName, tables, guests, elements, la
     const [selectedElement, setSelectedElement] = useState<number | null>(null);
     const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
     const [guestSearch, setGuestSearch] = useState('');
+    // Tap-to-assign (touch-friendly: drag-and-drop doesn't fire on phones).
+    const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null);
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -759,6 +762,21 @@ persistElement(drag.id, { position_x: Math.round(pos.x), position_y: Math.round(
                     toast.error(errors.seat_number ?? errors.table_id ?? 'Could not seat guest.'),
             },
         );
+    }
+
+    // Tap a guest in the rail to pick them up, then tap a seat to place them.
+    function tapSeat(table: Table, seatNumber: number, occupied: SeatGuest | undefined) {
+        if (selectedGuestId === null) {
+            return;
+        }
+
+        if (occupied && occupied.id !== selectedGuestId) {
+            toast.error('That seat is taken.');
+            return;
+        }
+
+        assign(selectedGuestId, table.id, seatNumber);
+        setSelectedGuestId(null);
     }
 
     function dropOnSeat(table: Table, seatNumber: number, occupied: SeatGuest | undefined) {
@@ -899,6 +917,19 @@ return;
                     </Button>
                 </div>
 
+                <SeatingInfographics stats={stats} />
+
+                {selectedGuestId !== null && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#8a651c]/40 bg-[#fed488]/15 px-4 py-2 text-sm">
+                        <span>
+                            Seating <strong>{guests.find((g) => g.id === selectedGuestId)?.name}</strong> — tap an empty seat to place them.
+                        </span>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedGuestId(null)}>
+                            Cancel
+                        </Button>
+                    </div>
+                )}
+
                 <div className="flex flex-1 flex-col gap-4 lg:flex-row">
                     {/* LEFT RAIL — guests */}
                     <aside className="flex flex-col lg:w-64">
@@ -939,7 +970,14 @@ return;
                                             draggable={writable}
                                             onDragStart={() => setDragGuestId(g.id)}
                                             onDragEnd={() => setDragGuestId(null)}
-                                            className="flex cursor-grab items-center gap-2 rounded bg-muted px-3 py-2 text-sm hover:bg-muted/70 active:cursor-grabbing"
+                                            onClick={() =>
+                                                writable && setSelectedGuestId((id) => (id === g.id ? null : g.id))
+                                            }
+                                            className={`flex items-center gap-2 rounded px-3 py-2 text-sm active:cursor-grabbing ${
+                                                selectedGuestId === g.id
+                                                    ? 'bg-[#fed488]/40 ring-2 ring-[#8a651c]'
+                                                    : 'cursor-pointer bg-muted hover:bg-muted/70'
+                                            }`}
                                         >
                                             <span
                                                 className={`size-2 shrink-0 rounded-full ${
@@ -1189,6 +1227,7 @@ return;
                                                         setDropTarget((t) => (t === target ? null : t))
                                                     }
                                                     onDrop={() => dropOnSeat(table, seat.n, who)}
+                                                    onClick={() => tapSeat(table, seat.n, who)}
                                                 >
                                                     <div
                                                         draggable={writable && !!who}
@@ -1199,7 +1238,11 @@ return;
                                                             who
                                                                 ? `cursor-grab bg-[#775a19] text-white ring-2 ring-offset-1 ring-offset-[#efe7da] active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
                                                                 : 'border-2 border-[#9c8f7d] bg-white text-[#7d7468]'
-                                                        } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''}`}
+                                                        } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''} ${
+                                                            selectedGuestId !== null && !who
+                                                                ? 'cursor-pointer ring-2 ring-[#8a651c]/60'
+                                                                : ''
+                                                        }`}
                                                         style={{ width: geo.chair, height: geo.chair }}
                                                     >
                                                         {who ? initials(who.name) : seat.n}

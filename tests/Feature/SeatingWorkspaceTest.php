@@ -35,6 +35,12 @@ class SeatingWorkspaceTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('seating/index')
                 ->has('tables', 2)
+                // Premium infographics payload.
+                ->has('stats.utilization')
+                ->has('stats.unseated_attending')
+                ->has('stats.tables_at_capacity')
+                ->has('stats.sides.partner_one')
+                ->has('stats.meals')
             );
     }
 
