@@ -13,6 +13,7 @@ import {
     ListChecks,
     QrCode,
     Languages,
+    Megaphone,
     Plane,
     Settings2,
     Sparkles,
@@ -86,6 +87,11 @@ export function AppSidebar() {
                       title: 'Schedule',
                       href: '/events',
                       icon: CalendarDays,
+                  } satisfies NavItem,
+                  {
+                      title: 'Message guests',
+                      href: '/messages',
+                      icon: Megaphone,
                   } satisfies NavItem,
               ]
             : []),

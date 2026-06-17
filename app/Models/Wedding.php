@@ -90,6 +90,11 @@ class Wedding extends Model
         return $this->hasMany(WeddingAccommodation::class);
     }
 
+    public function guestBroadcasts(): HasMany
+    {
+        return $this->hasMany(GuestBroadcast::class);
+    }
+
     public function registryFunds(): HasMany
     {
         return $this->hasMany(RegistryFund::class);

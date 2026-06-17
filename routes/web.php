@@ -58,6 +58,7 @@ use App\Http\Controllers\RegistryController;
 use App\Http\Controllers\PublicRegistryController;
 use App\Http\Controllers\WeddingEventController;
 use App\Http\Controllers\AccommodationController;
+use App\Http\Controllers\GuestBroadcastController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -413,6 +414,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('travel/{accommodation}', [AccommodationController::class, 'update'])->name('travel.update');
         Route::delete('travel/{accommodation}', [AccommodationController::class, 'destroy'])->name('travel.destroy');
     });
+
+    // Message your guests — broadcast announcements to a chosen audience. Atelier feature.
+    Route::get('messages', [GuestBroadcastController::class, 'index'])
+        ->middleware(['permission:guests,read', 'plan.feature:broadcast'])->name('broadcasts.index');
+    Route::post('messages', [GuestBroadcastController::class, 'store'])
+        ->middleware(['permission:guests,write', 'plan.feature:broadcast', 'throttle:10,1'])->name('broadcasts.store');
 
     // Collaborators (team access & roles).
     Route::get('collaborators', [CollaboratorController::class, 'index'])
