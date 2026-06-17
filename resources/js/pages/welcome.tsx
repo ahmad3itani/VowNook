@@ -3,13 +3,21 @@ import { motion } from 'framer-motion';
 import {
     ArrowRight,
     ArrowUpRight,
+    CalendarDays,
     Check,
+    Gift,
     GitCompareArrows,
+    Globe,
+    HeartHandshake,
     Inbox,
     LayoutGrid,
+    MailCheck,
     MailOpen,
+    Megaphone,
     Menu,
     PenLine,
+    Plane,
+    Printer,
     Users,
     Wallet,
     X,
@@ -26,6 +34,11 @@ const IMG = {
     florist: '/images/landing/florist.webp',
     tablescape: '/images/landing/tablescape.webp',
     photographer: '/images/landing/photographer.webp',
+    reception: '/images/landing/reception.webp',
+    registry: '/images/landing/registry.webp',
+    travel: '/images/landing/travel.webp',
+    stationery: '/images/landing/stationery.webp',
+    thankyou: '/images/landing/thankyou.webp',
 };
 
 const CATEGORIES = [
@@ -38,6 +51,25 @@ const coupleFeatures = [
     { icon: LayoutGrid, title: 'Seating studio', body: 'Drag-and-drop floor plans, to scale, down to the last chair.' },
     { icon: Wallet, title: 'Budget, balanced', body: 'Estimates, actuals and payments — always in plain sight.' },
     { icon: PenLine, title: 'A website that wows', body: 'Templates, galleries, video and a countdown — published in minutes.' },
+];
+
+// The complete celebration suite — the eight things that make VowNook end-to-end.
+const suite = [
+    { icon: Gift, title: 'Gift registry', body: 'Cash, honeymoon and item registries — guests give in a tap, no fees held.' },
+    { icon: CalendarDays, title: 'Multi-day schedule', body: 'Rehearsal, welcome party, ceremony, brunch — each with its own RSVP.' },
+    { icon: Plane, title: 'Travel & stays', body: 'Hotel room blocks, directions and shuttle notes for out-of-town guests.' },
+    { icon: MailCheck, title: 'Save-the-dates', body: 'Send beautiful cards and see exactly who opened them.' },
+    { icon: Megaphone, title: 'Message your guests', body: 'A venue change or a thank-you — broadcast to the right people instantly.' },
+    { icon: Printer, title: 'Printables', body: 'Escort cards, place cards, menus and table numbers — print-ready in a click.' },
+    { icon: HeartHandshake, title: 'Thank-you tracking', body: 'Every gift in one list, ticked off as the notes go out.' },
+    { icon: Globe, title: 'name.vownook.com', body: 'A free, personal web address for your wedding site — shareable in seconds.' },
+];
+
+const mosaic = [
+    { src: IMG.registry, alt: 'Wedding gifts wrapped in cream paper and gold ribbon', label: 'Registry' },
+    { src: IMG.stationery, alt: 'Luxury wedding save-the-date stationery flatlay', label: 'Save-the-dates' },
+    { src: IMG.travel, alt: 'A vintage suitcase and map for the honeymoon', label: 'Travel & stays' },
+    { src: IMG.thankyou, alt: 'Handwritten thank-you cards with a gold pen', label: 'Thank-yous' },
 ];
 
 const vendorStats = [
@@ -72,7 +104,7 @@ const tiers = [
         name: 'Couples — The Atelier',
         price: '$99',
         cadence: 'per wedding',
-        features: ['Everything in Essential', 'Wedding website & invitation', 'Floor plan & seat finder', 'Collaborators & gallery'],
+        features: ['Everything in Essential', 'Wedding website + name.vownook.com', 'Registry, travel & save-the-dates', 'Floor plan, printables & more'],
         cta: 'Choose Atelier',
         href: '/register',
         featured: true,
@@ -97,6 +129,42 @@ const tiers = [
     },
 ];
 
+const faqs = [
+    {
+        q: 'Is VowNook free to use?',
+        a: 'Yes. Couples plan for free — guest list and RSVP, budget tracker, checklist, timeline and the full vendor marketplace cost nothing. The Atelier upgrade adds the wedding website, your free name.vownook.com address, registry, travel, save-the-dates, printables and the seating studio.',
+    },
+    {
+        q: 'Can I build a wedding website for free?',
+        a: 'You can design and preview a beautiful wedding website on any plan, with templates, galleries, video, a countdown and a per-event RSVP. Publishing it live — and claiming a free personal address like yourname.vownook.com — is part of the Atelier plan.',
+    },
+    {
+        q: 'How does the vendor marketplace work?',
+        a: 'Browse trusted wedding vendors by category, region and budget, send one inquiry with your date and guest count, then compare real quotes side by side. Accept an offer and the vendor appears right inside your planning workspace.',
+    },
+    {
+        q: 'Which areas do you cover?',
+        a: 'VowNook is built for couples and wedding vendors across Ontario — Toronto, Ottawa, Hamilton, Kitchener-Waterloo, London, Niagara and beyond — with planning tools that work anywhere.',
+    },
+    {
+        q: 'What does it cost vendors to join?',
+        a: 'Listing your business is free — no monthly fee and no contract. You only pay a small commission when a booking is actually won, capped and reduced on larger bookings.',
+    },
+    {
+        q: 'Does it include a gift registry and thank-you tracking?',
+        a: 'Yes. Set up cash, honeymoon and item registries with no fees held, and every contribution flows into a thank-you list you can tick off as the notes go out.',
+    },
+];
+
+function Wordmark({ className = '' }: { className?: string }) {
+    return (
+        <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label="VowNook home">
+            <img src="/images/brand/logo-mark.webp" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+            <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
+        </Link>
+    );
+}
+
 export default function Welcome() {
     const { auth } = usePage().props;
     const authed = !!auth?.user;
@@ -116,13 +184,14 @@ export default function Welcome() {
 
             {/* ── Header ─────────────────────────────────────────────────── */}
             <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
-                <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
-                    <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>
-                        VowNook <span className="italic font-light text-[#8a651c]">Atelier</span>
-                    </span>
+                <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-3.5 md:px-12">
+                    <Wordmark />
                     <div className="hidden items-center gap-9 md:flex">
                         <a href="#couples" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             For couples
+                        </a>
+                        <a href="#suite" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            The suite
                         </a>
                         <Link href="/marketplace" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             Marketplace
@@ -130,9 +199,6 @@ export default function Welcome() {
                         <a href="#vendors" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             For vendors
                         </a>
-                        <Link href="/how-it-works" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
-                            How it works
-                        </Link>
                         <a href="#pricing" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             Pricing
                         </a>
@@ -173,25 +239,13 @@ export default function Welcome() {
                 {/* Mobile menu */}
                 {menuOpen && (
                     <div className="flex flex-col border-t border-[#191613]/8 bg-[#faf6ef] px-5 py-2 md:hidden">
-                        <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
-                            For couples
-                        </a>
-                        <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
-                            Marketplace
-                        </Link>
-                        <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
-                            For vendors
-                        </a>
-                        <Link href="/how-it-works" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
-                            How it works
-                        </Link>
-                        <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
-                            Pricing
-                        </a>
+                        <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For couples</a>
+                        <a href="#suite" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">The suite</a>
+                        <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Marketplace</Link>
+                        <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For vendors</a>
+                        <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Pricing</a>
                         {!authed && (
-                            <Link href={login()} onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">
-                                Sign in
-                            </Link>
+                            <Link href={login()} onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Sign in</Link>
                         )}
                     </div>
                 )}
@@ -201,11 +255,12 @@ export default function Welcome() {
             <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
                 <motion.img
                     src={IMG.hero}
-                    alt="A couple laughing mid-dance at a golden-hour reception"
+                    alt="A couple laughing mid-dance at a golden-hour wedding reception"
                     className="absolute inset-0 size-full object-cover"
                     initial={{ scale: 1.12 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 16, ease: 'easeOut' }}
+                    fetchPriority="high"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/85 via-[#191613]/25 to-[#191613]/30" />
 
@@ -217,7 +272,7 @@ export default function Welcome() {
                     transition={{ delay: 1.2, duration: 1 }}
                 >
                     <span className="h-px w-10 bg-white/40" />
-                    The Atelier — Issue N°01
+                    The Wedding Suite — N°01
                 </motion.div>
 
                 <div className="relative z-10 mx-auto w-full max-w-[1480px] px-5 pb-16 md:px-12 md:pb-20">
@@ -227,7 +282,7 @@ export default function Welcome() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.9, delay: 0.2 }}
                     >
-                        Planning studio · Vendor marketplace
+                        Planning studio · Vendor marketplace · Wedding websites
                     </motion.p>
                     <motion.h1
                         className={`${fraunces} max-w-5xl text-[clamp(2.4rem,11vw,6.5rem)] leading-[0.95] font-light text-white`}
@@ -247,8 +302,8 @@ export default function Welcome() {
                         transition={{ duration: 0.9, delay: 0.6 }}
                     >
                         <p className="max-w-md text-[15px] leading-relaxed text-white/85">
-                            Plan every detail in one calm workspace — then discover trusted vendors,
-                            compare real quotes and book, without leaving the room.
+                            Plan every detail in one calm workspace — guests, seating, budget, a wedding website,
+                            registry and more — then discover trusted vendors and compare real quotes, all in one place.
                         </p>
                         <div className="flex flex-col gap-3 sm:flex-row">
                             <Link
@@ -276,9 +331,7 @@ export default function Welcome() {
                         <div key={dup} className="flex items-center" aria-hidden={dup === 1}>
                             {CATEGORIES.map((c) => (
                                 <span key={`${dup}-${c}`} className="flex items-center">
-                                    <span className={`${fraunces} px-6 text-sm tracking-[0.25em] text-[#52493d] uppercase`}>
-                                        {c}
-                                    </span>
+                                    <span className={`${fraunces} px-6 text-sm tracking-[0.25em] text-[#52493d] uppercase`}>{c}</span>
                                     <span className="text-[#8a651c]">✦</span>
                                 </span>
                             ))}
@@ -294,7 +347,7 @@ export default function Welcome() {
                         <div className="relative z-10 -rotate-1 bg-white p-3 shadow-[0_30px_60px_-20px_rgba(25,22,19,0.35)]">
                             <img
                                 src={IMG.tablescape}
-                                alt="A candlelit reception tablescape"
+                                alt="A candlelit wedding reception tablescape an hour before guests arrive"
                                 className="aspect-[3/4] w-full object-cover"
                                 loading="lazy"
                             />
@@ -303,9 +356,7 @@ export default function Welcome() {
                             </p>
                         </div>
                         <div className="absolute -top-10 -left-6 z-0 hidden h-full w-full border border-[#8a651c]/25 md:block" />
-                        <span
-                            className={`${fraunces} pointer-events-none absolute -top-16 -right-2 z-20 text-[120px] leading-none font-light text-[#8a651c]/15 select-none md:text-[170px]`}
-                        >
+                        <span className={`${fraunces} pointer-events-none absolute -top-16 -right-2 z-20 text-[120px] leading-none font-light text-[#8a651c]/15 select-none md:text-[170px]`}>
                             01
                         </span>
                     </Reveal>
@@ -339,10 +390,7 @@ export default function Welcome() {
                             >
                                 Start planning
                             </Link>
-                            <a
-                                href={DEMO}
-                                className="group flex items-center gap-1.5 text-sm text-[#52493d] underline-offset-4 hover:text-[#8a651c] hover:underline"
-                            >
+                            <a href={DEMO} className="group flex items-center gap-1.5 text-sm text-[#52493d] underline-offset-4 hover:text-[#8a651c] hover:underline">
                                 See a live wedding site
                                 <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                             </a>
@@ -351,11 +399,84 @@ export default function Welcome() {
                 </div>
             </section>
 
+            {/* ── The complete suite (NEW) ───────────────────────────────── */}
+            <section id="suite" className="overflow-hidden border-t border-[#191613]/10 bg-[#f6efe1] px-5 py-24 md:px-12 md:py-36">
+                <div className="mx-auto max-w-[1480px]">
+                    <Reveal className="mx-auto max-w-3xl text-center">
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">New · The complete suite</p>
+                        <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+                            From the first “yes” to the <em className="text-[#8a651c]">last thank-you note.</em>
+                        </h2>
+                        <p className="mt-6 text-[15px] leading-relaxed text-[#52493d]">
+                            VowNook now carries the whole celebration — a gift registry, a multi-day schedule with
+                            per-event RSVPs, hotel room blocks, branded save-the-dates with open-tracking, guest
+                            messaging, print-ready stationery, thank-you tracking, and a free <strong className="font-semibold text-[#191613]">name.vownook.com</strong> wedding website.
+                        </p>
+                    </Reveal>
+
+                    {/* Full-bleed editorial band */}
+                    <Reveal className="mt-14">
+                        <div className="relative overflow-hidden rounded-sm">
+                            <img
+                                src={IMG.reception}
+                                alt="Guests toasting at a golden-hour outdoor wedding reception"
+                                className="h-[300px] w-full object-cover md:h-[460px]"
+                                loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/70 via-transparent to-transparent" />
+                            <p className={`${fraunces} absolute bottom-6 left-6 max-w-md text-2xl leading-tight text-white md:bottom-10 md:left-10 md:text-4xl`}>
+                                One studio for the whole weekend, not just the big day.
+                            </p>
+                        </div>
+                    </Reveal>
+
+                    {/* Eight feature cards */}
+                    <Stagger className="mt-14 grid gap-px overflow-hidden rounded-sm border border-[#191613]/10 bg-[#191613]/10 sm:grid-cols-2 lg:grid-cols-4">
+                        {suite.map((f) => (
+                            <StaggerItem
+                                key={f.title}
+                                className="group bg-[#faf6ef] p-7 transition-colors duration-300 hover:bg-white"
+                            >
+                                <div className="flex size-11 items-center justify-center rounded-full bg-[#f0e6d2] text-[#8a651c] transition-transform duration-300 group-hover:-translate-y-0.5">
+                                    <f.icon className="size-5" />
+                                </div>
+                                <h3 className={`${fraunces} mt-4 text-xl font-medium`}>{f.title}</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-[#52493d]">{f.body}</p>
+                            </StaggerItem>
+                        ))}
+                    </Stagger>
+
+                    {/* Editorial mosaic */}
+                    <Stagger className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        {mosaic.map((m) => (
+                            <StaggerItem key={m.label} className="group relative overflow-hidden rounded-sm">
+                                <img
+                                    src={m.src}
+                                    alt={m.alt}
+                                    className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/60 to-transparent" />
+                                <span className="absolute bottom-3 left-3 text-[10px] font-semibold tracking-[0.2em] text-white uppercase">{m.label}</span>
+                            </StaggerItem>
+                        ))}
+                    </Stagger>
+
+                    <Reveal delay={0.15} className="mt-12 text-center">
+                        <Link
+                            href={authed ? dashboard() : register()}
+                            className="inline-flex items-center gap-3 bg-[#8a651c] px-9 py-4 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#191613]"
+                        >
+                            Build your wedding suite
+                            <ArrowRight className="size-4" />
+                        </Link>
+                    </Reveal>
+                </div>
+            </section>
+
             {/* ── 02 · The marketplace (dark chapter) ────────────────────── */}
             <section className="relative overflow-hidden bg-[#191613] px-5 py-24 text-[#faf6ef] md:px-12 md:py-36">
-                <span
-                    className={`${fraunces} pointer-events-none absolute top-10 left-6 text-[140px] leading-none font-light text-white/5 select-none md:text-[220px]`}
-                >
+                <span className={`${fraunces} pointer-events-none absolute top-10 left-6 text-[140px] leading-none font-light text-white/5 select-none md:text-[220px]`}>
                     02
                 </span>
 
@@ -402,23 +523,13 @@ export default function Welcome() {
                     <div className="relative min-h-[420px] md:col-span-6 md:col-start-7">
                         <Reveal className="absolute top-0 left-0 w-[62%]">
                             <div className="bg-[#faf6ef] p-2.5">
-                                <img
-                                    src={IMG.florist}
-                                    alt="A florist arranging a bridal bouquet"
-                                    className="aspect-[3/4] w-full object-cover"
-                                    loading="lazy"
-                                />
+                                <img src={IMG.florist} alt="A florist arranging a cream bridal bouquet" className="aspect-[3/4] w-full object-cover" loading="lazy" />
                             </div>
                             <p className="mt-2 text-[10px] tracking-[0.25em] text-white/50 uppercase">Florals · The bouquet bench</p>
                         </Reveal>
                         <Reveal delay={0.18} className="absolute right-0 bottom-0 w-[52%]">
                             <div className="bg-[#faf6ef] p-2.5">
-                                <img
-                                    src={IMG.photographer}
-                                    alt="A wedding photographer at work in a courtyard"
-                                    className="aspect-[3/4] w-full object-cover"
-                                    loading="lazy"
-                                />
+                                <img src={IMG.photographer} alt="A wedding photographer at work in a courtyard at golden hour" className="aspect-[3/4] w-full object-cover" loading="lazy" />
                             </div>
                             <p className="mt-2 text-right text-[10px] tracking-[0.25em] text-white/50 uppercase">Photography · Golden hour</p>
                         </Reveal>
@@ -428,9 +539,7 @@ export default function Welcome() {
 
             {/* ── 03 · For vendors ───────────────────────────────────────── */}
             <section id="vendors" className="relative overflow-hidden px-5 py-24 md:px-12 md:py-36">
-                <span
-                    className={`${fraunces} pointer-events-none absolute -top-6 right-6 text-[140px] leading-none font-light text-[#8a651c]/10 select-none md:text-[220px]`}
-                >
+                <span className={`${fraunces} pointer-events-none absolute -top-6 right-6 text-[140px] leading-none font-light text-[#8a651c]/10 select-none md:text-[220px]`}>
                     03
                 </span>
 
@@ -535,18 +644,12 @@ export default function Welcome() {
                                     </div>
                                 )}
                                 <div>
-                                    <h3
-                                        className={`mb-2 text-xs font-bold tracking-[0.25em] uppercase ${
-                                            tier.featured ? 'text-[#e9c176]' : 'text-[#191613]'
-                                        }`}
-                                    >
+                                    <h3 className={`mb-2 text-xs font-bold tracking-[0.25em] uppercase ${tier.featured ? 'text-[#e9c176]' : 'text-[#191613]'}`}>
                                         {tier.name}
                                     </h3>
                                     <div className="mb-8 flex items-baseline gap-2">
                                         <span className={`${fraunces} text-5xl font-light`}>{tier.price}</span>
-                                        <span className={`text-sm ${tier.featured ? 'text-white/60' : 'text-[#52493d]'}`}>
-                                            {tier.cadence}
-                                        </span>
+                                        <span className={`text-sm ${tier.featured ? 'text-white/60' : 'text-[#52493d]'}`}>{tier.cadence}</span>
                                     </div>
                                     <ul className="mb-12 space-y-4">
                                         {tier.features.map((f) => (
@@ -569,6 +672,38 @@ export default function Welcome() {
                                 </Link>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── FAQ (organic + AI search) ──────────────────────────────── */}
+            <section className="border-t border-[#191613]/10 bg-[#f6efe1] px-5 py-24 md:px-12 md:py-32">
+                <div className="mx-auto grid max-w-[1480px] gap-14 md:grid-cols-12">
+                    <Reveal className="md:col-span-4">
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Good to know</p>
+                        <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
+                            Questions, <em className="text-[#8a651c]">answered.</em>
+                        </h2>
+                        <p className="mt-6 text-sm leading-relaxed text-[#52493d]">
+                            Everything couples and vendors ask before they begin. Still curious?{' '}
+                            <Link href="/contact" className="text-[#8a651c] underline-offset-4 hover:underline">Talk to us.</Link>
+                        </p>
+                    </Reveal>
+
+                    <div className="md:col-span-7 md:col-start-6">
+                        <Stagger className="divide-y divide-[#191613]/10 border-y border-[#191613]/10">
+                            {faqs.map((item) => (
+                                <StaggerItem key={item.q}>
+                                    <details className="group">
+                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left">
+                                            <h3 className={`${fraunces} text-lg font-medium`}>{item.q}</h3>
+                                            <span className="grid size-7 shrink-0 place-items-center rounded-full border border-[#8a651c]/40 text-[#8a651c] transition-transform duration-300 group-open:rotate-45">+</span>
+                                        </summary>
+                                        <p className="pb-5 text-sm leading-relaxed text-[#52493d]">{item.a}</p>
+                                    </details>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
                     </div>
                 </div>
             </section>
@@ -601,21 +736,18 @@ export default function Welcome() {
             {/* ── Footer ─────────────────────────────────────────────────── */}
             <footer className="border-t border-[#191613]/10 bg-[#faf6ef] py-12">
                 <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-6 px-5 md:flex-row md:px-12">
-                    <span className={`${fraunces} text-xl`}>
-                        VowNook <span className="italic text-[#8a651c]">Atelier</span>
-                    </span>
+                    <Wordmark />
                     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-[#52493d]">
                         <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
                         <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
+                        <Link href="/blog" className="hover:text-[#8a651c]">Journal</Link>
                         <a href={DEMO} className="hover:text-[#8a651c]">Live demo</a>
                         <Link href="/terms" className="hover:text-[#8a651c]">Terms</Link>
                         <Link href="/privacy" className="hover:text-[#8a651c]">Privacy</Link>
                         <Link href="/contact" className="hover:text-[#8a651c]">Contact</Link>
                         <Link href={login()} className="hover:text-[#8a651c]">Sign in</Link>
                     </div>
-                    <p className="text-[11px] tracking-[0.15em] text-[#52493d]/70 uppercase">
-                        © {new Date().getFullYear()} VowNook
-                    </p>
+                    <p className="text-[11px] tracking-[0.15em] text-[#52493d]/70 uppercase">© {new Date().getFullYear()} VowNook</p>
                 </div>
             </footer>
         </div>

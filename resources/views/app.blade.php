@@ -38,7 +38,10 @@
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <meta name="theme-color" content="#faf6ef">
 
         {{-- Brand fonts (Fraunces display + Playfair Display + DM Sans) --}}
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,12 +66,9 @@
         <meta property="og:description" content="{{ $seoDesc }}">
         <meta property="og:type" content="{{ $seo['type'] ?? 'website' }}">
         <meta property="og:url" content="{{ $seoCanonical }}">
-        @if(!empty($seo['image']))
-            <meta property="og:image" content="{{ $seo['image'] }}">
-            <meta name="twitter:card" content="summary_large_image">
-        @else
-            <meta name="twitter:card" content="summary">
-        @endif
+        <meta property="og:image" content="{{ $seo['image'] ?? url('/images/og-default.jpg') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="{{ $seo['image'] ?? url('/images/og-default.jpg') }}">
         <meta name="twitter:title" content="{{ $seoTitle }}">
         <meta name="twitter:description" content="{{ $seoDesc }}">
 
