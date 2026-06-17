@@ -54,6 +54,14 @@ use App\Http\Controllers\PlannerTemplateController;
 use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
 use App\Http\Controllers\PublicWebsiteController;
+use App\Http\Controllers\RegistryController;
+use App\Http\Controllers\PublicRegistryController;
+use App\Http\Controllers\WeddingEventController;
+use App\Http\Controllers\AccommodationController;
+use App\Http\Controllers\GuestBroadcastController;
+use App\Http\Controllers\SaveTheDateController;
+use App\Http\Controllers\EmailTrackController;
+use App\Http\Controllers\GiftController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -67,7 +75,15 @@ use App\Http\Controllers\WeddingController;
 use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\WebsiteGalleryController;
 use App\Http\Controllers\WebsiteMediaController;
+use App\Http\Controllers\SubdomainSiteController;
 use Illuminate\Support\Facades\Route;
+
+// Free personal web address — {name}.vownook.com resolves a couple's published
+// wedding site. Registered first so a matching host wins over the apex `/`.
+Route::domain('{subdomain}.'.config('app.root_domain'))->middleware('throttle:120,1')->group(function () {
+    Route::get('/', [SubdomainSiteController::class, 'show'])
+        ->where('subdomain', '[a-z0-9-]+')->name('subdomain.website');
+});
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
 
@@ -166,8 +182,18 @@ Route::middleware('throttle:120,1')->group(function () {
 
     // Public media serving for wedding website images (no auth required).
     Route::get('w/{wedding:slug}/media/{type}/{filename}', [WebsiteMediaController::class, 'serve'])
-        ->where('type', 'hero|story|gallery|music')
+        ->where('type', 'hero|story|gallery|music|registry|travel')
         ->name('website.media');
+
+    // Email open-tracking pixel for save-the-dates / invitations.
+    Route::get('e/{token}.gif', [EmailTrackController::class, 'pixel'])
+        ->where('token', '[A-Za-z0-9]+')->middleware('throttle:120,1')->name('email.track');
+
+    // Guest registry actions on the public wedding site.
+    Route::post('w/{wedding:slug}/registry/funds/{fund}/contribute', [PublicRegistryController::class, 'contribute'])
+        ->middleware('throttle:20,1')->name('public.registry.contribute');
+    Route::post('w/{wedding:slug}/registry/items/{item}/claim', [PublicRegistryController::class, 'claim'])
+        ->middleware('throttle:20,1')->name('public.registry.claim');
 
     // Public RSVP site (name search is a ?name= query on the show route).
     Route::get('w/{wedding}/rsvp', [PublicRsvpController::class, 'show'])->name('public.rsvp');
@@ -353,6 +379,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:website,read')->name('website.index');
     Route::put('website', [WebsiteController::class, 'update'])
         ->middleware('permission:website,write')->name('website.update');
+    // Free name.vownook.com web address — Atelier feature.
+    Route::get('website/subdomain/check', [WebsiteController::class, 'checkSubdomain'])
+        ->middleware(['permission:website,read', 'plan.feature:subdomain'])->name('website.subdomain.check');
+    Route::put('website/subdomain', [WebsiteController::class, 'updateSubdomain'])
+        ->middleware(['permission:website,write', 'plan.feature:subdomain'])->name('website.subdomain');
     Route::post('website/hero', [WebsiteController::class, 'uploadHero'])
         ->middleware('permission:website,write')->name('website.hero');
     Route::post('website/story-image', [WebsiteController::class, 'uploadStoryImage'])
@@ -371,6 +402,60 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:website,write')->name('website.gallery.update');
     Route::delete('website/gallery/{photo}', [WebsiteGalleryController::class, 'destroy'])
         ->middleware('permission:website,write')->name('website.gallery.destroy');
+
+    // Gift registry (funds + items) — Atelier feature, gated on the website section.
+    Route::get('registry', [RegistryController::class, 'index'])
+        ->middleware(['permission:website,read', 'plan.feature:registry'])->name('registry.index');
+    Route::middleware(['permission:website,write', 'plan.feature:registry'])->group(function () {
+        Route::post('registry/funds', [RegistryController::class, 'storeFund'])->name('registry.funds.store');
+        Route::put('registry/funds/{fund}', [RegistryController::class, 'updateFund'])->name('registry.funds.update');
+        Route::delete('registry/funds/{fund}', [RegistryController::class, 'destroyFund'])->name('registry.funds.destroy');
+        Route::post('registry/items', [RegistryController::class, 'storeItem'])->name('registry.items.store');
+        Route::put('registry/items/{item}', [RegistryController::class, 'updateItem'])->name('registry.items.update');
+        Route::delete('registry/items/{item}', [RegistryController::class, 'destroyItem'])->name('registry.items.destroy');
+    });
+
+    // Gifts & thank-yous — paired with the registry Atelier feature.
+    Route::get('gifts', [GiftController::class, 'index'])
+        ->middleware(['permission:website,read', 'plan.feature:registry'])->name('gifts.index');
+    Route::middleware(['permission:website,write', 'plan.feature:registry'])->group(function () {
+        Route::post('gifts', [GiftController::class, 'store'])->name('gifts.store');
+        Route::put('gifts/{gift}', [GiftController::class, 'update'])->name('gifts.update');
+        Route::patch('gifts/{gift}/thank-you', [GiftController::class, 'toggleThankYou'])->name('gifts.thank-you');
+        Route::delete('gifts/{gift}', [GiftController::class, 'destroy'])->name('gifts.destroy');
+    });
+
+    // Celebration schedule — multiple events with per-event RSVP. Atelier feature.
+    Route::get('events', [WeddingEventController::class, 'index'])
+        ->middleware(['permission:guests,read', 'plan.feature:events'])->name('events.index');
+    Route::middleware(['permission:guests,write', 'plan.feature:events'])->group(function () {
+        Route::post('events', [WeddingEventController::class, 'store'])->name('events.store');
+        Route::put('events/{event}', [WeddingEventController::class, 'update'])->name('events.update');
+        Route::delete('events/{event}', [WeddingEventController::class, 'destroy'])->name('events.destroy');
+        Route::post('events/reorder', [WeddingEventController::class, 'reorder'])->name('events.reorder');
+    });
+
+    // Travel & stays — hotel room blocks + transport. Atelier feature.
+    Route::get('travel', [AccommodationController::class, 'index'])
+        ->middleware(['permission:website,read', 'plan.feature:travel'])->name('travel.index');
+    Route::middleware(['permission:website,write', 'plan.feature:travel'])->group(function () {
+        Route::post('travel', [AccommodationController::class, 'store'])->name('travel.store');
+        Route::put('travel/notes', [AccommodationController::class, 'updateNotes'])->name('travel.notes');
+        Route::put('travel/{accommodation}', [AccommodationController::class, 'update'])->name('travel.update');
+        Route::delete('travel/{accommodation}', [AccommodationController::class, 'destroy'])->name('travel.destroy');
+    });
+
+    // Message your guests — broadcast announcements to a chosen audience. Atelier feature.
+    Route::get('messages', [GuestBroadcastController::class, 'index'])
+        ->middleware(['permission:guests,read', 'plan.feature:broadcast'])->name('broadcasts.index');
+    Route::post('messages', [GuestBroadcastController::class, 'store'])
+        ->middleware(['permission:guests,write', 'plan.feature:broadcast', 'throttle:10,1'])->name('broadcasts.store');
+
+    // Save-the-dates / invitations with open-tracking. Atelier feature.
+    Route::get('save-the-dates', [SaveTheDateController::class, 'index'])
+        ->middleware(['permission:guests,read', 'plan.feature:save_the_dates'])->name('save-the-dates.index');
+    Route::post('save-the-dates/send', [SaveTheDateController::class, 'send'])
+        ->middleware(['permission:guests,write', 'plan.feature:save_the_dates', 'throttle:10,1'])->name('save-the-dates.send');
 
     // Collaborators (team access & roles).
     Route::get('collaborators', [CollaboratorController::class, 'index'])

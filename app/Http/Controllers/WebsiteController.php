@@ -15,6 +15,13 @@ use Inertia\Response;
 
 class WebsiteController extends Controller
 {
+    /** Subdomains we never let couples claim (infra + brand). */
+    public const RESERVED_SUBDOMAINS = [
+        'www', 'app', 'api', 'admin', 'mail', 'smtp', 'ftp', 'cdn', 'assets', 'static',
+        'blog', 'help', 'support', 'status', 'dashboard', 'login', 'register', 'account',
+        'billing', 'stripe', 'webhook', 'webhooks', 'vownook', 'mx', 'ns', 'ns1', 'ns2', 'email', 'e',
+    ];
+
     public function __construct(protected CurrentWedding $current) {}
 
     public function index(Request $request): Response
@@ -26,7 +33,56 @@ class WebsiteController extends Controller
             'website' => $this->serialize($wedding, $website),
             'public_url' => route('public.website', $wedding),
             'can_publish' => $this->canPublish($wedding, $request->user()),
+            'subdomain_base' => config('app.root_domain'),
+            'subdomain_enabled' => $wedding->owner?->canUseFeature('subdomain') ?? false,
         ]);
+    }
+
+    /** Claim or change the free name.vownook.com web address. */
+    public function updateSubdomain(Request $request): RedirectResponse
+    {
+        $wedding = $this->current->get();
+
+        $data = $request->validate([
+            'subdomain' => [
+                'nullable', 'string', 'min:3', 'max:40',
+                'regex:/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/',
+                \Illuminate\Validation\Rule::notIn(self::RESERVED_SUBDOMAINS),
+                \Illuminate\Validation\Rule::unique('wedding_websites', 'subdomain')
+                    ->ignore($wedding->website?->id),
+            ],
+        ], [
+            'subdomain.regex' => 'Use lowercase letters, numbers and hyphens only.',
+            'subdomain.not_in' => 'That address is reserved — please choose another.',
+            'subdomain.unique' => 'That address is already taken.',
+        ]);
+
+        $wedding->website()->updateOrCreate(
+            ['wedding_id' => $wedding->id],
+            ['subdomain' => $data['subdomain'] ?? null],
+        );
+
+        return back()->with('status', 'subdomain-saved');
+    }
+
+    /** Live availability check for the editor. */
+    public function checkSubdomain(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $wedding = $this->current->get();
+        $value = strtolower(trim((string) $request->query('value', '')));
+
+        if (! preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $value) || strlen($value) < 3) {
+            return response()->json(['available' => false, 'reason' => 'invalid']);
+        }
+        if (in_array($value, self::RESERVED_SUBDOMAINS, true)) {
+            return response()->json(['available' => false, 'reason' => 'reserved']);
+        }
+
+        $taken = WeddingWebsite::where('subdomain', $value)
+            ->where('wedding_id', '!=', $wedding->id)
+            ->exists();
+
+        return response()->json(['available' => ! $taken, 'reason' => $taken ? 'taken' : 'ok']);
     }
 
     public function update(WeddingWebsiteRequest $request): RedirectResponse
@@ -145,6 +201,7 @@ class WebsiteController extends Controller
 
         return [
             'is_published'       => (bool) ($website?->is_published ?? false),
+            'subdomain'          => $website?->subdomain,
             'template'           => $website?->template ?? 'classic',
             'headline'           => $website?->headline,
             'welcome_message'    => $website?->welcome_message,

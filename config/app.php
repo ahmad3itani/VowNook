@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Root Domain
+    |--------------------------------------------------------------------------
+    |
+    | The bare domain used for couples' free wedding-site subdomains, i.e.
+    | name.vownook.com. A wildcard *.vownook.com DNS record (+ the wildcard
+    | domain attached in hosting) must point here for subdomains to resolve.
+    |
+    */
+
+    'root_domain' => env('APP_ROOT_DOMAIN', 'vownook.com'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

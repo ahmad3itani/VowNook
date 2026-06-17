@@ -4,6 +4,8 @@ import {
     ArrowLeft,
     Briefcase,
     CalendarClock,
+    CalendarDays,
+    Gift,
     Globe,
     HeartHandshake,
     Images,
@@ -11,6 +13,9 @@ import {
     ListChecks,
     QrCode,
     Languages,
+    MailCheck,
+    Megaphone,
+    Plane,
     Settings2,
     Sparkles,
     UserCog,
@@ -74,6 +79,25 @@ export function AppSidebar() {
                       title: 'Guests',
                       href: '/guests',
                       icon: Users,
+                  } satisfies NavItem,
+              ]
+            : []),
+        ...(canRead('guests')
+            ? [
+                  {
+                      title: 'Schedule',
+                      href: '/events',
+                      icon: CalendarDays,
+                  } satisfies NavItem,
+                  {
+                      title: 'Message guests',
+                      href: '/messages',
+                      icon: Megaphone,
+                  } satisfies NavItem,
+                  {
+                      title: 'Save-the-dates',
+                      href: '/save-the-dates',
+                      icon: MailCheck,
                   } satisfies NavItem,
               ]
             : []),
@@ -147,6 +171,21 @@ export function AppSidebar() {
                       title: 'Website',
                       href: '/website',
                       icon: Globe,
+                  } satisfies NavItem,
+                  {
+                      title: 'Registry',
+                      href: '/registry',
+                      icon: Gift,
+                  } satisfies NavItem,
+                  {
+                      title: 'Travel & stays',
+                      href: '/travel',
+                      icon: Plane,
+                  } satisfies NavItem,
+                  {
+                      title: 'Gifts & thank-yous',
+                      href: '/gifts',
+                      icon: HeartHandshake,
                   } satisfies NavItem,
               ]
             : []),

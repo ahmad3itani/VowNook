@@ -11,9 +11,12 @@ type Match = {
     appetizer_choice: string | null;
     dessert_choice: string | null;
     dietary_notes: string | null;
+    event_rsvps: Record<string, string>;
 };
 
 type MealCourse = { course: 'appetizer' | 'main' | 'dessert'; label: string; options: string[] };
+
+type RsvpEvent = { id: number; name: string; type: string; date: string | null; time: string | null; venue_name: string | null };
 
 type PageProps = {
     wedding: { name: string; slug: string; event_date: string | null };
@@ -21,6 +24,7 @@ type PageProps = {
     searched: boolean;
     query: string;
     meals: MealCourse[];
+    events: RsvpEvent[];
 };
 
 const COURSE_FIELD: Record<string, 'meal_choice' | 'appetizer_choice' | 'dessert_choice'> = {
@@ -44,18 +48,27 @@ const dateFormat = new Intl.DateTimeFormat('en-CA', {
     day: 'numeric',
 });
 
-export default function PublicRsvp({ wedding, matches, searched, query, meals }: PageProps) {
+export default function PublicRsvp({ wedding, matches, searched, query, meals, events }: PageProps) {
     const [selected, setSelected] = useState<Match | null>(null);
     const [done, setDone] = useState(false);
 
     const lookup = useForm({ name: query ?? '' });
-    const respond = useForm({
+    const respond = useForm<{
+        guest_id: number;
+        rsvp_status: string;
+        meal_choice: string;
+        appetizer_choice: string;
+        dessert_choice: string;
+        dietary_notes: string;
+        events: Record<string, string>;
+    }>({
         guest_id: 0,
         rsvp_status: 'attending',
         meal_choice: '',
         appetizer_choice: '',
         dessert_choice: '',
         dietary_notes: '',
+        events: {},
     });
 
     function submitLookup(e: React.FormEvent) {
@@ -72,6 +85,10 @@ export default function PublicRsvp({ wedding, matches, searched, query, meals }:
     function choose(match: Match) {
         setSelected(match);
         setDone(false);
+        const eventReplies: Record<string, string> = {};
+        events.forEach((ev) => {
+            eventReplies[String(ev.id)] = match.event_rsvps?.[String(ev.id)] ?? 'attending';
+        });
         respond.setData({
             guest_id: match.id,
             rsvp_status: match.rsvp_status === 'pending' ? 'attending' : match.rsvp_status,
@@ -79,6 +96,7 @@ export default function PublicRsvp({ wedding, matches, searched, query, meals }:
             appetizer_choice: match.appetizer_choice ?? '',
             dessert_choice: match.dessert_choice ?? '',
             dietary_notes: match.dietary_notes ?? '',
+            events: eventReplies,
         });
     }
 
@@ -191,6 +209,40 @@ export default function PublicRsvp({ wedding, matches, searched, query, meals }:
                                         />
                                     </div>
                                 </>
+                            )}
+
+                            {events.length > 0 && (
+                                <div className="grid gap-3 border-t border-[#cec5bd]/40 pt-5">
+                                    <p className="text-xs tracking-widest text-[#4c4640] uppercase">
+                                        Which celebrations will you join?
+                                    </p>
+                                    {events.map((ev) => {
+                                        const status = respond.data.events[String(ev.id)] ?? 'attending';
+                                        const detail = [ev.date, ev.time, ev.venue_name].filter(Boolean).join(' · ');
+                                        return (
+                                            <div key={ev.id} className="border border-[#cec5bd]/60 p-3">
+                                                <p className="text-sm font-medium text-[#1e1b18]">{ev.name}</p>
+                                                {detail && <p className="text-xs text-[#4c4640]">{detail}</p>}
+                                                <div className="mt-2 flex gap-2">
+                                                    {[{ v: 'attending', l: 'Attending' }, { v: 'declined', l: "Can't make it" }].map((o) => (
+                                                        <button
+                                                            type="button"
+                                                            key={o.v}
+                                                            onClick={() => respond.setData('events', { ...respond.data.events, [String(ev.id)]: o.v })}
+                                                            className={`flex-1 border px-3 py-2 text-xs tracking-wide uppercase transition-colors ${
+                                                                status === o.v
+                                                                    ? 'border-[#775a19] bg-[#fed488]/20 font-medium text-[#1e1b18]'
+                                                                    : 'border-[#cec5bd]/60 hover:border-[#775a19]/50'
+                                                            }`}
+                                                        >
+                                                            {o.l}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             )}
 
                             <div className="flex gap-3">

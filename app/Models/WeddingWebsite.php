@@ -16,6 +16,7 @@ class WeddingWebsite extends Model
     protected $fillable = [
         'wedding_id',
         'is_published',
+        'subdomain',
         'template',
         'headline',
         'welcome_message',
@@ -32,6 +33,7 @@ class WeddingWebsite extends Model
         'video_url',
         'music_path',
         'music_title',
+        'travel_notes',
     ];
 
     protected function casts(): array

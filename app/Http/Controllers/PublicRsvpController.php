@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\RsvpStatus;
 use App\Models\Guest;
 use App\Models\Wedding;
+use App\Models\WeddingEvent;
 use App\Notifications\RsvpReceived;
 use App\Support\MealOptions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,10 +32,21 @@ class PublicRsvpController extends Controller
         $term = trim((string) $request->query('name', ''));
         $searched = mb_strlen($term) >= 2;
 
+        // RSVP-able extra events the guest can reply to per-event.
+        $events = WeddingEvent::forWedding($wedding->id)->where('is_rsvpable', true)->ordered()->get();
+        $eventList = $events->map(fn (WeddingEvent $e) => [
+            'id' => $e->id,
+            'name' => $e->name,
+            'type' => $e->type,
+            'date' => $e->event_date?->translatedFormat('l, F j'),
+            'time' => $e->start_time,
+            'venue_name' => $e->venue_name,
+        ])->values();
+
         $matches = collect();
 
         if ($searched) {
-            $matches = Guest::query()
+            $guests = Guest::query()
                 ->forWedding($wedding->id)
                 ->where(function ($query) use ($term) {
                     $query->where('first_name', 'like', "%{$term}%")
@@ -41,16 +54,29 @@ class PublicRsvpController extends Controller
                 })
                 ->orderBy('first_name')
                 ->limit(15)
-                ->get(['id', 'first_name', 'last_name', 'rsvp_status', 'meal_choice', 'appetizer_choice', 'dessert_choice', 'dietary_notes'])
-                ->map(fn (Guest $g) => [
-                    'id' => $g->id,
-                    'name' => trim($g->first_name.' '.($g->last_name ?? '')),
-                    'rsvp_status' => $g->rsvp_status->value,
-                    'meal_choice' => $g->meal_choice,
-                    'appetizer_choice' => $g->appetizer_choice,
-                    'dessert_choice' => $g->dessert_choice,
-                    'dietary_notes' => $g->dietary_notes,
-                ]);
+                ->get(['id', 'first_name', 'last_name', 'rsvp_status', 'meal_choice', 'appetizer_choice', 'dessert_choice', 'dietary_notes']);
+
+            // Each matched guest's existing per-event replies, keyed by event id.
+            $replies = collect();
+            if ($events->isNotEmpty() && $guests->isNotEmpty()) {
+                $replies = DB::table('event_guest')
+                    ->whereIn('guest_id', $guests->pluck('id'))
+                    ->whereIn('wedding_event_id', $events->pluck('id'))
+                    ->get()
+                    ->groupBy('guest_id');
+            }
+
+            $matches = $guests->map(fn (Guest $g) => [
+                'id' => $g->id,
+                'name' => trim($g->first_name.' '.($g->last_name ?? '')),
+                'rsvp_status' => $g->rsvp_status->value,
+                'meal_choice' => $g->meal_choice,
+                'appetizer_choice' => $g->appetizer_choice,
+                'dessert_choice' => $g->dessert_choice,
+                'dietary_notes' => $g->dietary_notes,
+                'event_rsvps' => ($replies->get($g->id)
+                    ?->mapWithKeys(fn ($r) => [(string) $r->wedding_event_id => $r->rsvp_status])->all()) ?: (object) [],
+            ]);
         }
 
         // Only the courses the couple turned on, with their choices.
@@ -70,6 +96,7 @@ class PublicRsvpController extends Controller
             'searched' => $searched,
             'query' => $term,
             'meals' => $meals,
+            'events' => $eventList,
         ])->withViewData(['seo' => \App\Support\Seo::make(
             title: "RSVP — {$wedding->name}",
             description: 'Reply to your invitation.',
@@ -98,6 +125,8 @@ class PublicRsvpController extends Controller
                 RsvpStatus::Maybe->value,
             ])],
             'dietary_notes' => ['nullable', 'string', 'max:500'],
+            'events' => ['nullable', 'array'],
+            'events.*' => [Rule::in(['attending', 'declined', 'pending'])],
         ];
 
         foreach (self::COURSE_COLUMNS as $course => $column) {
@@ -128,6 +157,20 @@ class PublicRsvpController extends Controller
         }
 
         $guest->update($update);
+
+        // Per-event replies — only for the wedding's own rsvpable events.
+        if (! empty($data['events'])) {
+            $valid = WeddingEvent::forWedding($wedding->id)->where('is_rsvpable', true)->pluck('id')->all();
+            $sync = [];
+            foreach ($data['events'] as $eventId => $status) {
+                if (in_array((int) $eventId, $valid, true)) {
+                    $sync[(int) $eventId] = ['rsvp_status' => $status];
+                }
+            }
+            if ($sync !== []) {
+                $guest->events()->syncWithoutDetaching($sync);
+            }
+        }
 
         $wedding->owner?->notify(new RsvpReceived($wedding, $guest->fresh()));
 

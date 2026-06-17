@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\TimelineEvent;
 use App\Models\Wedding;
+use App\Models\WeddingAccommodation;
+use App\Models\WeddingEvent;
 use App\Support\Seo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -90,6 +92,80 @@ class PublicWebsiteController extends Controller
                 ->values();
         }
 
+        // Celebration schedule — the multi-event weekend (rehearsal, welcome,
+        // ceremony, reception, brunch …). Distinct from the day-of "Order of the
+        // Day" timeline above. Public only on a published site.
+        $events = [];
+
+        if ($published) {
+            $events = WeddingEvent::forWedding($wedding->id)->ordered()->get()
+                ->map(fn (WeddingEvent $e) => [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'type' => $e->type,
+                    'date' => $e->event_date?->translatedFormat('l, F j, Y'),
+                    'start_time' => $e->start_time,
+                    'end_time' => $e->end_time,
+                    'venue_name' => $e->venue_name,
+                    'address' => $e->address,
+                    'dress_code' => $e->dress_code,
+                    'description' => $e->description,
+                    'is_rsvpable' => $e->is_rsvpable,
+                ])->values();
+        }
+
+        // Travel & stays — hotel blocks / rentals / transport + free-text notes.
+        $travel = ['notes' => null, 'stays' => []];
+
+        if ($published) {
+            $travel['notes'] = $website?->travel_notes;
+            $travel['stays'] = WeddingAccommodation::forWedding($wedding->id)->where('is_active', true)->ordered()->get()
+                ->map(fn (WeddingAccommodation $a) => [
+                    'id' => $a->id,
+                    'name' => $a->name,
+                    'type' => $a->type,
+                    'address' => $a->address,
+                    'blurb' => $a->blurb,
+                    'booking_url' => $a->booking_url,
+                    'block_code' => $a->block_code,
+                    'price_note' => $a->price_note,
+                    'distance_note' => $a->distance_note,
+                    'image_url' => $a->image_path && Storage::exists($a->image_path)
+                        ? route('website.media', [$wedding->slug, 'travel', basename($a->image_path)]) : null,
+                ])->values();
+        }
+
+        // Gift registry — active funds + items, only on a published site.
+        $registry = ['funds' => [], 'items' => []];
+
+        if ($published) {
+            $registry['funds'] = $wedding->registryFunds()->where('is_active', true)->orderBy('sort_order')->get()
+                ->map(fn ($f) => [
+                    'id' => $f->id,
+                    'title' => $f->title,
+                    'blurb' => $f->blurb,
+                    'type' => $f->type,
+                    'goal_cents' => $f->goal_cents,
+                    'raised_cents' => $f->raised_cents,
+                    'payout_url' => $f->payout_url,
+                    'image_url' => $f->image_path && Storage::exists($f->image_path)
+                        ? route('website.media', [$wedding->slug, 'registry', basename($f->image_path)]) : null,
+                ])->values();
+
+            $registry['items'] = $wedding->registryItems()->orderBy('sort_order')->get()
+                ->map(fn ($i) => [
+                    'id' => $i->id,
+                    'name' => $i->name,
+                    'blurb' => $i->blurb,
+                    'price_cents' => $i->price_cents,
+                    'store_url' => $i->store_url,
+                    'quantity' => $i->quantity,
+                    'claimed_count' => $i->claimed_count,
+                    'image_url' => $i->image_path && Storage::exists($i->image_path)
+                        ? route('website.media', [$wedding->slug, 'registry', basename($i->image_path)]) : null,
+                ])->values();
+        }
+
         return Inertia::render('public/website', [
             'wedding' => [
                 'name'       => $wedding->name,
@@ -99,6 +175,9 @@ class PublicWebsiteController extends Controller
             'published' => $published,
             'content'   => $content,
             'schedule'  => $schedule,
+            'events'    => $events,
+            'travel'    => $travel,
+            'registry'  => $registry,
         ])->withViewData(['seo' => $seo]);
     }
 }

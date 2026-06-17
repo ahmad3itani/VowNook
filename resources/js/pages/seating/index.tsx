@@ -17,6 +17,7 @@ import {
     Music,
     Pencil,
     Plus,
+    Printer,
     RotateCw,
     Search,
     Trash2,
@@ -49,7 +50,16 @@ import {
 } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { SeatingInfographics, type SeatingStats } from '@/components/seating/seating-infographics';
+import { escortCards, placeCards, tableNumberCards, menuCard } from '@/lib/printables';
 import { usePermissions } from '@/hooks/use-permissions';
 
 type Option = { value: string; label: string };
@@ -89,8 +99,11 @@ type FloorElement = {
 
 type Stats = SeatingStats;
 
+type MenuCourse = { course: string; label: string; options: string[] };
+
 type PageProps = {
     weddingName: string;
+    menu: MenuCourse[];
     tables: Table[];
     guests: SeatGuest[];
     elements: FloorElement[];
@@ -220,7 +233,7 @@ type Drag =
     | { kind: 'move-element'; id: number }
     | { kind: 'resize-element'; id: number; startX: number; startY: number; startW: number; startH: number };
 
-export default function SeatingIndex({ weddingName, tables, guests, elements, layout, stats, options }: PageProps) {
+export default function SeatingIndex({ weddingName, menu, tables, guests, elements, layout, stats, options }: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('seating');
 
@@ -897,6 +910,15 @@ return;
         });
     }
 
+    async function runPrintable(label: string, fn: () => Promise<void>) {
+        try {
+            await fn();
+            toast.success(`${label} ready to print.`);
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : 'Could not generate the PDF.');
+        }
+    }
+
     return (
         <>
             <Head title="Floor plan" />
@@ -907,14 +929,39 @@ return;
                         title="Seating studio"
                         description="Size the room, place tables and elements, and seat guests chair by chair."
                     />
-                    <Button variant="outline" onClick={exportFnbSheet} disabled={exportingFnb}>
-                        {exportingFnb ? <Spinner className="size-4" /> : <ClipboardList className="size-4" />}
-                        {exportingFnb ? 'Exporting…' : 'F&B Sheet'}
-                    </Button>
-                    <Button variant="outline" onClick={exportFloorPlan} disabled={exporting}>
-                        {exporting ? <Spinner className="size-4" /> : <FileDown className="size-4" />}
-                        {exporting ? 'Exporting…' : 'Export PDF'}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    <Printer className="size-4" /> Printables
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>Print-ready PDFs</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => runPrintable('Escort cards', () => escortCards(weddingName, guests, tables))}>
+                                    Escort cards
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => runPrintable('Place cards', () => placeCards(weddingName, guests, tables))}>
+                                    Place cards
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => runPrintable('Table numbers', () => tableNumberCards(weddingName, tables))}>
+                                    Table numbers
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => runPrintable('Menu', () => menuCard(weddingName, menu))}>
+                                    Menu card
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button variant="outline" onClick={exportFnbSheet} disabled={exportingFnb}>
+                            {exportingFnb ? <Spinner className="size-4" /> : <ClipboardList className="size-4" />}
+                            {exportingFnb ? 'Exporting…' : 'F&B Sheet'}
+                        </Button>
+                        <Button variant="outline" onClick={exportFloorPlan} disabled={exporting}>
+                            {exporting ? <Spinner className="size-4" /> : <FileDown className="size-4" />}
+                            {exporting ? 'Exporting…' : 'Export PDF'}
+                        </Button>
+                    </div>
                 </div>
 
                 <SeatingInfographics stats={stats} />

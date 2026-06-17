@@ -80,6 +80,41 @@ class Wedding extends Model
         return $this->hasMany(GuestGroup::class);
     }
 
+    public function events(): HasMany
+    {
+        return $this->hasMany(WeddingEvent::class);
+    }
+
+    public function accommodations(): HasMany
+    {
+        return $this->hasMany(WeddingAccommodation::class);
+    }
+
+    public function guestBroadcasts(): HasMany
+    {
+        return $this->hasMany(GuestBroadcast::class);
+    }
+
+    public function guestSends(): HasMany
+    {
+        return $this->hasMany(GuestSend::class);
+    }
+
+    public function gifts(): HasMany
+    {
+        return $this->hasMany(Gift::class);
+    }
+
+    public function registryFunds(): HasMany
+    {
+        return $this->hasMany(RegistryFund::class);
+    }
+
+    public function registryItems(): HasMany
+    {
+        return $this->hasMany(RegistryItem::class);
+    }
+
     public function budgetItems(): HasMany
     {
         return $this->hasMany(BudgetItem::class);

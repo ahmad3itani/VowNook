@@ -1,4 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import { WebsiteRegistry, type RegistryData } from '@/components/public/website-registry';
+import { WebsiteSchedule, type EventData } from '@/components/public/website-schedule';
+import { WebsiteTravel, type TravelData } from '@/components/public/website-travel';
 import {
     animate,
     AnimatePresence,
@@ -54,6 +57,9 @@ type PageProps = {
     published: boolean;
     content: Content | null;
     schedule: ScheduleItem[];
+    events?: EventData[];
+    travel?: TravelData;
+    registry?: RegistryData;
 };
 
 // ── Themes (all light — dark is "bad luck") ─────────────────────────────────────
@@ -213,7 +219,7 @@ function extractHeroEmbed(url: string): string | null {
 
 // ── Page ────────────────────────────────────────────────────────────────────────
 
-export default function PublicWebsite({ wedding, published, content, schedule = [] }: PageProps) {
+export default function PublicWebsite({ wedding, published, content, schedule = [], events = [], travel = { notes: null, stays: [] }, registry = { funds: [], items: [] } }: PageProps) {
     const { t } = useTranslations();
 
     // "dark" template is remapped to classic — no dark wedding sites.
@@ -379,7 +385,9 @@ export default function PublicWebsite({ wedding, published, content, schedule = 
                         {[
                             content?.our_story && { href: '#story', label: 'The Story' },
                             (content?.venue_name || content?.ceremony_time) && { href: '#details', label: 'Details' },
+                            events.length > 0 && { href: '#events', label: 'Events' },
                             schedule.length > 0 && { href: '#schedule', label: 'The Day' },
+                            (travel.stays.length > 0 || travel.notes) && { href: '#travel', label: 'Travel' },
                             timeline.length > 0 && { href: '#timeline', label: 'Journey' },
                             photos.length > 0 && { href: '#gallery', label: 'Gallery' },
                         ].filter(Boolean).map((link) => link && (
@@ -530,6 +538,9 @@ export default function PublicWebsite({ wedding, published, content, schedule = 
                 </section>
             )}
 
+            {/* Celebration weekend — multiple events with per-event RSVP */}
+            {published && <WebsiteSchedule events={events} />}
+
             {/* Order of the Day */}
             {published && schedule.length > 0 && (
                 <section id="schedule" className="py-24 md:py-40" style={{ background: 'var(--c-surface)' }}>
@@ -660,6 +671,11 @@ export default function PublicWebsite({ wedding, published, content, schedule = 
                     </div>
                 </section>
             )}
+
+            {/* Registry */}
+            {published && <WebsiteTravel travel={travel} />}
+
+            <WebsiteRegistry registry={registry} slug={wedding.slug} />
 
             {/* RSVP CTA */}
             <section className="relative overflow-hidden py-28 text-center md:py-44" style={{ background: 'var(--c-bg)' }}>
