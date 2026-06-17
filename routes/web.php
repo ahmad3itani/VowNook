@@ -61,6 +61,7 @@ use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\GuestBroadcastController;
 use App\Http\Controllers\SaveTheDateController;
 use App\Http\Controllers\EmailTrackController;
+use App\Http\Controllers\GiftController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
@@ -399,6 +400,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('registry/items', [RegistryController::class, 'storeItem'])->name('registry.items.store');
         Route::put('registry/items/{item}', [RegistryController::class, 'updateItem'])->name('registry.items.update');
         Route::delete('registry/items/{item}', [RegistryController::class, 'destroyItem'])->name('registry.items.destroy');
+    });
+
+    // Gifts & thank-yous — paired with the registry Atelier feature.
+    Route::get('gifts', [GiftController::class, 'index'])
+        ->middleware(['permission:website,read', 'plan.feature:registry'])->name('gifts.index');
+    Route::middleware(['permission:website,write', 'plan.feature:registry'])->group(function () {
+        Route::post('gifts', [GiftController::class, 'store'])->name('gifts.store');
+        Route::put('gifts/{gift}', [GiftController::class, 'update'])->name('gifts.update');
+        Route::patch('gifts/{gift}/thank-you', [GiftController::class, 'toggleThankYou'])->name('gifts.thank-you');
+        Route::delete('gifts/{gift}', [GiftController::class, 'destroy'])->name('gifts.destroy');
     });
 
     // Celebration schedule — multiple events with per-event RSVP. Atelier feature.

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Gift;
 use App\Models\RegistryContribution;
 use App\Models\RegistryFund;
 use App\Models\RegistryItem;
@@ -28,7 +29,7 @@ class PublicRegistryController extends Controller
             'message' => ['nullable', 'string', 'max:500'],
         ]);
 
-        RegistryContribution::create([
+        $contribution = RegistryContribution::create([
             'registry_fund_id' => $fund->id,
             'contributor_name' => $data['contributor_name'] ?? null,
             'contributor_email' => $data['contributor_email'] ?? null,
@@ -38,6 +39,17 @@ class PublicRegistryController extends Controller
         ]);
 
         $fund->increment('raised_cents', $data['amount_cents']);
+
+        // Auto-create a gift row so it lands on the couple's thank-you list.
+        Gift::create([
+            'wedding_id' => $wedding->id,
+            'registry_contribution_id' => $contribution->id,
+            'from_name' => $data['contributor_name'] ?? null,
+            'kind' => 'fund',
+            'amount_cents' => $data['amount_cents'],
+            'received_at' => now(),
+            'notes' => $data['message'] ?? null,
+        ]);
 
         return back()->with('status', 'contribution-recorded');
     }

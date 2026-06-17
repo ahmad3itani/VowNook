@@ -182,6 +182,11 @@ export function AppSidebar() {
                       href: '/travel',
                       icon: Plane,
                   } satisfies NavItem,
+                  {
+                      title: 'Gifts & thank-yous',
+                      href: '/gifts',
+                      icon: HeartHandshake,
+                  } satisfies NavItem,
               ]
             : []),
         ...(canRead('crew')
