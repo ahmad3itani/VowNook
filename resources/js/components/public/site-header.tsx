@@ -17,7 +17,7 @@ export function SiteHeader() {
         <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
                 <Link href="/" className="flex items-center gap-2.5" aria-label="VowNook home">
-                    <img src="/images/brand/logo-mark.webp" alt="" className="size-8 rounded-md border border-border" />
+                    <img src="/images/brand/logo-mark.svg" alt="" className="size-8 rounded-md border border-border" />
                     <span className={`${fraunces} text-xl font-medium tracking-tight`}>VowNook</span>
                 </Link>
 

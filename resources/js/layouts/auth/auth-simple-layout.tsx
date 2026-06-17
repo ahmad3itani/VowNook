@@ -35,7 +35,7 @@ export default function AuthSimpleLayout({
                     <div className="flex flex-col gap-8">
                         <div className="flex flex-col gap-4">
                             <Link href={home()} className="flex w-fit items-center gap-2.5" aria-label="VowNook home">
-                                <img src="/images/brand/logo-mark.webp" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+                                <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#191613]/10" />
                                 <span className={`${fraunces} text-2xl font-medium tracking-tight`}>VowNook</span>
                             </Link>
 

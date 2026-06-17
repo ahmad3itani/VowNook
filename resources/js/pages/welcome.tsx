@@ -159,7 +159,7 @@ const faqs = [
 function Wordmark({ className = '' }: { className?: string }) {
     return (
         <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label="VowNook home">
-            <img src="/images/brand/logo-mark.webp" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+            <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#191613]/10" />
             <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
         </Link>
     );

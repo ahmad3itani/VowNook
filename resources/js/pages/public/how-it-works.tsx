@@ -192,7 +192,7 @@ export default function HowItWorks() {
             <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
                 <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
                     <Link href="/" className="flex items-center gap-2.5" aria-label="VowNook home">
-                        <img src="/images/brand/logo-mark.webp" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+                        <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#191613]/10" />
                         <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
                     </Link>
                     <div className="hidden items-center gap-9 md:flex">
@@ -353,7 +353,7 @@ export default function HowItWorks() {
             <footer className="border-t border-[#191613]/10 py-10">
                 <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-4 px-5 md:flex-row md:px-12">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <img src="/images/brand/logo-mark.webp" alt="" className="size-8 rounded-md border border-[#191613]/10" />
+                        <img src="/images/brand/logo-mark.svg" alt="" className="size-8 rounded-md border border-[#191613]/10" />
                         <span className={`${fraunces} text-xl`}>VowNook</span>
                     </Link>
                     <div className="flex items-center gap-6 text-[13px] text-[#52493d]">
