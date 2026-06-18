@@ -76,6 +76,9 @@
             <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
         @endforeach
 
+        {{-- Analytics + Search Console (env-driven; consent-gated; prod-only) --}}
+        @include('partials.analytics')
+
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         {{-- SEO <head> is server-rendered above by blade; the body is server-rendered
