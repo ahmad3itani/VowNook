@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
+use App\Http\Controllers\Admin\AdminImpersonationController;
 use App\Http\Controllers\Admin\AdminSupportController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MarketplaceController as AdminMarketplaceController;
+use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\WeddingController as AdminWeddingController;
+use App\Http\Controllers\SupportController;
 use App\Http\Controllers\AiPlannerController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\InquiryMessageController;
@@ -177,6 +181,9 @@ Route::middleware('throttle:120,1')->group(function () {
     Route::post('contact', [ContactController::class, 'store'])
         ->middleware('throttle:5,1')->name('contact.store');
 
+    // Shown to a user whose account an admin has suspended (signed out + blocked).
+    Route::inertia('suspended', 'public/suspended')->name('suspended');
+
     // The couple's public front door.
     Route::get('w/{wedding}', [PublicWebsiteController::class, 'show'])->name('public.website');
 
@@ -225,8 +232,20 @@ Route::middleware('throttle:120,1')->group(function () {
         ->name('local.category');
 });
 
+// Stop impersonating — auth-only (not "verified") so an admin can always exit,
+// even if the impersonated account hasn't verified its email.
+Route::middleware('auth')->post('impersonate/stop', [AdminImpersonationController::class, 'stop'])
+    ->name('impersonate.stop');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // In-app help & support (couples, vendors, planners) — open + track tickets.
+    Route::get('support', [SupportController::class, 'index'])->name('support.index');
+    Route::post('support', [SupportController::class, 'store'])->middleware('throttle:10,1')->name('support.store');
+    Route::get('support/{ticket}', [SupportController::class, 'show'])->name('support.show');
+    Route::post('support/{ticket}/reply', [SupportController::class, 'reply'])
+        ->middleware('throttle:20,1')->name('support.reply');
 
     // Report a listing or review for admin review.
     Route::post('report', [ReportController::class, 'store'])->middleware('throttle:10,1')->name('report.store');
@@ -601,9 +620,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('weddings/{wedding}/support', [AdminSupportController::class, 'enter'])->name('weddings.support');
         Route::post('support/exit', [AdminSupportController::class, 'exit'])->name('support.exit');
 
-        // All users across account types.
+        // All users across account types + the per-user "360" + support actions.
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::put('users/{user}/plan', [AdminUserController::class, 'updatePlan'])->name('users.plan');
+        Route::post('users/{user}/comp', [AdminUserController::class, 'comp'])->name('users.comp');
+        Route::post('users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
+        Route::post('users/{user}/unsuspend', [AdminUserController::class, 'unsuspend'])->name('users.unsuspend');
+        Route::post('users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.password_reset');
+        Route::post('users/{user}/resend-verification', [AdminUserController::class, 'resendVerification'])->name('users.resend_verification');
+        Route::post('users/{user}/impersonate', [AdminImpersonationController::class, 'start'])->name('users.impersonate');
+
+        // Platform-wide audit trail.
+        Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
+
+        // Support inbox — triage, assign, reply, close.
+        Route::get('support', [AdminSupportTicketController::class, 'index'])->name('support.index');
+        Route::get('support/{ticket}', [AdminSupportTicketController::class, 'show'])->name('support.show');
+        Route::post('support/{ticket}/reply', [AdminSupportTicketController::class, 'reply'])->name('support.reply');
+        Route::put('support/{ticket}/status', [AdminSupportTicketController::class, 'updateStatus'])->name('support.status');
+        Route::post('support/{ticket}/assign', [AdminSupportTicketController::class, 'assign'])->name('support.assign');
 
         // Platform-wide marketplace activity.
         Route::get('marketplace', [AdminMarketplaceController::class, 'index'])->name('marketplace.index');

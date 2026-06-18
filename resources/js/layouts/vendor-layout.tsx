@@ -1,6 +1,7 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { VendorSidebar } from '@/components/vendor-sidebar';
 import { VerifyEmailBanner } from '@/components/verify-email-banner';
 import type { BreadcrumbItem } from '@/types';
@@ -17,6 +18,7 @@ export default function VendorLayout({
             <VendorSidebar />
             <AppContent variant="sidebar" className="overflow-x-hidden">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                <ImpersonationBanner />
                 <VerifyEmailBanner />
                 {children}
             </AppContent>

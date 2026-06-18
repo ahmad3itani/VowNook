@@ -36,7 +36,27 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'email_preferences' => 'array',
             'marketing_consent_at' => 'datetime',
             'plan_comped_until' => 'datetime',
+            'last_login_at' => 'datetime',
+            'suspended_at' => 'datetime',
         ];
+    }
+
+    /** Whether the account is currently suspended (blocked from the app). */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
+    /** Audit-trail entries this user performed (actor side). */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'actor_id');
+    }
+
+    /** Support tickets this user opened. */
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
     }
 
     protected static function booted(): void

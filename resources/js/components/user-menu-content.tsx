@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LifeBuoy, LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -42,6 +42,16 @@ export function UserMenuContent({ user }: Props) {
                     >
                         <Settings className="mr-2" />
                         Settings
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full cursor-pointer"
+                        href="/support"
+                        onClick={cleanup}
+                    >
+                        <LifeBuoy className="mr-2" />
+                        Help &amp; support
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>

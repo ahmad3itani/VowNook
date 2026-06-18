@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureNotSuspended;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsurePlanFeature;
 use App\Http\Middleware\HandleAppearance;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             SecurityHeaders::class,
             SetLocale::class,
+            EnsureNotSuspended::class,
             SetCurrentWedding::class,
             SetCurrentVendorProfile::class,
             HandleInertiaRequests::class,

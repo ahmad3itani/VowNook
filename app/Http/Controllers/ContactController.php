@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Notifications\ContactMessageReceived;
+use App\Support\SupportInbox;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
 
 class ContactController extends Controller
 {
-    /** Public contact form — forwards the message to platform admins. */
+    /** Public contact form — opens a support ticket and alerts admins. */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -20,26 +18,26 @@ class ContactController extends Controller
             'message' => ['required', 'string', 'max:5000'],
         ]);
 
-        $admins = User::where('is_admin', true)->get();
-
-        if ($admins->isNotEmpty()) {
-            Notification::send($admins, new ContactMessageReceived(
-                $data['name'],
-                $data['email'],
-                $data['topic'],
-                $data['message'],
-            ));
-        } else {
-            // No admin account yet — fall back to the configured from-address.
-            Notification::route('mail', config('mail.from.address'))
-                ->notify(new ContactMessageReceived(
-                    $data['name'],
-                    $data['email'],
-                    $data['topic'],
-                    $data['message'],
-                ));
-        }
+        SupportInbox::open([
+            'user_id' => $request->user()?->id,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'subject' => 'Contact: '.ucfirst($data['topic']),
+            'category' => $this->categoryFor($data['topic']),
+            'message' => $data['message'],
+            'source' => 'contact',
+        ]);
 
         return back()->with('status', 'contact-sent');
+    }
+
+    private function categoryFor(string $topic): string
+    {
+        return match ($topic) {
+            'vendor' => 'vendor',
+            'privacy' => 'abuse',
+            'partnership' => 'general',
+            default => 'general',
+        };
     }
 }

@@ -1,5 +1,5 @@
-import { Head, router } from '@inertiajs/react';
-import { Search, ShieldCheck } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { ChevronRight, Search, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -16,11 +16,24 @@ type User = {
     account_type: string;
     plan: string;
     is_admin: boolean;
+    suspended: boolean;
     weddings_count: number;
+    last_login_at: string | null;
     created_at: string | null;
 };
 
 type PageProps = { users: User[]; plans: Option[] };
+
+function relativeTime(iso: string | null): string {
+    if (!iso) return 'Never';
+    const diff = Date.now() - new Date(iso).getTime();
+    const days = Math.floor(diff / 86400000);
+    if (days <= 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 30) return `${days}d ago`;
+    if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+    return `${Math.floor(days / 365)}y ago`;
+}
 
 const TYPES = ['all', 'couple', 'planner', 'vendor'];
 
@@ -80,19 +93,22 @@ export default function AdminUsers({ users, plans }: PageProps) {
                                             <th className="px-4 py-3 font-medium">Name</th>
                                             <th className="px-4 py-3 font-medium">Type</th>
                                             <th className="px-4 py-3 font-medium">Plan</th>
-                                            <th className="px-4 py-3 text-right font-medium">Weddings</th>
-                                            <th className="px-4 py-3 font-medium">Joined</th>
+                                            <th className="px-4 py-3 font-medium">Last seen</th>
+                                            <th className="px-4 py-3 text-right font-medium" />
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map((u) => (
-                                            <tr key={u.id} className="border-b last:border-0">
+                                            <tr key={u.id} className="border-b last:border-0 hover:bg-muted/40">
                                                 <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium">{u.name}</span>
-                                                        {u.is_admin && <ShieldCheck className="size-3.5 text-[#775a19]" aria-label="Admin" />}
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground">{u.email}</div>
+                                                    <Link href={`/admin/users/${u.id}`} className="group flex flex-col">
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="font-medium group-hover:underline">{u.name}</span>
+                                                            {u.is_admin && <ShieldCheck className="size-3.5 text-[#775a19]" aria-label="Admin" />}
+                                                            {u.suspended && <Badge variant="destructive" className="px-1.5 py-0 text-[10px]">Suspended</Badge>}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground">{u.email}</span>
+                                                    </Link>
                                                 </td>
                                                 <td className="px-4 py-3"><Badge variant="outline" className="capitalize">{u.account_type}</Badge></td>
                                                 <td className="px-4 py-3">
@@ -103,8 +119,12 @@ export default function AdminUsers({ users, plans }: PageProps) {
                                                         </SelectContent>
                                                     </Select>
                                                 </td>
-                                                <td className="px-4 py-3 text-right tabular-nums">{u.weddings_count}</td>
-                                                <td className="px-4 py-3 text-muted-foreground">{u.created_at}</td>
+                                                <td className="px-4 py-3 text-muted-foreground">{relativeTime(u.last_login_at)}</td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <Link href={`/admin/users/${u.id}`} className="inline-flex items-center text-xs font-medium text-[#775a19] hover:underline">
+                                                        View <ChevronRight className="size-3.5" />
+                                                    </Link>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>

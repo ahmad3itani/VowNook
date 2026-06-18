@@ -47,6 +47,15 @@ class HandleInertiaRequests extends Middleware
             ? ['active' => true, 'wedding' => ['name' => $current->name]]
             : null;
 
+        // Admin "view as user" — the session belongs to an admin signed in as
+        // this user. Drives the impersonation banner shown in every role's chrome.
+        $impersonation = ($user && $request->session()->has('impersonator_id'))
+            ? ['active' => true, 'user' => [
+                'name' => $user->name,
+                'account_type' => $user->account_type?->value ?? 'couple',
+            ]]
+            : null;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -71,6 +80,7 @@ class HandleInertiaRequests extends Middleware
                     : (object) [],
             ],
             'support' => $support,
+            'impersonation' => $impersonation,
             'notifications' => $user ? [
                 'unread' => $user->unreadNotifications()->count(),
                 'items' => $user->notifications()->latest()->limit(8)->get()->map(fn ($n) => [

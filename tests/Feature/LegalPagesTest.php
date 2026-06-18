@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Notifications\ContactMessageReceived;
+use App\Notifications\SupportTicketReceived;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -32,7 +32,7 @@ class LegalPagesTest extends TestCase
             'message' => 'How fast is moderation?',
         ])->assertRedirect();
 
-        Notification::assertSentTo($admin, ContactMessageReceived::class);
+        Notification::assertSentTo($admin, SupportTicketReceived::class);
     }
 
     public function test_contact_form_validates_input(): void

@@ -2,13 +2,16 @@
 
 namespace App\Providers;
 
+use App\Listeners\RecordSuccessfulLogin;
 use App\Models\Wedding;
 use App\Policies\WeddingPolicy;
 use App\Support\CurrentVendorProfile;
 use App\Support\CurrentWedding;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -33,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         Gate::policy(Wedding::class, WeddingPolicy::class);
+
+        Event::listen(Login::class, RecordSuccessfulLogin::class);
     }
 
     /**

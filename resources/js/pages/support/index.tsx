@@ -1,0 +1,113 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import { LifeBuoy, Plus } from 'lucide-react';
+import { FormEvent } from 'react';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
+type Ticket = {
+    id: number;
+    subject: string;
+    category: string;
+    status: string;
+    status_label: string;
+    last_reply_at: string | null;
+    created_at: string | null;
+};
+
+type PageProps = { tickets: Ticket[]; categories: string[] };
+
+function statusVariant(status: string): 'default' | 'secondary' | 'outline' {
+    if (status === 'open') return 'default';
+    if (status === 'pending') return 'secondary';
+    return 'outline';
+}
+
+function fmt(iso: string | null): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export default function SupportIndex({ tickets, categories }: PageProps) {
+    const form = useForm({ subject: '', category: 'general', message: '' });
+
+    function submit(e: FormEvent) {
+        e.preventDefault();
+        form.post('/support', { onSuccess: () => form.reset() });
+    }
+
+    return (
+        <>
+            <Head title="Help & support" />
+
+            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+                <Heading title="Help & support" description="Get help from our team — we usually reply within a day." />
+
+                <div className="grid gap-6 lg:grid-cols-5">
+                    {/* New request */}
+                    <Card className="lg:col-span-2 lg:order-last">
+                        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Plus className="size-4" /> New request</CardTitle></CardHeader>
+                        <CardContent>
+                            <form onSubmit={submit} className="flex flex-col gap-4">
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="subject">Subject</Label>
+                                    <Input id="subject" value={form.data.subject} onChange={(e) => form.setData('subject', e.target.value)} required />
+                                    {form.errors.subject && <p className="text-xs text-destructive">{form.errors.subject}</p>}
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label>Category</Label>
+                                    <Select value={form.data.category} onValueChange={(v) => form.setData('category', v)}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map((c) => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="message">How can we help?</Label>
+                                    <Textarea id="message" rows={5} value={form.data.message} onChange={(e) => form.setData('message', e.target.value)} required />
+                                    {form.errors.message && <p className="text-xs text-destructive">{form.errors.message}</p>}
+                                </div>
+                                <Button type="submit" disabled={form.processing}>Send request</Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    {/* Past tickets */}
+                    <Card className="lg:col-span-3">
+                        <CardHeader><CardTitle className="text-base">Your requests</CardTitle></CardHeader>
+                        <CardContent className="p-0">
+                            {tickets.length === 0 ? (
+                                <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
+                                    <LifeBuoy className="size-7" />
+                                    <p className="text-sm">No requests yet.</p>
+                                </div>
+                            ) : (
+                                <ul className="divide-y">
+                                    {tickets.map((t) => (
+                                        <li key={t.id}>
+                                            <Link href={`/support/${t.id}`} className="flex items-center justify-between gap-3 px-6 py-3 hover:bg-muted/40">
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium">{t.subject}</span>
+                                                        <Badge variant={statusVariant(t.status)} className="text-[10px]">{t.status_label}</Badge>
+                                                    </div>
+                                                    <div className="text-xs capitalize text-muted-foreground">{t.category} · {fmt(t.created_at)}</div>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </>
+    );
+}
