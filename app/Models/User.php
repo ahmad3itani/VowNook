@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\AccountType;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -14,13 +16,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 #[Fillable(['name', 'email', 'password', 'account_type', 'email_preferences', 'marketing_consent_at', 'referred_by'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -47,6 +50,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->suspended_at !== null;
     }
 
+    /** Only platform admins (and never suspended ones) may open the Filament panel. */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_admin && ! $this->isSuspended();
+    }
+
     /** Audit-trail entries this user performed (actor side). */
     public function activityLogs(): HasMany
     {
@@ -71,7 +80,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public static function uniqueReferralCode(): string
     {
         do {
-            $code = strtoupper(\Illuminate\Support\Str::random(8));
+            $code = strtoupper(Str::random(8));
         } while (static::where('referral_code', $code)->exists());
 
         return $code;

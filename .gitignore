@@ -5,6 +5,11 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+# Filament publishes its compiled assets here; regenerated on every composer
+# install via the `filament:upgrade` script (so deploys stay in sync).
+/public/css/filament
+/public/js/filament
+/public/fonts/filament
 /storage/*.key
 /storage/pail
 /resources/js/actions
