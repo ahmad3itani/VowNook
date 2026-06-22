@@ -35,6 +35,7 @@ class WeddingWebsite extends Model
         'music_title',
         'travel_notes',
         'show_travel_stays',
+        'nearest_airport',
         'faq_items',
         'local_recommendations',
     ];

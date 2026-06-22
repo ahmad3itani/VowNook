@@ -106,6 +106,85 @@ class TravelAffiliateTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('travel.affiliate_url', null));
     }
 
+    // ── Flights (Aviasales / Travelpayouts) ───────────────────────────────────
+
+    public function test_helper_builds_an_aviasales_url_with_marker_and_dates(): void
+    {
+        config(['affiliates.travelpayouts.marker' => 'mk-99']);
+
+        $url = (new TravelAffiliates)->aviasalesSearchUrl('yyz', Carbon::parse('2026-09-12'));
+
+        $this->assertNotNull($url);
+        $this->assertStringStartsWith('https://search.aviasales.com/flights/?marker=mk-99', $url);
+        $this->assertStringContainsString('destination_iata=YYZ', $url);
+        $this->assertStringContainsString('depart_date=2026-09-11', $url);
+        $this->assertStringContainsString('return_date=2026-09-13', $url);
+    }
+
+    public function test_flight_helper_returns_null_without_marker_or_airport(): void
+    {
+        config(['affiliates.travelpayouts.marker' => null]);
+        $this->assertNull((new TravelAffiliates)->aviasalesSearchUrl('YYZ'));
+
+        config(['affiliates.travelpayouts.marker' => 'mk-99']);
+        $this->assertNull((new TravelAffiliates)->aviasalesSearchUrl(null));
+    }
+
+    public function test_public_site_exposes_the_flight_search_when_configured(): void
+    {
+        config(['affiliates.travelpayouts.marker' => 'mk-99', 'affiliates.stay22.id' => null]);
+        $wedding = Wedding::factory()->create(['event_date' => '2026-09-12']);
+        WeddingWebsite::factory()->create([
+            'wedding_id' => $wedding->id,
+            'is_published' => true,
+            'nearest_airport' => 'YYZ',
+            'show_travel_stays' => true,
+        ]);
+
+        $this->get("/w/{$wedding->slug}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('travel.flights_partner', 'Aviasales')
+                ->whereType('travel.flights_url', 'string')
+            );
+    }
+
+    public function test_flight_search_hidden_without_an_airport_or_when_toggled_off(): void
+    {
+        config(['affiliates.travelpayouts.marker' => 'mk-99']);
+
+        $noAirport = Wedding::factory()->create();
+        WeddingWebsite::factory()->create([
+            'wedding_id' => $noAirport->id, 'is_published' => true, 'nearest_airport' => null, 'show_travel_stays' => true,
+        ]);
+        $this->get("/w/{$noAirport->slug}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->where('travel.flights_url', null));
+
+        $hidden = Wedding::factory()->create();
+        WeddingWebsite::factory()->create([
+            'wedding_id' => $hidden->id, 'is_published' => true, 'nearest_airport' => 'YYZ', 'show_travel_stays' => false,
+        ]);
+        $this->get("/w/{$hidden->slug}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->where('travel.flights_url', null));
+    }
+
+    public function test_couple_can_save_their_nearest_airport(): void
+    {
+        $user = User::factory()->plan('premium')->create(['account_type' => 'couple']);
+        $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
+        $user->forceFill(['current_wedding_id' => $wedding->id])->save();
+
+        $this->actingAs($user)
+            ->put('/travel/airport', ['nearest_airport' => 'YYZ'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('wedding_websites', [
+            'wedding_id' => $wedding->id, 'nearest_airport' => 'YYZ',
+        ]);
+    }
+
     // ── Couple editor ────────────────────────────────────────────────────────
 
     public function test_couple_can_toggle_the_stays_map(): void

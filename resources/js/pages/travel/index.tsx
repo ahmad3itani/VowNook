@@ -65,7 +65,10 @@ export default function TravelIndex({
     types,
     affiliate_enabled,
     affiliate_partner,
+    flights_enabled,
+    flights_partner,
     show_travel_stays,
+    nearest_airport,
     venue_name,
     has_venue,
 }: {
@@ -74,7 +77,10 @@ export default function TravelIndex({
     types: string[];
     affiliate_enabled: boolean;
     affiliate_partner: string;
+    flights_enabled: boolean;
+    flights_partner: string;
     show_travel_stays: boolean;
+    nearest_airport: string | null;
     venue_name: string | null;
     has_venue: boolean;
 }) {
@@ -92,11 +98,23 @@ export default function TravelIndex({
                 preserveScroll: true,
                 onSuccess: () =>
                     toast.success(
-                        next ? 'Stays map turned on.' : 'Stays map hidden.',
+                        next
+                            ? 'Travel suggestions on.'
+                            : 'Travel suggestions hidden.',
                     ),
                 onError: () => setShowStays(!next),
             },
         );
+    }
+
+    const airportForm = useForm({ nearest_airport: nearest_airport ?? '' });
+
+    function saveAirport(e: React.FormEvent) {
+        e.preventDefault();
+        airportForm.put('/travel/airport', {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Nearest airport saved.'),
+        });
     }
 
     const [open, setOpen] = useState(false);
@@ -323,18 +341,16 @@ export default function TravelIndex({
                     )}
                 </form>
 
-                {/* Affiliate "stays near your venue" map — only when it's enabled on the server. */}
-                {affiliate_enabled && (
-                    <div className="flex flex-col gap-3 border-t pt-6">
+                {/* Affiliate travel suggestions (hotels + flights) — only when a partner is configured. */}
+                {(affiliate_enabled || flights_enabled) && (
+                    <div className="flex flex-col gap-4 border-t pt-6">
                         <div>
                             <h2 className="text-lg font-semibold">
-                                Stays near your venue
+                                Travel suggestions for your guests
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                                Show your guests a live map of hotels &amp;
-                                rentals around
-                                {venue_name ? ` ${venue_name}` : ' your venue'},
-                                so they can book in a tap.
+                                Help fly-in guests find a room and flights — and
+                                earn VowNook a small commission when they book.
                             </p>
                         </div>
 
@@ -348,26 +364,71 @@ export default function TravelIndex({
                             />
                             <span className="text-sm">
                                 <span className="font-medium">
-                                    Show a “Stays near the venue” map on our
-                                    website
+                                    Show travel suggestions on our website
                                 </span>
                                 <span className="mt-1 block text-muted-foreground">
-                                    Powered by {affiliate_partner}. A clear note
-                                    tells guests it’s a partner suggestion —
-                                    VowNook earns a small commission if they
-                                    book, at no extra cost to them.
+                                    {affiliate_enabled && flights_enabled
+                                        ? `A live hotel map (${affiliate_partner}) and a flight search (${flights_partner}).`
+                                        : affiliate_enabled
+                                          ? `A live hotel map, powered by ${affiliate_partner}.`
+                                          : `A flight search, powered by ${flights_partner}.`}{' '}
+                                    A clear note tells guests it’s a partner
+                                    suggestion — at no extra cost to them.
                                 </span>
                             </span>
                         </label>
 
-                        {showStays && !has_venue && (
+                        {affiliate_enabled && showStays && !has_venue && (
                             <p className="text-sm text-amber-700">
                                 Add your venue under{' '}
                                 <span className="font-medium">
                                     Website → Details
                                 </span>{' '}
-                                so the map knows where to search.
+                                so the hotel map knows where to search.
                             </p>
+                        )}
+
+                        {flights_enabled && (
+                            <form
+                                onSubmit={saveAirport}
+                                className="flex flex-wrap items-end gap-3 rounded-xl border p-4"
+                            >
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="airport">
+                                        Nearest airport (code)
+                                    </Label>
+                                    <Input
+                                        id="airport"
+                                        value={airportForm.data.nearest_airport}
+                                        onChange={(e) =>
+                                            airportForm.setData(
+                                                'nearest_airport',
+                                                e.target.value,
+                                            )
+                                        }
+                                        disabled={!writable}
+                                        placeholder="e.g. YYZ"
+                                        className="w-32 uppercase"
+                                        maxLength={60}
+                                    />
+                                </div>
+                                {writable && (
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        disabled={airportForm.processing}
+                                    >
+                                        {airportForm.processing && <Spinner />}{' '}
+                                        Save airport
+                                    </Button>
+                                )}
+                                <p className="w-full text-xs text-muted-foreground">
+                                    The 3-letter code of the airport guests fly
+                                    into (Toronto = YYZ). The flight search
+                                    appears once this is set and suggestions are
+                                    on.
+                                </p>
+                            </form>
                         )}
                     </div>
                 )}

@@ -504,6 +504,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('travel', [AccommodationController::class, 'store'])->name('travel.store');
         Route::put('travel/notes', [AccommodationController::class, 'updateNotes'])->name('travel.notes');
         Route::put('travel/stays-visibility', [AccommodationController::class, 'updateStaysVisibility'])->name('travel.stays');
+        Route::put('travel/airport', [AccommodationController::class, 'updateAirport'])->name('travel.airport');
         Route::put('travel/{accommodation}', [AccommodationController::class, 'update'])->name('travel.update');
         Route::delete('travel/{accommodation}', [AccommodationController::class, 'destroy'])->name('travel.destroy');
     });

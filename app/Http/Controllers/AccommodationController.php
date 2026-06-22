@@ -33,15 +33,30 @@ class AccommodationController extends Controller
             'accommodations' => $stays->map(fn (WeddingAccommodation $a) => $this->data($a, $wedding->slug)),
             'travel_notes' => $wedding->website?->travel_notes ?? '',
             'types' => self::TYPES,
-            // The affiliate "stays near your venue" map: whether it can show at all
-            // (an account id is configured), the couple's toggle, and the venue it
-            // would search around.
+            // The affiliate travel block: the master toggle, plus what each partner
+            // needs — the venue (for the hotel map) and the nearest airport (for
+            // the flight search). Each sub-feature is inert until its key is set.
             'affiliate_enabled' => app(TravelAffiliates::class)->isConfigured(),
             'affiliate_partner' => TravelAffiliates::PARTNER,
+            'flights_enabled' => app(TravelAffiliates::class)->flightsConfigured(),
+            'flights_partner' => TravelAffiliates::FLIGHTS_PARTNER,
             'show_travel_stays' => (bool) ($wedding->website?->show_travel_stays ?? true),
+            'nearest_airport' => $wedding->website?->nearest_airport,
             'venue_name' => $wedding->website?->venue_name,
             'has_venue' => filled($wedding->website?->venue_name) || filled($wedding->website?->venue_address),
         ]);
+    }
+
+    /** Save the wedding's nearest airport (IATA), used to pre-fill flight search. */
+    public function updateAirport(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['nearest_airport' => ['nullable', 'string', 'max:60']]);
+        $wedding = $this->current->get();
+
+        $website = $wedding->website()->firstOrCreate(['wedding_id' => $wedding->id]);
+        $website->update(['nearest_airport' => $data['nearest_airport'] ? trim($data['nearest_airport']) : null]);
+
+        return back()->with('status', 'travel-saved');
     }
 
     /** Toggle the affiliate "stays near your venue" map on the public site. */

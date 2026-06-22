@@ -27,4 +27,16 @@ return [
         'campaign' => env('STAY22_CAMPAIGN', 'vownook-website'),
     ],
 
+    /*
+    | Travelpayouts (Aviasales) — flight-search affiliate. The "marker" is the
+    | partner id appended to the search link; commission is tracked against it.
+    | Inert until the marker is set. Guests are sent to a flight search to the
+    | couple's nearest airport for the wedding weekend.
+    */
+    'travelpayouts' => [
+        'marker' => env('TRAVELPAYOUTS_MARKER'),
+        'aviasales_base' => env('TRAVELPAYOUTS_AVIASALES_BASE', 'https://search.aviasales.com/flights/'),
+        'locale' => env('TRAVELPAYOUTS_LOCALE', 'en'),
+    ],
+
 ];

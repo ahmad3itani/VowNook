@@ -17,9 +17,52 @@ class TravelAffiliates
     /** The partner shown to guests in the disclosure line. */
     public const PARTNER = 'Stay22';
 
+    /** The flight-search partner shown in the disclosure line. */
+    public const FLIGHTS_PARTNER = 'Aviasales';
+
     public function isConfigured(): bool
     {
         return filled(config('affiliates.stay22.id'));
+    }
+
+    public function flightsConfigured(): bool
+    {
+        return filled(config('affiliates.travelpayouts.marker'));
+    }
+
+    /**
+     * An Aviasales flight-search URL to the couple's nearest airport for the
+     * wedding weekend, with our affiliate marker — or null when the flights
+     * affiliate isn't configured or no airport is set. Guests fill in their own
+     * origin; the destination + dates are pre-filled.
+     */
+    public function aviasalesSearchUrl(?string $airport, ?CarbonInterface $eventDate = null): ?string
+    {
+        if (! $this->flightsConfigured()) {
+            return null;
+        }
+
+        $iata = strtoupper(trim((string) $airport));
+
+        if ($iata === '') {
+            return null;
+        }
+
+        $params = [
+            'marker' => config('affiliates.travelpayouts.marker'),
+            'destination_iata' => $iata,
+            'adults' => 1,
+            'trip_class' => 0,
+            'locale' => (string) config('affiliates.travelpayouts.locale', 'en'),
+        ];
+
+        if ($eventDate) {
+            // Most guests arrive the day before and leave the day after.
+            $params['depart_date'] = $eventDate->copy()->subDay()->toDateString();
+            $params['return_date'] = $eventDate->copy()->addDay()->toDateString();
+        }
+
+        return rtrim((string) config('affiliates.travelpayouts.aviasales_base'), '?').'?'.http_build_query($params);
     }
 
     /**

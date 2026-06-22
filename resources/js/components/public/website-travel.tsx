@@ -16,19 +16,23 @@ export type TravelData = {
     stays: Stay[];
     affiliate_url?: string | null;
     affiliate_partner?: string | null;
+    flights_url?: string | null;
+    flights_partner?: string | null;
 };
 
 const serif = "font-['Playfair_Display']";
 
 /** Public "Travel & Stays" section — hotel blocks, rentals, transport + notes,
- *  plus an affiliate "stays near your venue" map. */
+ *  plus affiliate "stays near your venue" + "flying in?" blocks. */
 export function WebsiteTravel({ travel }: { travel: TravelData }) {
     const hasStays = travel.stays.length > 0;
     const hasNotes = !!travel.notes && travel.notes.trim().length > 0;
     const affiliateUrl = travel.affiliate_url ?? null;
     const partner = travel.affiliate_partner ?? 'our travel partner';
+    const flightsUrl = travel.flights_url ?? null;
+    const flightsPartner = travel.flights_partner ?? 'our travel partner';
 
-    if (!hasStays && !hasNotes && !affiliateUrl) {
+    if (!hasStays && !hasNotes && !affiliateUrl && !flightsUrl) {
         return null;
     }
 
@@ -212,6 +216,48 @@ export function WebsiteTravel({ travel }: { travel: TravelData }) {
                             These stays are suggested by our travel partner,{' '}
                             {partner}. VowNook may earn a small commission if
                             you book through this map — at no extra cost to you.
+                        </p>
+                    </div>
+                )}
+
+                {flightsUrl && (
+                    <div className="mt-14 text-center">
+                        <p
+                            className="text-xs tracking-[0.25em] uppercase"
+                            style={{ color: 'var(--c-primary)' }}
+                        >
+                            Flying in?
+                        </p>
+                        <h3
+                            className={`${serif} mt-2 text-3xl`}
+                            style={{ color: 'var(--c-text)' }}
+                        >
+                            Find your flights
+                        </h3>
+                        <p
+                            className="mx-auto mt-3 max-w-md text-sm leading-relaxed"
+                            style={{ color: 'var(--c-muted)' }}
+                        >
+                            We’ve pre-set a search to the nearest airport for
+                            the wedding weekend — just add your departure city.
+                        </p>
+                        <a
+                            href={flightsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer sponsored"
+                            className="mt-6 inline-block rounded-full px-8 py-3 text-xs font-semibold tracking-[0.2em] text-white uppercase transition-opacity hover:opacity-85"
+                            style={{ background: 'var(--c-primary)' }}
+                        >
+                            Search flights
+                        </a>
+                        {/* Honest affiliate disclosure — required, and on-brand. */}
+                        <p
+                            className="mx-auto mt-4 max-w-2xl text-xs leading-relaxed"
+                            style={{ color: 'var(--c-muted)' }}
+                        >
+                            Flight search by {flightsPartner}. VowNook may earn
+                            a small commission if you book — at no extra cost to
+                            you.
                         </p>
                     </div>
                 )}

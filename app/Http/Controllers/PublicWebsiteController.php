@@ -118,19 +118,32 @@ class PublicWebsiteController extends Controller
         }
 
         // Travel & stays — hotel blocks / rentals / transport + free-text notes,
-        // plus an affiliate "stays near your venue" map when it's configured and
-        // the couple hasn't hidden it.
-        $travel = ['notes' => null, 'stays' => [], 'affiliate_url' => null, 'affiliate_partner' => TravelAffiliates::PARTNER];
+        // plus affiliate "stays near your venue" + "flying in?" blocks when they're
+        // configured and the couple hasn't hidden them.
+        $affiliates = app(TravelAffiliates::class);
+        $travel = [
+            'notes' => null,
+            'stays' => [],
+            'affiliate_url' => null,
+            'affiliate_partner' => TravelAffiliates::PARTNER,
+            'flights_url' => null,
+            'flights_partner' => TravelAffiliates::FLIGHTS_PARTNER,
+        ];
 
         if ($published) {
             $travel['notes'] = $website?->travel_notes;
+            $showStays = (bool) ($website?->show_travel_stays ?? true);
 
-            if (($website?->show_travel_stays ?? true) && ($website?->venue_name || $website?->venue_address)) {
-                $travel['affiliate_url'] = app(TravelAffiliates::class)->stay22EmbedUrl(
+            if ($showStays && ($website?->venue_name || $website?->venue_address)) {
+                $travel['affiliate_url'] = $affiliates->stay22EmbedUrl(
                     $website?->venue_name,
                     $website?->venue_address,
                     $wedding->event_date,
                 );
+            }
+
+            if ($showStays && filled($website?->nearest_airport)) {
+                $travel['flights_url'] = $affiliates->aviasalesSearchUrl($website?->nearest_airport, $wedding->event_date);
             }
 
             $travel['stays'] = WeddingAccommodation::forWedding($wedding->id)->where('is_active', true)->ordered()->get()
