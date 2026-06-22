@@ -176,13 +176,24 @@ class CollaboratorController extends Controller
     {
         $invitation->loadMissing('wedding', 'inviter');
 
-        Notification::route('mail', $invitation->email)->notify(
-            new WeddingInvitationNotification(
-                $invitation,
-                $invitation->inviter?->name ?? 'A couple',
-                $invitation->role->label(),
-            ),
-        );
+        try {
+            Notification::route('mail', $invitation->email)->notify(
+                new WeddingInvitationNotification(
+                    $invitation,
+                    $invitation->inviter?->name ?? 'A couple',
+                    $invitation->role->label(),
+                ),
+            );
+        } catch (\Throwable $e) {
+            // A mail-transport failure (e.g. an unverified Resend domain) must
+            // not 500 the page. The invitation is saved; surface a clear,
+            // actionable error instead of crashing.
+            report($e);
+
+            throw ValidationException::withMessages([
+                'email' => 'The invitation was saved, but the email could not be sent. Verify your sending domain at resend.com/domains, then resend.',
+            ]);
+        }
     }
 
     /** @return array<string,mixed> */
