@@ -34,6 +34,7 @@ use App\Http\Controllers\GuestBroadcastController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
 use App\Http\Controllers\GuestReminderController;
+use App\Http\Controllers\HoneymoonController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\InquiryMessageController;
 use App\Http\Controllers\InspirationController;
@@ -507,6 +508,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('travel/airport', [AccommodationController::class, 'updateAirport'])->name('travel.airport');
         Route::put('travel/{accommodation}', [AccommodationController::class, 'update'])->name('travel.update');
         Route::delete('travel/{accommodation}', [AccommodationController::class, 'destroy'])->name('travel.destroy');
+    });
+
+    // Honeymoon planner — destination, dates, budget + affiliate hotels/flights. Atelier feature.
+    Route::middleware('plan.feature:travel')->group(function () {
+        Route::get('honeymoon', [HoneymoonController::class, 'index'])->name('honeymoon.index');
+        Route::put('honeymoon', [HoneymoonController::class, 'save'])->name('honeymoon.save');
     });
 
     // Message your guests — broadcast announcements to a chosen audience. Atelier feature.

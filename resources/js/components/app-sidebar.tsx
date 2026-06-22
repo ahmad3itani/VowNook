@@ -15,6 +15,7 @@ import {
     Languages,
     MailCheck,
     Megaphone,
+    Palmtree,
     Plane,
     Settings2,
     Sparkles,
@@ -45,7 +46,8 @@ export function AppSidebar() {
     const { canRead, canWrite } = usePermissions();
 
     const isPlanner = auth?.user?.account_type === 'planner';
-    const canUseAssistant = canWrite('checklist') || canWrite('budget') || canWrite('timeline');
+    const canUseAssistant =
+        canWrite('checklist') || canWrite('budget') || canWrite('timeline');
 
     const navItems: NavItem[] = [
         // Planners came from the HQ — give them the way back, and a Dashboard
@@ -181,6 +183,11 @@ export function AppSidebar() {
                       title: 'Travel & stays',
                       href: '/travel',
                       icon: Plane,
+                  } satisfies NavItem,
+                  {
+                      title: 'Honeymoon',
+                      href: '/honeymoon',
+                      icon: Palmtree,
                   } satisfies NavItem,
                   {
                       title: 'Gifts & thank-yous',

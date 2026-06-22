@@ -44,6 +44,14 @@ class AccommodationController extends Controller
             'nearest_airport' => $wedding->website?->nearest_airport,
             'venue_name' => $wedding->website?->venue_name,
             'has_venue' => filled($wedding->website?->venue_name) || filled($wedding->website?->venue_address),
+            // Live preview of the same hotel map + flight search guests see, so the
+            // couple can browse and book their own wedding-weekend travel.
+            'stays_preview_url' => app(TravelAffiliates::class)->stay22EmbedUrl(
+                $wedding->website?->venue_name, $wedding->website?->venue_address, $wedding->event_date,
+            ),
+            'flights_preview_url' => app(TravelAffiliates::class)->aviasalesSearchUrl(
+                $wedding->website?->nearest_airport, $wedding->event_date,
+            ),
         ]);
     }
 

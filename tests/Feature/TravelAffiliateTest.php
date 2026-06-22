@@ -53,6 +53,22 @@ class TravelAffiliateTest extends TestCase
         $this->assertNull((new TravelAffiliates)->stay22EmbedUrl(null, null));
     }
 
+    public function test_destination_and_range_helpers_use_the_full_date_range(): void
+    {
+        config(['affiliates.stay22.id' => 'aff-123', 'affiliates.travelpayouts.marker' => 'mk-99']);
+        $a = new TravelAffiliates;
+
+        $stays = $a->stay22DestinationUrl('Maui', Carbon::parse('2026-10-01'), Carbon::parse('2026-10-10'));
+        $this->assertStringContainsString('aid=aff-123', $stays);
+        $this->assertStringContainsString('checkin=2026-10-01', $stays);
+        $this->assertStringContainsString('checkout=2026-10-10', $stays);
+
+        $flights = $a->aviasalesRangeUrl('ogg', Carbon::parse('2026-10-01'), Carbon::parse('2026-10-10'));
+        $this->assertStringContainsString('destination_iata=OGG', $flights);
+        $this->assertStringContainsString('depart_date=2026-10-01', $flights);
+        $this->assertStringContainsString('return_date=2026-10-10', $flights);
+    }
+
     // ── Public site ──────────────────────────────────────────────────────────
 
     public function test_public_site_exposes_the_affiliate_map_when_configured(): void

@@ -71,6 +71,8 @@ export default function TravelIndex({
     nearest_airport,
     venue_name,
     has_venue,
+    stays_preview_url,
+    flights_preview_url,
 }: {
     accommodations: Stay[];
     travel_notes: string;
@@ -83,6 +85,8 @@ export default function TravelIndex({
     nearest_airport: string | null;
     venue_name: string | null;
     has_venue: boolean;
+    stays_preview_url: string | null;
+    flights_preview_url: string | null;
 }) {
     const { canWrite } = usePermissions();
     const writable = canWrite('website');
@@ -430,6 +434,55 @@ export default function TravelIndex({
                                 </p>
                             </form>
                         )}
+                    </div>
+                )}
+
+                {/* Your own wedding-weekend travel — book it right here. */}
+                {(stays_preview_url || flights_preview_url) && (
+                    <div className="flex flex-col gap-3 border-t pt-6">
+                        <div>
+                            <h2 className="text-lg font-semibold">
+                                Book your own wedding-weekend travel
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                The same hotels &amp; flights your guests see —
+                                find your own room and flights here.
+                            </p>
+                        </div>
+
+                        {stays_preview_url && (
+                            <div className="overflow-hidden rounded-xl border">
+                                <iframe
+                                    src={stays_preview_url}
+                                    title="Hotels near your venue"
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    className="h-[420px] w-full border-0"
+                                    allow="geolocation"
+                                />
+                            </div>
+                        )}
+
+                        {flights_preview_url && (
+                            <div>
+                                <Button asChild variant="outline">
+                                    <a
+                                        href={flights_preview_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer sponsored"
+                                    >
+                                        Search flights to your venue
+                                    </a>
+                                </Button>
+                            </div>
+                        )}
+
+                        <p className="text-xs text-muted-foreground">
+                            Suggestions from our travel partners (
+                            {affiliate_partner} &amp; {flights_partner}).
+                            VowNook may earn a small commission if you book — at
+                            no extra cost to you.
+                        </p>
                     </div>
                 )}
             </div>

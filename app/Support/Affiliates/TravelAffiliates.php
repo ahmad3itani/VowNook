@@ -5,12 +5,15 @@ namespace App\Support\Affiliates;
 use Carbon\CarbonInterface;
 
 /**
- * Builds affiliate links for the wedding-website "Travel & Stays" section.
+ * Builds affiliate links for travel — the wedding-website "Travel & Stays"
+ * section and the couple's honeymoon planner.
  *
- * Currently backed by Stay22 — an event-focused engine that renders a map of
- * hotels and short-stays near a venue, aggregating Booking.com, Expedia, Airbnb
- * and others, with commission tracked against our account. Disclosure is shown
- * on the public page; the block degrades to nothing when no id is configured.
+ *  - Stay22 renders a map of hotels/short-stays near a location (Booking, Expedia,
+ *    Airbnb …), commission tracked against our AID.
+ *  - Travelpayouts/Aviasales powers a flight search to a destination airport,
+ *    tracked against our marker.
+ *
+ * Each is inert until its key is configured; callers get null and skip the block.
  */
 class TravelAffiliates
 {
@@ -30,13 +33,75 @@ class TravelAffiliates
         return filled(config('affiliates.travelpayouts.marker'));
     }
 
+    // ── Stay22 (hotels) ──────────────────────────────────────────────────────
+
     /**
-     * An Aviasales flight-search URL to the couple's nearest airport for the
-     * wedding weekend, with our affiliate marker — or null when the flights
-     * affiliate isn't configured or no airport is set. Guests fill in their own
-     * origin; the destination + dates are pre-filled.
+     * Stays near a wedding venue for the wedding weekend (check-in the wedding
+     * night, check-out the next day).
+     */
+    public function stay22EmbedUrl(?string $venueName, ?string $address, ?CarbonInterface $eventDate = null): ?string
+    {
+        $location = trim(implode(', ', array_filter([$venueName, $address])));
+
+        return $this->buildStay22Url($venueName, $location, $eventDate, $eventDate?->copy()->addDay());
+    }
+
+    /** Stays at a honeymoon destination across the couple's chosen date range. */
+    public function stay22DestinationUrl(?string $place, ?CarbonInterface $checkin = null, ?CarbonInterface $checkout = null): ?string
+    {
+        return $this->buildStay22Url($place, trim((string) $place), $checkin, $checkout);
+    }
+
+    /**
+     * The Stay22 map embed URL, or null when the affiliate isn't configured or
+     * there's no location to search. Stay22 geocodes the location itself, so no
+     * maps API of our own is needed.
+     */
+    private function buildStay22Url(?string $title, ?string $location, ?CarbonInterface $checkin, ?CarbonInterface $checkout): ?string
+    {
+        if (! $this->isConfigured() || $location === null || trim($location) === '') {
+            return null;
+        }
+
+        // aid is recommended first; http_build_query preserves insertion order.
+        $params = ['aid' => config('affiliates.stay22.id'), 'address' => trim($location)];
+
+        if (filled($title)) {
+            // Overrides the widget title with our location name.
+            $params['venue'] = $title;
+        }
+
+        if ($checkin) {
+            $params['checkin'] = $checkin->toDateString();
+        }
+        if ($checkout) {
+            $params['checkout'] = $checkout->toDateString();
+        }
+
+        $params['maincolor'] = ltrim((string) config('affiliates.stay22.maincolor'), '#');
+        $params['campaign'] = (string) config('affiliates.stay22.campaign');
+
+        return rtrim((string) config('affiliates.stay22.embed_base'), '?').'?'.http_build_query($params);
+    }
+
+    // ── Aviasales (flights) ──────────────────────────────────────────────────
+
+    /**
+     * A flight search to the nearest airport for the wedding weekend (depart the
+     * day before, return the day after). Travellers fill in their own origin.
      */
     public function aviasalesSearchUrl(?string $airport, ?CarbonInterface $eventDate = null): ?string
+    {
+        return $this->buildAviasalesUrl($airport, $eventDate?->copy()->subDay(), $eventDate?->copy()->addDay());
+    }
+
+    /** A flight search to a honeymoon destination across the chosen date range. */
+    public function aviasalesRangeUrl(?string $airport, ?CarbonInterface $depart = null, ?CarbonInterface $return = null): ?string
+    {
+        return $this->buildAviasalesUrl($airport, $depart, $return);
+    }
+
+    private function buildAviasalesUrl(?string $airport, ?CarbonInterface $depart, ?CarbonInterface $return): ?string
     {
         if (! $this->flightsConfigured()) {
             return null;
@@ -56,51 +121,13 @@ class TravelAffiliates
             'locale' => (string) config('affiliates.travelpayouts.locale', 'en'),
         ];
 
-        if ($eventDate) {
-            // Most guests arrive the day before and leave the day after.
-            $params['depart_date'] = $eventDate->copy()->subDay()->toDateString();
-            $params['return_date'] = $eventDate->copy()->addDay()->toDateString();
+        if ($depart) {
+            $params['depart_date'] = $depart->toDateString();
+        }
+        if ($return) {
+            $params['return_date'] = $return->toDateString();
         }
 
         return rtrim((string) config('affiliates.travelpayouts.aviasales_base'), '?').'?'.http_build_query($params);
-    }
-
-    /**
-     * The Stay22 map embed URL for stays near a venue, or null when the affiliate
-     * isn't configured or there's no location to search. Stay22 geocodes the
-     * address itself, so no maps API of our own is needed.
-     */
-    public function stay22EmbedUrl(?string $venueName, ?string $address, ?CarbonInterface $eventDate = null): ?string
-    {
-        if (! $this->isConfigured()) {
-            return null;
-        }
-
-        // Stay22 needs somewhere to search. Prefer the address; fall back to name.
-        $location = trim(implode(', ', array_filter([$venueName, $address])));
-
-        if ($location === '') {
-            return null;
-        }
-
-        // aid is recommended first; http_build_query preserves insertion order.
-        $params = ['aid' => config('affiliates.stay22.id')];
-        $params['address'] = $location;
-
-        if (filled($venueName)) {
-            // Overrides the widget title with the couple's venue name.
-            $params['venue'] = $venueName;
-        }
-
-        if ($eventDate) {
-            // Guests usually need the night of the wedding — show live rates for it.
-            $params['checkin'] = $eventDate->toDateString();
-            $params['checkout'] = $eventDate->copy()->addDay()->toDateString();
-        }
-
-        $params['maincolor'] = ltrim((string) config('affiliates.stay22.maincolor'), '#');
-        $params['campaign'] = (string) config('affiliates.stay22.campaign');
-
-        return rtrim((string) config('affiliates.stay22.embed_base'), '?').'?'.http_build_query($params);
     }
 }
