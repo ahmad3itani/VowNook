@@ -43,7 +43,10 @@ return [
     // Hard ceiling per response. Generous enough for ~30 tool-emitted items.
     'max_tokens' => (int) env('AI_MAX_TOKENS', 8000),
 
-    // Request timeout (seconds) for the upstream call.
-    'timeout' => (int) env('AI_TIMEOUT', 60),
+    // Request timeout (seconds) for the upstream call. Kept comfortably UNDER the
+    // hosting platform's HTTP request limit (commonly ~30s) so a slow upstream
+    // aborts here — yielding a graceful "service is busy" message — instead of
+    // the platform killing the request and returning a hard 502/504 HTML page.
+    'timeout' => (int) env('AI_TIMEOUT', 22),
 
 ];

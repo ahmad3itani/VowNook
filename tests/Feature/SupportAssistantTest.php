@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\Ai\AiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Tests\TestCase;
 
 class SupportAssistantTest extends TestCase
@@ -73,6 +75,41 @@ class SupportAssistantTest extends TestCase
                 'answer' => 'Open Settings → Plan to upgrade.',
                 'confident' => true,
             ]);
+    }
+
+    public function test_an_upstream_error_degrades_to_a_friendly_json_answer(): void
+    {
+        // A provider error (here a 500) must come back as a graceful 200 JSON
+        // message — never a hard failure the front-end can't parse.
+        config(['ai.enabled' => true, 'ai.anthropic.key' => 'test-key', 'ai.openrouter.key' => null]);
+
+        Http::fake(['api.anthropic.com/*' => Http::response('upstream boom', 500)]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson('/support/ask', ['question' => 'How do I share the website?'])
+            ->assertOk()
+            ->assertJson(['available' => true, 'confident' => false]);
+    }
+
+    public function test_it_never_returns_a_non_json_500_on_an_unexpected_error(): void
+    {
+        // Even an unexpected (non-AiException) failure stays a parseable 200 JSON,
+        // so the help bot can always point the person at the request form.
+        config(['ai.enabled' => true, 'ai.anthropic.key' => 'test-key']);
+
+        $this->mock(AiService::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('generateStructured')->andThrow(new RuntimeException('boom'));
+        });
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson('/support/ask', ['question' => 'How do I share the website?'])
+            ->assertOk()
+            ->assertJson(['available' => true, 'confident' => false]);
     }
 
     public function test_it_degrades_when_ai_is_not_configured(): void

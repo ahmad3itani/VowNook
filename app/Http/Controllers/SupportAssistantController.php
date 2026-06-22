@@ -6,6 +6,7 @@ use App\Support\Ai\AiException;
 use App\Support\Ai\AiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 /**
  * A lightweight AI help bot for the support page: answers common "how do I…"
@@ -50,6 +51,17 @@ class SupportAssistantController extends Controller
             return response()->json([
                 'available' => true,
                 'answer' => $e->getMessage(),
+                'confident' => false,
+            ]);
+        } catch (Throwable $e) {
+            // Belt-and-braces: the help bot must never return a non-JSON 500 (which
+            // the front-end can only surface as a scary "something went wrong"). Any
+            // unexpected error degrades to a friendly nudge toward the request form.
+            report($e);
+
+            return response()->json([
+                'available' => true,
+                'answer' => 'Sorry — I couldn’t answer that just now. Please send a request below and our team will help.',
                 'confident' => false,
             ]);
         }
