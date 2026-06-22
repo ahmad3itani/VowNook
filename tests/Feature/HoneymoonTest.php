@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Wedding;
 use App\Models\WeddingWebsite;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class HoneymoonTest extends TestCase
@@ -84,6 +85,77 @@ class HoneymoonTest extends TestCase
                 ->whereType('stays_url', 'string')
                 ->whereType('flights_url', 'string')
             );
+    }
+
+    // ── Plan with AI ───────────────────────────────────────────────────────────
+
+    protected function enableAi(): void
+    {
+        config([
+            'ai.enabled' => true,
+            'ai.provider' => 'anthropic',
+            'ai.anthropic.key' => 'test-key',
+            'ai.anthropic.base_url' => 'https://api.anthropic.com',
+            'ai.anthropic.version' => '2023-06-01',
+            'ai.openrouter.key' => null,
+            'ai.model' => 'claude-sonnet-4-6',
+        ]);
+    }
+
+    public function test_ai_plan_drafts_a_honeymoon(): void
+    {
+        [$user] = $this->premiumCouple();
+        $this->enableAi();
+        Http::fake(['api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'tool_use', 'name' => 'propose_honeymoon', 'input' => [
+                'destination' => 'Maui, Hawaii',
+                'airport' => 'ogg',
+                'highlights' => 'A relaxing beach escape with great food.',
+                'budget_items' => [
+                    ['label' => 'Flights', 'amount_dollars' => 2400],
+                    ['label' => 'Resort', 'amount_dollars' => 5000],
+                ],
+            ]]],
+            'stop_reason' => 'tool_use',
+        ])]);
+
+        $this->actingAs($user)
+            ->postJson('/honeymoon/ai', ['preferences' => 'beach, warm, around $9000'])
+            ->assertOk()
+            ->assertJsonPath('available', true)
+            ->assertJsonPath('destination', 'Maui, Hawaii')
+            ->assertJsonPath('airport', 'OGG')
+            ->assertJsonPath('budget_items.0.amount_cents', 240000);
+    }
+
+    public function test_ai_plan_redirects_a_free_couple(): void
+    {
+        $user = User::factory()->plan('free')->create(['account_type' => 'couple']);
+        $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
+        $user->forceFill(['current_wedding_id' => $wedding->id])->save();
+        $this->enableAi();
+        Http::fake();
+
+        // The Atelier-gated route blocks a free couple before any AI call.
+        $this->actingAs($user)
+            ->post('/honeymoon/ai', ['preferences' => 'x'])
+            ->assertForbidden();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_ai_plan_degrades_when_not_configured(): void
+    {
+        [$user] = $this->premiumCouple();
+        config(['ai.enabled' => true, 'ai.anthropic.key' => null, 'ai.openrouter.key' => null]);
+        Http::fake();
+
+        $this->actingAs($user)
+            ->postJson('/honeymoon/ai', ['preferences' => 'x'])
+            ->assertOk()
+            ->assertJsonPath('available', false);
+
+        Http::assertNothingSent();
     }
 
     public function test_travel_page_exposes_preview_urls(): void

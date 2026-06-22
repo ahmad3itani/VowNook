@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\HoneymoonPlan;
+use App\Models\Wedding;
 use App\Support\Affiliates\TravelAffiliates;
+use App\Support\Ai\AiException;
+use App\Support\Ai\AiService;
 use App\Support\CurrentWedding;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,7 +48,119 @@ class HoneymoonController extends Controller
             'flights_partner' => TravelAffiliates::FLIGHTS_PARTNER,
             'affiliate_enabled' => $affiliates->isConfigured(),
             'flights_enabled' => $affiliates->flightsConfigured(),
+            // "Plan it with AI" — a paid perk; free couples just fill it themselves.
+            'ai_enabled' => app(AiService::class)->isConfigured() && request()->user()->canUseAi(),
         ]);
+    }
+
+    /**
+     * Draft a honeymoon plan from the couple's preferences — a specific
+     * destination + airport, a budget breakdown, and a warm highlights blurb.
+     * Returns it for the couple to review and save (never a silent write).
+     * Gated to paid plans; degrades gracefully when AI isn't configured.
+     */
+    public function aiPlan(Request $request, AiService $ai): JsonResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        if (! $request->user()->canUseAi()) {
+            return response()->json([
+                'message' => 'AI assistance is a paid feature. Upgrade your plan to unlock it.',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'preferences' => ['nullable', 'string', 'max:1000'],
+            'destination' => ['nullable', 'string', 'max:160'],
+            'budget' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
+            'departure' => ['nullable', 'string', 'max:120'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+
+        if (! $ai->isConfigured()) {
+            return response()->json(['available' => false]);
+        }
+
+        $tool = [
+            'name' => 'propose_honeymoon',
+            'description' => 'Propose a honeymoon plan for the couple.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'destination' => ['type' => 'string', 'description' => 'One specific destination, e.g. "Maui, Hawaii".'],
+                    'airport' => ['type' => 'string', 'description' => 'The 3-letter IATA code of the nearest airport, e.g. "OGG".'],
+                    'highlights' => ['type' => 'string', 'description' => 'A warm 2-4 sentence overview: why it fits, top things to do, a tip. No headings, no markdown.'],
+                    'budget_items' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'label' => ['type' => 'string', 'description' => 'e.g. "Flights", "Resort (7 nights)", "Activities".'],
+                                'amount_dollars' => ['type' => 'number', 'description' => 'Estimated cost in CAD dollars.'],
+                            ],
+                            'required' => ['label', 'amount_dollars'],
+                        ],
+                    ],
+                ],
+                'required' => ['destination', 'airport', 'highlights', 'budget_items'],
+            ],
+        ];
+
+        try {
+            $result = $ai->generateStructured($this->aiSystem(), $this->aiContext($wedding, $data), $tool);
+        } catch (AiException $e) {
+            return response()->json(['available' => true, 'error' => $e->getMessage()]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'destination' => (string) ($result['destination'] ?? ''),
+            'airport' => strtoupper(trim((string) ($result['airport'] ?? ''))),
+            'notes' => (string) ($result['highlights'] ?? ''),
+            'budget_items' => collect($result['budget_items'] ?? [])
+                ->take(30)
+                ->map(fn ($i) => [
+                    'label' => (string) ($i['label'] ?? ''),
+                    'amount_cents' => (int) round(max(0, (float) ($i['amount_dollars'] ?? 0)) * 100),
+                ])
+                ->filter(fn ($i) => $i['label'] !== '')
+                ->values()
+                ->all(),
+        ]);
+    }
+
+    private function aiSystem(): string
+    {
+        return 'You are a thoughtful honeymoon planner. From the couple\'s preferences, propose ONE specific '
+            .'destination with its nearest airport (3-letter IATA code), a warm short highlights/tips overview, '
+            .'and a realistic budget breakdown in Canadian dollars that roughly fits their stated total (if any). '
+            .'Consider the season if dates are given. Keep it tasteful and concrete — real places, real prices.';
+    }
+
+    /** @param  array<string,mixed>  $data */
+    private function aiContext(Wedding $wedding, array $data): string
+    {
+        $parts = ["The couple is {$wedding->name}."];
+
+        if (filled($data['preferences'] ?? null)) {
+            $parts[] = 'What they want: '.trim($data['preferences']).'.';
+        }
+        if (filled($data['destination'] ?? null)) {
+            $parts[] = 'They are leaning toward: '.trim($data['destination']).' (refine or confirm this).';
+        }
+        if (filled($data['departure'] ?? null)) {
+            $parts[] = 'They are travelling from '.trim($data['departure']).'.';
+        }
+        if (isset($data['budget']) && (float) $data['budget'] > 0) {
+            $parts[] = 'Total budget: about CAD $'.number_format((float) $data['budget']).'.';
+        }
+        if (filled($data['start_date'] ?? null) && filled($data['end_date'] ?? null)) {
+            $parts[] = "Dates: {$data['start_date']} to {$data['end_date']}.";
+        }
+
+        return implode(' ', $parts);
     }
 
     public function save(Request $request): RedirectResponse

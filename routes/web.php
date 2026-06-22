@@ -514,6 +514,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('plan.feature:travel')->group(function () {
         Route::get('honeymoon', [HoneymoonController::class, 'index'])->name('honeymoon.index');
         Route::put('honeymoon', [HoneymoonController::class, 'save'])->name('honeymoon.save');
+        Route::post('honeymoon/ai', [HoneymoonController::class, 'aiPlan'])
+            ->middleware('throttle:15,1')->name('honeymoon.ai');
     });
 
     // Message your guests — broadcast announcements to a chosen audience. Atelier feature.

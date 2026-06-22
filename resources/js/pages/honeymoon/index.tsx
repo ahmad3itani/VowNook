@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Palmtree, Plane, Plus, Trash2 } from 'lucide-react';
-import { FormEvent } from 'react';
+import { Palmtree, Plane, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ type PageProps = {
     flights_partner: string;
     affiliate_enabled: boolean;
     flights_enabled: boolean;
+    ai_enabled: boolean;
 };
 
 const money = new Intl.NumberFormat('en-CA', {
@@ -34,6 +35,12 @@ const money = new Intl.NumberFormat('en-CA', {
     currency: 'CAD',
     maximumFractionDigits: 0,
 });
+
+// Inertia sets an XSRF-TOKEN cookie; forward it on our JSON fetch.
+function xsrfToken(): string {
+    const m = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+}
 
 export default function HoneymoonIndex({
     plan,
@@ -43,6 +50,7 @@ export default function HoneymoonIndex({
     flights_partner,
     affiliate_enabled,
     flights_enabled,
+    ai_enabled,
 }: PageProps) {
     const form = useForm({
         destination: plan.destination ?? '',
@@ -52,6 +60,65 @@ export default function HoneymoonIndex({
         notes: plan.notes ?? '',
         budget_items: (plan.budget_items ?? []) as BudgetItem[],
     });
+
+    const [prefs, setPrefs] = useState('');
+    const [departure, setDeparture] = useState('');
+    const [aiBudget, setAiBudget] = useState('');
+    const [planning, setPlanning] = useState(false);
+
+    async function planWithAi() {
+        if (planning) return;
+        setPlanning(true);
+        try {
+            const res = await fetch('/honeymoon/ai', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': xsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    preferences: prefs,
+                    destination: form.data.destination,
+                    departure,
+                    budget: aiBudget ? Number(aiBudget) : null,
+                    start_date: form.data.start_date || null,
+                    end_date: form.data.end_date || null,
+                }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok)
+                throw new Error(
+                    data.message ?? 'Could not plan that right now.',
+                );
+            if (data.available === false) {
+                toast.error('AI isn’t configured on this server yet.');
+                return;
+            }
+            if (data.error) {
+                toast.error(data.error);
+                return;
+            }
+            form.setData({
+                ...form.data,
+                destination: data.destination || form.data.destination,
+                airport: data.airport || form.data.airport,
+                notes: data.notes || form.data.notes,
+                budget_items: data.budget_items?.length
+                    ? data.budget_items
+                    : form.data.budget_items,
+            });
+            toast.success('Filled in a plan — review, tweak, and save.');
+        } catch (e) {
+            toast.error(
+                e instanceof Error ? e.message : 'Something went wrong.',
+            );
+        } finally {
+            setPlanning(false);
+        }
+    }
 
     function save(e: FormEvent) {
         e.preventDefault();
@@ -98,6 +165,86 @@ export default function HoneymoonIndex({
                     title="Honeymoon planner"
                     description="Pick your destination and dates, set a budget, then book stays and flights right here."
                 />
+
+                {/* Plan with AI */}
+                {ai_enabled && (
+                    <Card className="border-[#775a19]/25 bg-[#fdf8ee]">
+                        <CardContent className="flex flex-col gap-3 py-5">
+                            <div className="flex items-center gap-2">
+                                <span className="flex size-7 items-center justify-center rounded-full bg-[#775a19] text-white">
+                                    <Sparkles className="size-4" />
+                                </span>
+                                <div>
+                                    <p className="leading-none font-medium">
+                                        Plan it with AI
+                                    </p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        Describe your dream trip — we’ll suggest
+                                        a destination, budget, and tips to start
+                                        from.
+                                    </p>
+                                </div>
+                            </div>
+                            <Textarea
+                                value={prefs}
+                                onChange={(e) => setPrefs(e.target.value)}
+                                rows={2}
+                                placeholder="e.g. a relaxing beach getaway, great food, around $9,000, somewhere warm in October"
+                            />
+                            <div className="flex flex-wrap items-end gap-3">
+                                <div className="grid gap-1.5">
+                                    <Label
+                                        htmlFor="departure"
+                                        className="text-xs"
+                                    >
+                                        Flying from (optional)
+                                    </Label>
+                                    <Input
+                                        id="departure"
+                                        value={departure}
+                                        onChange={(e) =>
+                                            setDeparture(e.target.value)
+                                        }
+                                        placeholder="e.g. Toronto"
+                                        className="w-40"
+                                    />
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label
+                                        htmlFor="ai-budget"
+                                        className="text-xs"
+                                    >
+                                        Total budget (CAD, optional)
+                                    </Label>
+                                    <Input
+                                        id="ai-budget"
+                                        type="number"
+                                        min={0}
+                                        value={aiBudget}
+                                        onChange={(e) =>
+                                            setAiBudget(e.target.value)
+                                        }
+                                        placeholder="e.g. 9000"
+                                        className="w-44"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    onClick={planWithAi}
+                                    disabled={planning}
+                                    className="bg-[#775a19] hover:bg-[#634a14]"
+                                >
+                                    {planning ? (
+                                        <Spinner />
+                                    ) : (
+                                        <Sparkles className="size-4" />
+                                    )}
+                                    Plan with AI
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Trip details */}
                 <Card>
