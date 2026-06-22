@@ -32,8 +32,9 @@ return [
     'openrouter' => [
         'key' => env('OPENROUTER_API_KEY'),
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
-        // A widely-available, stable slug; override for a newer/cheaper model.
-        'model' => env('AI_OPENROUTER_MODEL', 'anthropic/claude-3.5-sonnet'),
+        // Current, low-cost model good for the help bot + plan starter; override
+        // with AI_OPENROUTER_MODEL for a different one (see openrouter.ai/models).
+        'model' => env('AI_OPENROUTER_MODEL', 'anthropic/claude-haiku-4.5'),
     ],
 
     // Balanced model for structured generation/extraction at consumer volume.
