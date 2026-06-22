@@ -7,6 +7,7 @@ use App\Enums\PermissionLevel;
 use App\Enums\Section;
 use App\Enums\TaskCategory;
 use App\Enums\TaskPriority;
+use App\Models\AiChatMessage;
 use App\Models\BudgetCategory;
 use App\Models\BudgetItem;
 use App\Models\Task;
@@ -25,6 +26,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 /**
  * AI "Plan Starter" — generates an editable checklist, budget, or day-of
@@ -39,6 +41,9 @@ class AiPlannerController extends Controller
 
     /** The three generators, each tied to the workspace section it writes to. */
     protected const KINDS = ['checklist', 'budget', 'timeline'];
+
+    /** How many recent turns of the conversation to send the model (cost guard). */
+    protected const CHAT_HISTORY = 20;
 
     public function __construct(
         protected CurrentWedding $current,
@@ -77,7 +82,83 @@ class AiPlannerController extends Controller
                 'task_priorities' => $this->labelled(TaskPriority::cases()),
                 'event_types' => $this->labelled(EventType::cases()),
             ],
+            // The persisted conversation with the AI planner (shared across collaborators).
+            'history' => AiChatMessage::forWedding($wedding->id)->ordered()->get()
+                ->map(fn (AiChatMessage $m) => ['id' => $m->id, 'role' => $m->role, 'content' => $m->content])
+                ->values(),
         ]);
+    }
+
+    /**
+     * One conversational turn with the AI wedding planner. Persists the exchange
+     * (so the chat is an ongoing partner) and always answers JSON — including on
+     * failure — so the front-end never sees a non-JSON 500.
+     */
+    public function chat(Request $request): JsonResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        if (! $request->user()->canUseAi()) {
+            return response()->json([
+                'message' => 'AI assistance is a paid feature. Upgrade your plan to unlock it.',
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'message' => ['required', 'string', 'max:2000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        if (! $this->ai->isConfigured()) {
+            return response()->json(['available' => false]);
+        }
+
+        $text = trim($validator->validated()['message']);
+
+        // Recent history from the DB + this new turn (not yet persisted — we only
+        // save the pair once the model actually answers, so failures leave no
+        // orphaned half-conversation behind).
+        $history = AiChatMessage::forWedding($wedding->id)->ordered()->get()
+            ->slice(-self::CHAT_HISTORY)
+            ->map(fn (AiChatMessage $m) => ['role' => $m->role, 'content' => $m->content])
+            ->values()
+            ->all();
+        $history[] = ['role' => 'user', 'content' => $text];
+
+        try {
+            $reply = $this->ai->chat($this->chatSystemPrompt($wedding), $history);
+        } catch (AiException $e) {
+            return response()->json(['available' => true, 'ok' => false, 'reply' => $e->getMessage()]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'available' => true,
+                'ok' => false,
+                'reply' => 'Sorry — I had trouble answering just now. Please try again in a moment.',
+            ]);
+        }
+
+        AiChatMessage::create(['wedding_id' => $wedding->id, 'role' => 'user', 'content' => $text]);
+        $saved = AiChatMessage::create(['wedding_id' => $wedding->id, 'role' => 'assistant', 'content' => $reply]);
+
+        return response()->json(['available' => true, 'ok' => true, 'reply' => $reply, 'id' => $saved->id]);
+    }
+
+    /** Clear the conversation so the couple can start fresh. */
+    public function resetChat(Request $request): RedirectResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+        abort_unless($request->user()->canUseAi(), 403, 'AI assistance is a paid feature.');
+
+        AiChatMessage::forWedding($wedding->id)->delete();
+
+        return back();
     }
 
     /**
@@ -461,6 +542,42 @@ class AiPlannerController extends Controller
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * The system prompt for the conversational planner: personalised with this
+     * wedding's details, scoped to wedding planning, and held to the same clean,
+     * concise house style as the rest of the product.
+     */
+    protected function chatSystemPrompt($wedding): string
+    {
+        $context = $this->context($wedding, []);
+
+        return <<<PROMPT
+        You are VowNook's AI wedding planner — a warm, knowledgeable planning partner for a couple
+        using VowNook, a wedding-planning studio and Ontario (Canada) wedding-vendor marketplace.
+
+        What you know about this wedding:
+        {$context}
+
+        Help with anything wedding-planning: budgeting, timelines, checklists, the guest list and
+        RSVPs, seating, vendors, décor, etiquette, wording, and day-of logistics — grounded in
+        Ontario, Canada and realistic Canadian prices and timelines. Use the details above to make
+        advice specific to this couple, and ask a short clarifying question when it would help.
+
+        VowNook tools you can point them to by name: Checklist, Budget, Guests (RSVPs + meal options),
+        Timeline, Floor plan (seating), Website (publish + share), Registry, Marketplace (find & book
+        vendors), and Collaborators. When a full starting point would help — a complete checklist,
+        budget, or day-of timeline — suggest the "Plan Starter" on this page, which drafts editable
+        items in one click.
+
+        STYLE (important)
+        - Conversational and concise: a few short sentences, or a short bullet list for steps.
+        - Use **bold** only for tool/section names or key figures. No headings, no emojis, no tables.
+        - Stay on this couple's wedding planning. For account-specific issues (a charge, a bug),
+          gently point them to Help & support instead.
+        - Never invent VowNook features or prices that aren't described above.
+        PROMPT;
     }
 
     /** Coerce a loose time string into strict "HH:MM" 24-hour, or null. */

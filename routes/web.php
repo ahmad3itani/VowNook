@@ -295,6 +295,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('assistant/generate', [AiPlannerController::class, 'generate'])
         ->middleware('throttle:15,1')->name('assistant.generate');
     Route::post('assistant/apply', [AiPlannerController::class, 'apply'])->name('assistant.apply');
+    // Conversational AI planner — a persisted, wedding-aware chat.
+    Route::post('assistant/chat', [AiPlannerController::class, 'chat'])
+        ->middleware('throttle:20,1')->name('assistant.chat');
+    Route::delete('assistant/chat', [AiPlannerController::class, 'resetChat'])->name('assistant.chat.reset');
 
     // Guests workspace.
     Route::get('guests', [GuestController::class, 'index'])

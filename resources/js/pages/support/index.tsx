@@ -1,6 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { LifeBuoy, Plus, Send, Sparkles } from 'lucide-react';
-import { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent, useState } from 'react';
+import { FormattedMessage } from '@/components/ai/formatted-message';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,61 +38,6 @@ function readXsrf(): string {
         .split('; ')
         .find((x) => x.startsWith('XSRF-TOKEN='));
     return c ? decodeURIComponent(c.split('=')[1]) : '';
-}
-
-/** Render **bold** segments as real nodes (no HTML injection — just text + <strong>). */
-function renderInline(text: string): ReactNode[] {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-        part.startsWith('**') && part.endsWith('**') ? (
-            <strong key={i} className="font-semibold text-[#1e1b17]">
-                {part.slice(2, -2)}
-            </strong>
-        ) : (
-            <span key={i}>{part}</span>
-        ),
-    );
-}
-
-/** Turn the assistant's lightweight markdown (paragraphs, bold, "-" bullets) into clean, styled output. */
-function FormattedAnswer({ text }: { text: string }) {
-    const blocks = text.trim().split(/\n{2,}/);
-
-    return (
-        <div className="flex flex-col gap-2 leading-relaxed text-foreground">
-            {blocks.map((block, bi) => {
-                const lines = block.split('\n');
-                const isList =
-                    lines.length > 0 &&
-                    lines.every((l) => /^\s*[-*•]\s+/.test(l));
-
-                if (isList) {
-                    return (
-                        <ul key={bi} className="flex flex-col gap-1.5">
-                            {lines.map((l, li) => (
-                                <li key={li} className="flex gap-2">
-                                    <span
-                                        className="mt-[7px] size-1.5 shrink-0 rounded-full bg-[#c79a3f]"
-                                        aria-hidden
-                                    />
-                                    <span>
-                                        {renderInline(
-                                            l.replace(/^\s*[-*•]\s+/, ''),
-                                        )}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    );
-                }
-
-                return (
-                    <p key={bi} className="whitespace-pre-line">
-                        {renderInline(block)}
-                    </p>
-                );
-            })}
-        </div>
-    );
 }
 
 function AskAi() {
@@ -168,8 +114,8 @@ function AskAi() {
                         <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#8a651c] text-white">
                             <Sparkles className="size-3.5" />
                         </span>
-                        <div className="min-w-0 flex-1">
-                            <FormattedAnswer text={answer.text} />
+                        <div className="min-w-0 flex-1 text-foreground">
+                            <FormattedMessage text={answer.text} />
                             {!answer.confident && (
                                 <p className="mt-3 border-t border-[#e9c176]/30 pt-2 text-xs text-muted-foreground">
                                     Still need a hand? Send a request below and

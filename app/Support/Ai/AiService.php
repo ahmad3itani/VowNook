@@ -112,6 +112,100 @@ class AiService
             : $this->viaAnthropic($system, $userPrompt, $tool);
     }
 
+    /**
+     * Hold a free-form, multi-turn conversation and return the assistant's text
+     * reply — the chat planner's path (distinct from generateStructured, which
+     * forces a single JSON tool result).
+     *
+     * @param  array<int, array{role:string, content:string}>  $messages
+     *
+     * @throws AiException
+     */
+    public function chat(string $system, array $messages): string
+    {
+        if (! $this->isConfigured()) {
+            throw new AiException('AI assistance is not configured.');
+        }
+
+        return $this->provider() === 'openrouter'
+            ? $this->chatViaOpenRouter($system, $messages)
+            : $this->chatViaAnthropic($system, $messages);
+    }
+
+    /**
+     * @param  array<int, array{role:string, content:string}>  $messages
+     *
+     * @throws AiException
+     */
+    protected function chatViaAnthropic(string $system, array $messages): string
+    {
+        $response = $this->post(
+            config('ai.anthropic.base_url'),
+            '/v1/messages',
+            [
+                'x-api-key' => $this->apiKey(),
+                'anthropic-version' => config('ai.anthropic.version'),
+                'content-type' => 'application/json',
+            ],
+            [
+                'model' => config('ai.model'),
+                'max_tokens' => (int) config('ai.max_tokens'),
+                'system' => $system,
+                'messages' => $messages,
+            ],
+        );
+
+        $text = '';
+        foreach ($response['content'] ?? [] as $block) {
+            if (($block['type'] ?? null) === 'text') {
+                $text .= (string) ($block['text'] ?? '');
+            }
+        }
+
+        return $this->ensureText($text);
+    }
+
+    /**
+     * @param  array<int, array{role:string, content:string}>  $messages
+     *
+     * @throws AiException
+     */
+    protected function chatViaOpenRouter(string $system, array $messages): string
+    {
+        $response = $this->post(
+            config('ai.openrouter.base_url'),
+            '/chat/completions',
+            [
+                'authorization' => 'Bearer '.$this->apiKey(),
+                'content-type' => 'application/json',
+                'http-referer' => (string) config('app.url'),
+                'x-title' => (string) config('app.name'),
+            ],
+            [
+                'model' => config('ai.openrouter.model'),
+                'max_tokens' => (int) config('ai.max_tokens'),
+                'messages' => array_merge(
+                    [['role' => 'system', 'content' => $system]],
+                    $messages,
+                ),
+            ],
+        );
+
+        return $this->ensureText((string) ($response['choices'][0]['message']['content'] ?? ''));
+    }
+
+    /** @throws AiException */
+    protected function ensureText(string $text): string
+    {
+        $text = trim($text);
+
+        if ($text === '') {
+            throw new AiException('The AI did not return a usable answer. Please try again.');
+        }
+
+        return $text;
+    }
+
     // ── Anthropic (Messages API) ─────────────────────────────────────────────
 
     /**
