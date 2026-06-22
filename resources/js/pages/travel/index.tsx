@@ -1,5 +1,13 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { BedDouble, Car, Home, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+    BedDouble,
+    Car,
+    Home,
+    MapPin,
+    Pencil,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
@@ -8,8 +16,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sheet,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
@@ -28,31 +48,83 @@ type Stay = {
     image_url: string | null;
 };
 
-const TYPE_LABELS: Record<string, string> = { hotel: 'Hotel', rental: 'Rental', transport: 'Transport' };
-const TYPE_ICON: Record<string, typeof BedDouble> = { hotel: BedDouble, rental: Home, transport: Car };
+const TYPE_LABELS: Record<string, string> = {
+    hotel: 'Hotel',
+    rental: 'Rental',
+    transport: 'Transport',
+};
+const TYPE_ICON: Record<string, typeof BedDouble> = {
+    hotel: BedDouble,
+    rental: Home,
+    transport: Car,
+};
 
 export default function TravelIndex({
     accommodations,
     travel_notes,
     types,
+    affiliate_enabled,
+    affiliate_partner,
+    show_travel_stays,
+    venue_name,
+    has_venue,
 }: {
     accommodations: Stay[];
     travel_notes: string;
     types: string[];
+    affiliate_enabled: boolean;
+    affiliate_partner: string;
+    show_travel_stays: boolean;
+    venue_name: string | null;
+    has_venue: boolean;
 }) {
     const { canWrite } = usePermissions();
     const writable = canWrite('website');
+
+    const [showStays, setShowStays] = useState(show_travel_stays);
+
+    function toggleStays(next: boolean) {
+        setShowStays(next);
+        router.put(
+            '/travel/stays-visibility',
+            { show_travel_stays: next },
+            {
+                preserveScroll: true,
+                onSuccess: () =>
+                    toast.success(
+                        next ? 'Stays map turned on.' : 'Stays map hidden.',
+                    ),
+                onError: () => setShowStays(!next),
+            },
+        );
+    }
 
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<Stay | null>(null);
     const imgRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<{
-        name: string; type: string; address: string; blurb: string; booking_url: string;
-        block_code: string; price_note: string; distance_note: string; is_active: boolean; image: File | null;
+        name: string;
+        type: string;
+        address: string;
+        blurb: string;
+        booking_url: string;
+        block_code: string;
+        price_note: string;
+        distance_note: string;
+        is_active: boolean;
+        image: File | null;
     }>({
-        name: '', type: 'hotel', address: '', blurb: '', booking_url: '',
-        block_code: '', price_note: '', distance_note: '', is_active: true, image: null,
+        name: '',
+        type: 'hotel',
+        address: '',
+        blurb: '',
+        booking_url: '',
+        block_code: '',
+        price_note: '',
+        distance_note: '',
+        is_active: true,
+        image: null,
     });
 
     const notesForm = useForm({ travel_notes: travel_notes ?? '' });
@@ -61,9 +133,16 @@ export default function TravelIndex({
         setEditing(s);
         form.clearErrors();
         form.setData({
-            name: s?.name ?? '', type: s?.type ?? 'hotel', address: s?.address ?? '', blurb: s?.blurb ?? '',
-            booking_url: s?.booking_url ?? '', block_code: s?.block_code ?? '', price_note: s?.price_note ?? '',
-            distance_note: s?.distance_note ?? '', is_active: s?.is_active ?? true, image: null,
+            name: s?.name ?? '',
+            type: s?.type ?? 'hotel',
+            address: s?.address ?? '',
+            blurb: s?.blurb ?? '',
+            booking_url: s?.booking_url ?? '',
+            block_code: s?.block_code ?? '',
+            price_note: s?.price_note ?? '',
+            distance_note: s?.distance_note ?? '',
+            is_active: s?.is_active ?? true,
+            image: null,
         });
         if (imgRef.current) imgRef.current.value = '';
         setOpen(true);
@@ -71,7 +150,13 @@ export default function TravelIndex({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        const opts = { preserveScroll: true, onSuccess: () => { setOpen(false); toast.success('Saved.'); } };
+        const opts = {
+            preserveScroll: true,
+            onSuccess: () => {
+                setOpen(false);
+                toast.success('Saved.');
+            },
+        };
         if (editing) {
             form.transform((d) => ({ ...d, _method: 'put' }));
             form.post(`/travel/${editing.id}`, opts);
@@ -83,12 +168,18 @@ export default function TravelIndex({
 
     function destroy(s: Stay) {
         if (!confirm(`Delete "${s.name}"?`)) return;
-        router.delete(`/travel/${s.id}`, { preserveScroll: true, onSuccess: () => toast.success('Deleted.') });
+        router.delete(`/travel/${s.id}`, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Deleted.'),
+        });
     }
 
     function saveNotes(e: React.FormEvent) {
         e.preventDefault();
-        notesForm.put('/travel/notes', { preserveScroll: true, onSuccess: () => toast.success('Travel notes saved.') });
+        notesForm.put('/travel/notes', {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Travel notes saved.'),
+        });
     }
 
     return (
@@ -111,7 +202,8 @@ export default function TravelIndex({
                 {accommodations.length === 0 ? (
                     <Card>
                         <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                            No stays yet. Add a hotel block, a rental, or a shuttle option.
+                            No stays yet. Add a hotel block, a rental, or a
+                            shuttle option.
                         </CardContent>
                     </Card>
                 ) : (
@@ -120,27 +212,77 @@ export default function TravelIndex({
                             const Icon = TYPE_ICON[s.type] ?? BedDouble;
                             return (
                                 <Card key={s.id} className="overflow-hidden">
-                                    {s.image_url && <img src={s.image_url} alt="" className="h-32 w-full object-cover" />}
+                                    {s.image_url && (
+                                        <img
+                                            src={s.image_url}
+                                            alt=""
+                                            className="h-32 w-full object-cover"
+                                        />
+                                    )}
                                     <CardContent className="space-y-2 pt-4">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
-                                                <p className="font-semibold">{s.name}</p>
+                                                <p className="font-semibold">
+                                                    {s.name}
+                                                </p>
                                                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                    <Icon className="size-3.5" /> {TYPE_LABELS[s.type] ?? s.type}
-                                                    {s.is_active ? '' : ' · hidden'}
+                                                    <Icon className="size-3.5" />{' '}
+                                                    {TYPE_LABELS[s.type] ??
+                                                        s.type}
+                                                    {s.is_active
+                                                        ? ''
+                                                        : ' · hidden'}
                                                 </p>
                                             </div>
                                             {writable && (
                                                 <div className="flex gap-1">
-                                                    <Button variant="ghost" size="icon" className="size-7" onClick={() => openSheet(s)}><Pencil className="size-3.5" /></Button>
-                                                    <Button variant="ghost" size="icon" className="size-7" onClick={() => destroy(s)}><Trash2 className="size-3.5" /></Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-7"
+                                                        onClick={() =>
+                                                            openSheet(s)
+                                                        }
+                                                    >
+                                                        <Pencil className="size-3.5" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-7"
+                                                        onClick={() =>
+                                                            destroy(s)
+                                                        }
+                                                    >
+                                                        <Trash2 className="size-3.5" />
+                                                    </Button>
                                                 </div>
                                             )}
                                         </div>
-                                        {s.price_note && <p className="text-sm text-[#775a19]">{s.price_note}</p>}
-                                        {s.distance_note && <p className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" /> {s.distance_note}</p>}
-                                        {s.block_code && <p className="text-xs text-muted-foreground">Code: <span className="font-medium">{s.block_code}</span></p>}
-                                        {s.booking_url && <p className="text-xs text-muted-foreground">Booking link added ✓</p>}
+                                        {s.price_note && (
+                                            <p className="text-sm text-[#775a19]">
+                                                {s.price_note}
+                                            </p>
+                                        )}
+                                        {s.distance_note && (
+                                            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <MapPin className="size-3" />{' '}
+                                                {s.distance_note}
+                                            </p>
+                                        )}
+                                        {s.block_code && (
+                                            <p className="text-xs text-muted-foreground">
+                                                Code:{' '}
+                                                <span className="font-medium">
+                                                    {s.block_code}
+                                                </span>
+                                            </p>
+                                        )}
+                                        {s.booking_url && (
+                                            <p className="text-xs text-muted-foreground">
+                                                Booking link added ✓
+                                            </p>
+                                        )}
                                     </CardContent>
                                 </Card>
                             );
@@ -149,79 +291,226 @@ export default function TravelIndex({
                 )}
 
                 {/* Travel notes */}
-                <form onSubmit={saveNotes} className="flex flex-col gap-3 border-t pt-6">
+                <form
+                    onSubmit={saveNotes}
+                    className="flex flex-col gap-3 border-t pt-6"
+                >
                     <div>
                         <h2 className="text-lg font-semibold">Getting there</h2>
-                        <p className="text-sm text-muted-foreground">Parking, shuttles, airports, directions — anything that helps guests arrive.</p>
+                        <p className="text-sm text-muted-foreground">
+                            Parking, shuttles, airports, directions — anything
+                            that helps guests arrive.
+                        </p>
                     </div>
                     <Textarea
                         value={notesForm.data.travel_notes}
-                        onChange={(e) => notesForm.setData('travel_notes', e.target.value)}
+                        onChange={(e) =>
+                            notesForm.setData('travel_notes', e.target.value)
+                        }
                         rows={4}
                         disabled={!writable}
                         placeholder="Free parking is available on-site. A shuttle runs from the host hotel at 3:30 PM…"
                     />
                     {writable && (
                         <div>
-                            <Button type="submit" disabled={notesForm.processing}>{notesForm.processing && <Spinner />} Save notes</Button>
+                            <Button
+                                type="submit"
+                                disabled={notesForm.processing}
+                            >
+                                {notesForm.processing && <Spinner />} Save notes
+                            </Button>
                         </div>
                     )}
                 </form>
+
+                {/* Affiliate "stays near your venue" map — only when it's enabled on the server. */}
+                {affiliate_enabled && (
+                    <div className="flex flex-col gap-3 border-t pt-6">
+                        <div>
+                            <h2 className="text-lg font-semibold">
+                                Stays near your venue
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                Show your guests a live map of hotels &amp;
+                                rentals around
+                                {venue_name ? ` ${venue_name}` : ' your venue'},
+                                so they can book in a tap.
+                            </p>
+                        </div>
+
+                        <label className="flex items-start gap-3 rounded-xl border p-4">
+                            <input
+                                type="checkbox"
+                                className="mt-1"
+                                checked={showStays}
+                                disabled={!writable}
+                                onChange={(e) => toggleStays(e.target.checked)}
+                            />
+                            <span className="text-sm">
+                                <span className="font-medium">
+                                    Show a “Stays near the venue” map on our
+                                    website
+                                </span>
+                                <span className="mt-1 block text-muted-foreground">
+                                    Powered by {affiliate_partner}. A clear note
+                                    tells guests it’s a partner suggestion —
+                                    VowNook earns a small commission if they
+                                    book, at no extra cost to them.
+                                </span>
+                            </span>
+                        </label>
+
+                        {showStays && !has_venue && (
+                            <p className="text-sm text-amber-700">
+                                Add your venue under{' '}
+                                <span className="font-medium">
+                                    Website → Details
+                                </span>{' '}
+                                so the map knows where to search.
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
 
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
-                    <SheetHeader><SheetTitle>{editing ? 'Edit place' : 'New place'}</SheetTitle></SheetHeader>
-                    <form onSubmit={submit} className="flex flex-col gap-4 px-4">
+                    <SheetHeader>
+                        <SheetTitle>
+                            {editing ? 'Edit place' : 'New place'}
+                        </SheetTitle>
+                    </SheetHeader>
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-col gap-4 px-4"
+                    >
                         <div className="grid gap-2">
                             <Label>Name</Label>
-                            <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} placeholder="The Walper Hotel" />
+                            <Input
+                                value={form.data.name}
+                                onChange={(e) =>
+                                    form.setData('name', e.target.value)
+                                }
+                                placeholder="The Walper Hotel"
+                            />
                             <InputError message={form.errors.name} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Type</Label>
-                            <Select value={form.data.type} onValueChange={(v) => form.setData('type', v)}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>{types.map((t) => <SelectItem key={t} value={t}>{TYPE_LABELS[t] ?? t}</SelectItem>)}</SelectContent>
+                            <Select
+                                value={form.data.type}
+                                onValueChange={(v) => form.setData('type', v)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {types.map((t) => (
+                                        <SelectItem key={t} value={t}>
+                                            {TYPE_LABELS[t] ?? t}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
                             </Select>
                         </div>
                         <div className="grid gap-2">
                             <Label>Address</Label>
-                            <Input value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} placeholder="20 Queen St S, Kitchener" />
+                            <Input
+                                value={form.data.address}
+                                onChange={(e) =>
+                                    form.setData('address', e.target.value)
+                                }
+                                placeholder="20 Queen St S, Kitchener"
+                            />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-2">
                                 <Label>Price note</Label>
-                                <Input value={form.data.price_note} onChange={(e) => form.setData('price_note', e.target.value)} placeholder="from $159/night" />
+                                <Input
+                                    value={form.data.price_note}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'price_note',
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="from $159/night"
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Distance</Label>
-                                <Input value={form.data.distance_note} onChange={(e) => form.setData('distance_note', e.target.value)} placeholder="5 min from venue" />
+                                <Input
+                                    value={form.data.distance_note}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'distance_note',
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="5 min from venue"
+                                />
                             </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Group / block code (optional)</Label>
-                            <Input value={form.data.block_code} onChange={(e) => form.setData('block_code', e.target.value)} placeholder="SMITHWED2026" />
+                            <Input
+                                value={form.data.block_code}
+                                onChange={(e) =>
+                                    form.setData('block_code', e.target.value)
+                                }
+                                placeholder="SMITHWED2026"
+                            />
                         </div>
                         <div className="grid gap-2">
                             <Label>Booking link</Label>
-                            <Input value={form.data.booking_url} onChange={(e) => form.setData('booking_url', e.target.value)} placeholder="https://…" />
+                            <Input
+                                value={form.data.booking_url}
+                                onChange={(e) =>
+                                    form.setData('booking_url', e.target.value)
+                                }
+                                placeholder="https://…"
+                            />
                             <InputError message={form.errors.booking_url} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Description</Label>
-                            <Textarea value={form.data.blurb} onChange={(e) => form.setData('blurb', e.target.value)} rows={2} />
+                            <Textarea
+                                value={form.data.blurb}
+                                onChange={(e) =>
+                                    form.setData('blurb', e.target.value)
+                                }
+                                rows={2}
+                            />
                         </div>
                         <div className="grid gap-2">
                             <Label>Photo (optional)</Label>
-                            <input ref={imgRef} type="file" accept="image/*" onChange={(e) => form.setData('image', e.target.files?.[0] ?? null)} className="text-sm" />
+                            <input
+                                ref={imgRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                    form.setData(
+                                        'image',
+                                        e.target.files?.[0] ?? null,
+                                    )
+                                }
+                                className="text-sm"
+                            />
                         </div>
                         <label className="flex items-center gap-2 text-sm">
-                            <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
+                            <input
+                                type="checkbox"
+                                checked={form.data.is_active}
+                                onChange={(e) =>
+                                    form.setData('is_active', e.target.checked)
+                                }
+                            />
                             Show on the wedding website
                         </label>
                         <SheetFooter className="px-0">
-                            <Button type="submit" disabled={form.processing}>{form.processing && <Spinner />} Save</Button>
+                            <Button type="submit" disabled={form.processing}>
+                                {form.processing && <Spinner />} Save
+                            </Button>
                         </SheetFooter>
                     </form>
                 </SheetContent>

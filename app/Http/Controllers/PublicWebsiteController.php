@@ -8,6 +8,7 @@ use App\Models\Wedding;
 use App\Models\WeddingAccommodation;
 use App\Models\WeddingEvent;
 use App\Models\WeddingPartyMember;
+use App\Support\Affiliates\TravelAffiliates;
 use App\Support\Seo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -116,11 +117,22 @@ class PublicWebsiteController extends Controller
                 ])->values();
         }
 
-        // Travel & stays — hotel blocks / rentals / transport + free-text notes.
-        $travel = ['notes' => null, 'stays' => []];
+        // Travel & stays — hotel blocks / rentals / transport + free-text notes,
+        // plus an affiliate "stays near your venue" map when it's configured and
+        // the couple hasn't hidden it.
+        $travel = ['notes' => null, 'stays' => [], 'affiliate_url' => null, 'affiliate_partner' => TravelAffiliates::PARTNER];
 
         if ($published) {
             $travel['notes'] = $website?->travel_notes;
+
+            if (($website?->show_travel_stays ?? true) && ($website?->venue_name || $website?->venue_address)) {
+                $travel['affiliate_url'] = app(TravelAffiliates::class)->stay22EmbedUrl(
+                    $website?->venue_name,
+                    $website?->venue_address,
+                    $wedding->event_date,
+                );
+            }
+
             $travel['stays'] = WeddingAccommodation::forWedding($wedding->id)->where('is_active', true)->ordered()->get()
                 ->map(fn (WeddingAccommodation $a) => [
                     'id' => $a->id,

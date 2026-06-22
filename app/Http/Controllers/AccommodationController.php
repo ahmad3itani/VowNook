@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WeddingAccommodation;
+use App\Support\Affiliates\TravelAffiliates;
 use App\Support\CurrentWedding;
 use App\Support\ImageOptimizer;
 use Illuminate\Http\RedirectResponse;
@@ -32,7 +33,27 @@ class AccommodationController extends Controller
             'accommodations' => $stays->map(fn (WeddingAccommodation $a) => $this->data($a, $wedding->slug)),
             'travel_notes' => $wedding->website?->travel_notes ?? '',
             'types' => self::TYPES,
+            // The affiliate "stays near your venue" map: whether it can show at all
+            // (an account id is configured), the couple's toggle, and the venue it
+            // would search around.
+            'affiliate_enabled' => app(TravelAffiliates::class)->isConfigured(),
+            'affiliate_partner' => TravelAffiliates::PARTNER,
+            'show_travel_stays' => (bool) ($wedding->website?->show_travel_stays ?? true),
+            'venue_name' => $wedding->website?->venue_name,
+            'has_venue' => filled($wedding->website?->venue_name) || filled($wedding->website?->venue_address),
         ]);
+    }
+
+    /** Toggle the affiliate "stays near your venue" map on the public site. */
+    public function updateStaysVisibility(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['show_travel_stays' => ['required', 'boolean']]);
+        $wedding = $this->current->get();
+
+        $website = $wedding->website()->firstOrCreate(['wedding_id' => $wedding->id]);
+        $website->update(['show_travel_stays' => $data['show_travel_stays']]);
+
+        return back()->with('status', 'travel-saved');
     }
 
     public function store(Request $request): RedirectResponse

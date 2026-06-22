@@ -11,26 +11,44 @@ export type Stay = {
     image_url: string | null;
 };
 
-export type TravelData = { notes: string | null; stays: Stay[] };
+export type TravelData = {
+    notes: string | null;
+    stays: Stay[];
+    affiliate_url?: string | null;
+    affiliate_partner?: string | null;
+};
 
 const serif = "font-['Playfair_Display']";
 
-/** Public "Travel & Stays" section — hotel blocks, rentals, transport + notes. */
+/** Public "Travel & Stays" section — hotel blocks, rentals, transport + notes,
+ *  plus an affiliate "stays near your venue" map. */
 export function WebsiteTravel({ travel }: { travel: TravelData }) {
     const hasStays = travel.stays.length > 0;
     const hasNotes = !!travel.notes && travel.notes.trim().length > 0;
+    const affiliateUrl = travel.affiliate_url ?? null;
+    const partner = travel.affiliate_partner ?? 'our travel partner';
 
-    if (!hasStays && !hasNotes) {
+    if (!hasStays && !hasNotes && !affiliateUrl) {
         return null;
     }
 
     return (
-        <section id="travel" className="px-6 py-24 md:py-32" style={{ background: 'var(--c-surface)' }}>
+        <section
+            id="travel"
+            className="px-6 py-24 md:py-32"
+            style={{ background: 'var(--c-surface)' }}
+        >
             <div className="mx-auto max-w-4xl">
-                <p className="text-center text-xs tracking-[0.3em] uppercase" style={{ color: 'var(--c-primary)' }}>
+                <p
+                    className="text-center text-xs tracking-[0.3em] uppercase"
+                    style={{ color: 'var(--c-primary)' }}
+                >
                     Getting here
                 </p>
-                <h2 className={`${serif} mt-3 text-center text-4xl sm:text-5xl`} style={{ color: 'var(--c-text)' }}>
+                <h2
+                    className={`${serif} mt-3 text-center text-4xl sm:text-5xl`}
+                    style={{ color: 'var(--c-text)' }}
+                >
                     Travel &amp; Stays
                 </h2>
 
@@ -40,17 +58,64 @@ export function WebsiteTravel({ travel }: { travel: TravelData }) {
                             <div
                                 key={s.id}
                                 className="overflow-hidden rounded-2xl border"
-                                style={{ borderColor: 'var(--c-border)', background: 'var(--c-bg)' }}
+                                style={{
+                                    borderColor: 'var(--c-border)',
+                                    background: 'var(--c-bg)',
+                                }}
                             >
-                                {s.image_url && <img src={s.image_url} alt="" className="h-44 w-full object-cover" />}
+                                {s.image_url && (
+                                    <img
+                                        src={s.image_url}
+                                        alt=""
+                                        className="h-44 w-full object-cover"
+                                    />
+                                )}
                                 <div className="space-y-2 p-6">
-                                    <h3 className={`${serif} text-2xl`} style={{ color: 'var(--c-text)' }}>{s.name}</h3>
-                                    {s.price_note && <p className="text-sm font-medium" style={{ color: 'var(--c-primary)' }}>{s.price_note}</p>}
-                                    {s.blurb && <p className="text-sm leading-relaxed" style={{ color: 'var(--c-muted)' }}>{s.blurb}</p>}
-                                    <div className="space-y-1 text-sm" style={{ color: 'var(--c-muted)' }}>
+                                    <h3
+                                        className={`${serif} text-2xl`}
+                                        style={{ color: 'var(--c-text)' }}
+                                    >
+                                        {s.name}
+                                    </h3>
+                                    {s.price_note && (
+                                        <p
+                                            className="text-sm font-medium"
+                                            style={{
+                                                color: 'var(--c-primary)',
+                                            }}
+                                        >
+                                            {s.price_note}
+                                        </p>
+                                    )}
+                                    {s.blurb && (
+                                        <p
+                                            className="text-sm leading-relaxed"
+                                            style={{ color: 'var(--c-muted)' }}
+                                        >
+                                            {s.blurb}
+                                        </p>
+                                    )}
+                                    <div
+                                        className="space-y-1 text-sm"
+                                        style={{ color: 'var(--c-muted)' }}
+                                    >
                                         {s.address && <p>{s.address}</p>}
-                                        {s.distance_note && <p>{s.distance_note}</p>}
-                                        {s.block_code && <p>Group code: <span className="font-medium" style={{ color: 'var(--c-text)' }}>{s.block_code}</span></p>}
+                                        {s.distance_note && (
+                                            <p>{s.distance_note}</p>
+                                        )}
+                                        {s.block_code && (
+                                            <p>
+                                                Group code:{' '}
+                                                <span
+                                                    className="font-medium"
+                                                    style={{
+                                                        color: 'var(--c-text)',
+                                                    }}
+                                                >
+                                                    {s.block_code}
+                                                </span>
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="flex flex-wrap gap-3 pt-2">
                                         {s.booking_url && (
@@ -59,7 +124,10 @@ export function WebsiteTravel({ travel }: { travel: TravelData }) {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="rounded-full px-5 py-2 text-xs font-semibold tracking-wide text-white uppercase"
-                                                style={{ background: 'var(--c-primary)' }}
+                                                style={{
+                                                    background:
+                                                        'var(--c-primary)',
+                                                }}
                                             >
                                                 Book
                                             </a>
@@ -70,7 +138,11 @@ export function WebsiteTravel({ travel }: { travel: TravelData }) {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="rounded-full border px-5 py-2 text-xs font-semibold tracking-wide uppercase"
-                                                style={{ borderColor: 'var(--c-border)', color: 'var(--c-text)' }}
+                                                style={{
+                                                    borderColor:
+                                                        'var(--c-border)',
+                                                    color: 'var(--c-text)',
+                                                }}
                                             >
                                                 Map
                                             </a>
@@ -83,10 +155,63 @@ export function WebsiteTravel({ travel }: { travel: TravelData }) {
                 )}
 
                 {hasNotes && (
-                    <div className="mx-auto mt-12 max-w-2xl rounded-2xl border p-7 text-center" style={{ borderColor: 'var(--c-border)', background: 'var(--c-bg)' }}>
-                        <p className="text-xs tracking-[0.25em] uppercase" style={{ color: 'var(--c-primary)' }}>Good to know</p>
-                        <p className="mt-3 text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--c-muted)' }}>
+                    <div
+                        className="mx-auto mt-12 max-w-2xl rounded-2xl border p-7 text-center"
+                        style={{
+                            borderColor: 'var(--c-border)',
+                            background: 'var(--c-bg)',
+                        }}
+                    >
+                        <p
+                            className="text-xs tracking-[0.25em] uppercase"
+                            style={{ color: 'var(--c-primary)' }}
+                        >
+                            Good to know
+                        </p>
+                        <p
+                            className="mt-3 text-sm leading-relaxed whitespace-pre-line"
+                            style={{ color: 'var(--c-muted)' }}
+                        >
                             {travel.notes}
+                        </p>
+                    </div>
+                )}
+
+                {affiliateUrl && (
+                    <div className="mt-14">
+                        <p
+                            className="text-center text-xs tracking-[0.25em] uppercase"
+                            style={{ color: 'var(--c-primary)' }}
+                        >
+                            Find a room
+                        </p>
+                        <h3
+                            className={`${serif} mt-2 mb-6 text-center text-3xl`}
+                            style={{ color: 'var(--c-text)' }}
+                        >
+                            Stays near the venue
+                        </h3>
+                        <div
+                            className="overflow-hidden rounded-2xl border"
+                            style={{ borderColor: 'var(--c-border)' }}
+                        >
+                            <iframe
+                                src={affiliateUrl}
+                                title="Hotels and stays near the venue"
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                className="h-[460px] w-full border-0 sm:h-[520px]"
+                                allow="geolocation"
+                            />
+                        </div>
+                        {/* Honest affiliate disclosure — required, and on-brand. */}
+                        <p
+                            className="mx-auto mt-4 max-w-2xl text-center text-xs leading-relaxed"
+                            style={{ color: 'var(--c-muted)' }}
+                        >
+                            These stays are suggested by our travel partner,{' '}
+                            {partner}. VowNook may earn a small commission if
+                            you book through this map — at no extra cost to you.
                         </p>
                     </div>
                 )}

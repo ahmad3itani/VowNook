@@ -34,6 +34,7 @@ class WeddingWebsite extends Model
         'music_path',
         'music_title',
         'travel_notes',
+        'show_travel_stays',
         'faq_items',
         'local_recommendations',
     ];
@@ -42,6 +43,7 @@ class WeddingWebsite extends Model
     {
         return [
             'is_published' => 'boolean',
+            'show_travel_stays' => 'boolean',
             'timeline_items' => 'array',
             'faq_items' => 'array',
             'local_recommendations' => 'array',

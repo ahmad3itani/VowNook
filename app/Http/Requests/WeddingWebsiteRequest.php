@@ -32,6 +32,7 @@ class WeddingWebsiteRequest extends FormRequest
             'timeline_items.*.title' => ['required_with:timeline_items.*', 'string', 'max:120'],
             'timeline_items.*.body' => ['nullable', 'string', 'max:1000'],
             'travel_notes' => ['nullable', 'string', 'max:5000'],
+            'show_travel_stays' => ['sometimes', 'boolean'],
             'faq_items' => ['nullable', 'array', 'max:30'],
             'faq_items.*.question' => ['required_with:faq_items.*', 'string', 'max:200'],
             'faq_items.*.answer' => ['nullable', 'string', 'max:2000'],
@@ -45,8 +46,14 @@ class WeddingWebsiteRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'is_published' => $this->boolean('is_published'),
-        ]);
+        $merge = ['is_published' => $this->boolean('is_published')];
+
+        // Only coerce the travel toggle when the form actually sent it, so other
+        // saves never silently flip it off.
+        if ($this->has('show_travel_stays')) {
+            $merge['show_travel_stays'] = $this->boolean('show_travel_stays');
+        }
+
+        $this->merge($merge);
     }
 }

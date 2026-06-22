@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Wedding;
 use App\Models\WeddingPartyMember;
 use App\Models\WeddingWebsite;
+use App\Support\Affiliates\TravelAffiliates;
 use App\Support\Ai\AiService;
 use App\Support\CurrentWedding;
 use App\Support\ImageOptimizer;
@@ -47,6 +48,9 @@ class WebsiteController extends Controller
             'ai_enabled' => app(AiService::class)->isConfigured()
                 && (($request->user()?->is_admin ?? false) || ($wedding->owner?->canUseFeature('ai') ?? false)),
             'party_sides' => WeddingPartyMember::SIDES,
+            // Whether the "stays near your venue" affiliate map can appear at all
+            // (an account id is configured). Drives the editor toggle's hint.
+            'travel_affiliate_enabled' => app(TravelAffiliates::class)->isConfigured(),
         ]);
     }
 
@@ -246,6 +250,7 @@ class WebsiteController extends Controller
                 'sort_order' => $p->sort_order,
             ])->values(),
             'travel_notes' => $website?->travel_notes,
+            'show_travel_stays' => (bool) ($website?->show_travel_stays ?? true),
             'faq_items' => $website?->faq_items ?? [],
             'local_recommendations' => $website?->local_recommendations ?? [],
             'party' => WeddingPartyMember::forWedding($wedding->id)->ordered()->get()->map(fn ($m) => [
