@@ -1,7 +1,6 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import type { DragEndEvent } from '@dnd-kit/core';
 import {
     DndContext,
-    DragEndEvent,
     PointerSensor,
     closestCenter,
     useSensor,
@@ -14,18 +13,25 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Head, router, useForm } from '@inertiajs/react';
 import {
+    Check,
     CheckCircle2,
     ExternalLink,
     GripVertical,
     Globe,
+    HelpCircle,
     Image,
     Loader2,
+    MapPin,
+    MessageSquare,
     Music,
     Pencil,
     Plus,
+    Sparkles,
     Trash2,
     Upload,
+    Users,
     Video,
     X,
 } from 'lucide-react';
@@ -43,9 +49,45 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 
 type TimelineItem = { year: string; title: string; body: string };
-type Photo = { id: number; url: string; caption: string | null; sort_order: number };
+type Photo = {
+    id: number;
+    url: string;
+    caption: string | null;
+    sort_order: number;
+};
+type FaqItem = { question: string; answer: string };
+type LocalItem = {
+    title: string;
+    category: string;
+    description: string;
+    url: string;
+};
+type PartyMember = {
+    id: number;
+    name: string;
+    role: string | null;
+    side: string;
+    bio: string | null;
+    photo_url: string | null;
+    sort_order: number;
+};
+type GuestbookItem = {
+    id: number;
+    name: string;
+    message: string;
+    approved: boolean;
+    created_at: string | null;
+};
 
-type TemplateId = 'classic' | 'modern' | 'botanical' | 'blush' | 'royal' | 'dolce' | 'destination' | 'vibrant';
+type TemplateId =
+    | 'classic'
+    | 'modern'
+    | 'botanical'
+    | 'blush'
+    | 'royal'
+    | 'dolce'
+    | 'destination'
+    | 'vibrant';
 
 type Website = {
     is_published: boolean;
@@ -70,6 +112,11 @@ type Website = {
     music_title: string | null;
     music_url: string | null;
     photos: Photo[];
+    travel_notes: string | null;
+    faq_items: FaqItem[];
+    local_recommendations: LocalItem[];
+    party: PartyMember[];
+    guestbook: GuestbookItem[];
 };
 
 type PageProps = {
@@ -78,7 +125,24 @@ type PageProps = {
     can_publish: boolean;
     subdomain_base: string;
     subdomain_enabled: boolean;
+    ai_enabled: boolean;
+    party_sides: string[];
 };
+
+const SIDE_LABELS: Record<string, string> = {
+    partner_a: 'Partner 1',
+    partner_b: 'Partner 2',
+    family: 'Family',
+    other: 'Other',
+};
+
+function readXsrf(): string {
+    const c = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith('XSRF-TOKEN='));
+
+    return c ? decodeURIComponent(c.split('=')[1]) : '';
+}
 
 const TEMPLATES: Array<{
     id: TemplateId;
@@ -87,17 +151,73 @@ const TEMPLATES: Array<{
     accent: string;
     font: string;
 }> = [
-    { id: 'classic', label: 'Classic', bg: '#fff8f3', accent: '#775a19', font: 'Playfair Display' },
-    { id: 'modern', label: 'Modern', bg: '#f9f9f9', accent: '#1a1a1a', font: 'system-ui' },
-    { id: 'botanical', label: 'Botanical', bg: '#f4f7f0', accent: '#4a7c59', font: 'Playfair Display' },
-    { id: 'blush', label: 'Blush', bg: '#fdf6f4', accent: '#b06a78', font: 'Playfair Display' },
-    { id: 'royal', label: 'Royal Gold', bg: '#fbf8f0', accent: '#b8902f', font: 'Playfair Display' },
-    { id: 'dolce', label: 'Dolce', bg: '#fdf6ee', accent: '#c2603d', font: 'Playfair Display' },
-    { id: 'destination', label: 'Destination', bg: '#f3f7f8', accent: '#3d7a8c', font: 'Playfair Display' },
-    { id: 'vibrant', label: 'Vibrant', bg: '#fff5f2', accent: '#d2436a', font: 'Playfair Display' },
+    {
+        id: 'classic',
+        label: 'Classic',
+        bg: '#fff8f3',
+        accent: '#775a19',
+        font: 'Playfair Display',
+    },
+    {
+        id: 'modern',
+        label: 'Modern',
+        bg: '#f9f9f9',
+        accent: '#1a1a1a',
+        font: 'system-ui',
+    },
+    {
+        id: 'botanical',
+        label: 'Botanical',
+        bg: '#f4f7f0',
+        accent: '#4a7c59',
+        font: 'Playfair Display',
+    },
+    {
+        id: 'blush',
+        label: 'Blush',
+        bg: '#fdf6f4',
+        accent: '#b06a78',
+        font: 'Playfair Display',
+    },
+    {
+        id: 'royal',
+        label: 'Royal Gold',
+        bg: '#fbf8f0',
+        accent: '#b8902f',
+        font: 'Playfair Display',
+    },
+    {
+        id: 'dolce',
+        label: 'Dolce',
+        bg: '#fdf6ee',
+        accent: '#c2603d',
+        font: 'Playfair Display',
+    },
+    {
+        id: 'destination',
+        label: 'Destination',
+        bg: '#f3f7f8',
+        accent: '#3d7a8c',
+        font: 'Playfair Display',
+    },
+    {
+        id: 'vibrant',
+        label: 'Vibrant',
+        bg: '#fff5f2',
+        accent: '#d2436a',
+        font: 'Playfair Display',
+    },
 ];
 
-export default function WebsiteIndex({ website, public_url, can_publish, subdomain_base, subdomain_enabled }: PageProps) {
+export default function WebsiteIndex({
+    website,
+    public_url,
+    can_publish,
+    subdomain_base,
+    subdomain_enabled,
+    ai_enabled,
+    party_sides,
+}: PageProps) {
     const { canWrite } = usePermissions();
     const writable = canWrite('website');
 
@@ -116,51 +236,274 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
         video_url: website.video_url ?? '',
         music_title: website.music_title ?? '',
         timeline_items: website.timeline_items,
+        faq_items: website.faq_items ?? [],
+        local_recommendations: website.local_recommendations ?? [],
     });
+
+    // Wedding party + guestbook are managed via dedicated endpoints.
+    const [party, setParty] = useState<PartyMember[]>(website.party ?? []);
+    const [guestbook, setGuestbook] = useState<GuestbookItem[]>(
+        website.guestbook ?? [],
+    );
+    const [newMember, setNewMember] = useState({
+        name: '',
+        role: '',
+        side: 'partner_a',
+        bio: '',
+    });
+    const [newMemberPhoto, setNewMemberPhoto] = useState<File | null>(null);
+    const [newFaq, setNewFaq] = useState<FaqItem>({ question: '', answer: '' });
+    const [newLocal, setNewLocal] = useState<LocalItem>({
+        title: '',
+        category: '',
+        description: '',
+        url: '',
+    });
+    const [aiBusy, setAiBusy] = useState<string | null>(null);
+
+    async function aiFill(
+        section: string,
+        extra: Record<string, string> = {},
+    ): Promise<Record<string, unknown> | null> {
+        setAiBusy(section + (extra.role ?? ''));
+
+        try {
+            const res = await fetch('/website/ai-fill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': readXsrf(),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ section, ...extra }),
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                toast.error(String(data.error));
+
+                return null;
+            }
+
+            return data;
+        } catch {
+            toast.error('AI is unavailable right now.');
+
+            return null;
+        } finally {
+            setAiBusy(null);
+        }
+    }
+
+    async function aiWelcome() {
+        const d = await aiFill('welcome');
+
+        if (d?.content) {
+            form.setData('welcome_message', String(d.content));
+            toast.success('Drafted — edit it however you like.');
+        }
+    }
+    async function aiStory() {
+        const d = await aiFill('story');
+
+        if (d?.content) {
+            form.setData('our_story', String(d.content));
+            toast.success('Drafted — edit it however you like.');
+        }
+    }
+    async function aiFaq() {
+        const d = await aiFill('faq');
+
+        if (Array.isArray(d?.items)) {
+            form.setData('faq_items', [
+                ...form.data.faq_items,
+                ...(d!.items as FaqItem[]),
+            ]);
+            toast.success('Added AI-drafted FAQs.');
+        }
+    }
+    async function aiLocal() {
+        const d = await aiFill('local');
+
+        if (Array.isArray(d?.items)) {
+            form.setData('local_recommendations', [
+                ...form.data.local_recommendations,
+                ...(d!.items as LocalItem[]).map((i) => ({ ...i, url: '' })),
+            ]);
+            toast.success('Added AI suggestions.');
+        }
+    }
+    async function aiMemberBio() {
+        if (!newMember.name) {
+            return;
+        }
+
+        const d = await aiFill('party_bio', {
+            name: newMember.name,
+            role: newMember.role,
+        });
+
+        if (d?.content) {
+            setNewMember((m) => ({ ...m, bio: String(d.content) }));
+        }
+    }
+
+    function refreshFrom(page: { props: unknown }) {
+        const w = (page.props as PageProps).website;
+        setParty(w.party);
+        setGuestbook(w.guestbook);
+    }
+
+    function addMember(photo: File | null) {
+        const fd = new FormData();
+        fd.append('name', newMember.name);
+        fd.append('role', newMember.role);
+        fd.append('side', newMember.side);
+        fd.append('bio', newMember.bio);
+
+        if (photo) {
+            fd.append('photo', photo);
+        }
+
+        router.post('/website/party', fd as unknown as Record<string, string>, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: (page) => {
+                refreshFrom(page);
+                setNewMember({
+                    name: '',
+                    role: '',
+                    side: 'partner_a',
+                    bio: '',
+                });
+                setNewMemberPhoto(null);
+                toast.success('Added to the wedding party.');
+            },
+        });
+    }
+    function deleteMember(id: number) {
+        router.delete(`/website/party/${id}`, {
+            preserveScroll: true,
+            onSuccess: (page) => refreshFrom(page),
+        });
+    }
+    function approveGuestbook(id: number) {
+        router.post(
+            `/website/guestbook/${id}/approve`,
+            {},
+            { preserveScroll: true, onSuccess: (page) => refreshFrom(page) },
+        );
+    }
+    function deleteGuestbook(id: number) {
+        router.delete(`/website/guestbook/${id}`, {
+            preserveScroll: true,
+            onSuccess: (page) => refreshFrom(page),
+        });
+    }
+
+    function addFaq() {
+        if (!newFaq.question) {
+            return;
+        }
+
+        form.setData('faq_items', [...form.data.faq_items, newFaq]);
+        setNewFaq({ question: '', answer: '' });
+    }
+    function removeFaq(i: number) {
+        form.setData(
+            'faq_items',
+            form.data.faq_items.filter((_, idx) => idx !== i),
+        );
+    }
+    function addLocal() {
+        if (!newLocal.title) {
+            return;
+        }
+
+        form.setData('local_recommendations', [
+            ...form.data.local_recommendations,
+            newLocal,
+        ]);
+        setNewLocal({ title: '', category: '', description: '', url: '' });
+    }
+    function removeLocal(i: number) {
+        form.setData(
+            'local_recommendations',
+            form.data.local_recommendations.filter((_, idx) => idx !== i),
+        );
+    }
 
     // Gallery photos are managed separately via dedicated endpoints.
     const [photos, setPhotos] = useState<Photo[]>(website.photos);
-    const [heroPreview, setHeroPreview] = useState<string | null>(website.hero_image_preview);
-    const [storyPreview, setStoryPreview] = useState<string | null>(website.story_image_preview);
+    const [heroPreview, setHeroPreview] = useState<string | null>(
+        website.hero_image_preview,
+    );
+    const [storyPreview, setStoryPreview] = useState<string | null>(
+        website.story_image_preview,
+    );
     const [musicUrl, setMusicUrl] = useState<string | null>(website.music_url);
     const [uploading, setUploading] = useState<Record<string, boolean>>({});
     const [selecting, setSelecting] = useState(false);
-    const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(new Set());
+    const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(
+        new Set(),
+    );
     const [captionEdit, setCaptionEdit] = useState<Photo | null>(null);
     const [captionText, setCaptionText] = useState('');
 
     // Timeline editor state
-    const [newItem, setNewItem] = useState<TimelineItem>({ year: '', title: '', body: '' });
+    const [newItem, setNewItem] = useState<TimelineItem>({
+        year: '',
+        title: '',
+        body: '',
+    });
 
     // Subdomain (free web address) state + live availability check.
     const subForm = useForm({ subdomain: website.subdomain ?? '' });
-    const [availability, setAvailability] = useState<'idle' | 'checking' | 'ok' | 'taken' | 'reserved' | 'invalid'>('idle');
+    const [availability, setAvailability] = useState<
+        'idle' | 'checking' | 'ok' | 'taken' | 'reserved' | 'invalid'
+    >('idle');
     const subValue = subForm.data.subdomain;
 
     useEffect(() => {
         const v = subValue.trim().toLowerCase();
+
         if (!subdomain_enabled || v === '' || v === (website.subdomain ?? '')) {
             setAvailability('idle');
+
             return;
         }
+
         setAvailability('checking');
         const id = setTimeout(() => {
-            fetch(`/website/subdomain/check?value=${encodeURIComponent(v)}`, { headers: { Accept: 'application/json' } })
+            fetch(`/website/subdomain/check?value=${encodeURIComponent(v)}`, {
+                headers: { Accept: 'application/json' },
+            })
                 .then((r) => r.json())
                 .then((d: { available: boolean; reason: string }) => {
-                    setAvailability(d.available ? 'ok' : (d.reason as 'taken' | 'reserved' | 'invalid'));
+                    setAvailability(
+                        d.available
+                            ? 'ok'
+                            : (d.reason as 'taken' | 'reserved' | 'invalid'),
+                    );
                 })
                 .catch(() => setAvailability('idle'));
         }, 400);
+
         return () => clearTimeout(id);
     }, [subValue, subdomain_enabled, website.subdomain]);
 
     function saveSubdomain(e: React.FormEvent) {
         e.preventDefault();
-        subForm.transform((d) => ({ subdomain: d.subdomain.trim().toLowerCase() || null }));
+        subForm.transform((d) => ({
+            subdomain: d.subdomain.trim().toLowerCase() || null,
+        }));
         subForm.put('/website/subdomain', {
             preserveScroll: true,
-            onSuccess: () => { setAvailability('idle'); toast.success('Web address saved.'); },
+            onSuccess: () => {
+                setAvailability('idle');
+                toast.success('Web address saved.');
+            },
         });
     }
 
@@ -174,10 +517,14 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
 
     function pickTemplate(id: typeof form.data.template) {
         form.setData('template', id);
-        router.put('/website', { ...form.data, template: id } as unknown as Record<string, string>, {
-            preserveScroll: true,
-            onSuccess: () => toast.success('Template saved.'),
-        });
+        router.put(
+            '/website',
+            { ...form.data, template: id } as unknown as Record<string, string>,
+            {
+                preserveScroll: true,
+                onSuccess: () => toast.success('Template saved.'),
+            },
+        );
     }
 
     function uploadFile(fieldName: string, route: string, file: File) {
@@ -189,8 +536,14 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Image uploaded.');
-                if (fieldName === 'hero') setHeroPreview(URL.createObjectURL(file));
-                if (fieldName === 'story_image') setStoryPreview(URL.createObjectURL(file));
+
+                if (fieldName === 'hero') {
+                    setHeroPreview(URL.createObjectURL(file));
+                }
+
+                if (fieldName === 'story_image') {
+                    setStoryPreview(URL.createObjectURL(file));
+                }
             },
             onFinish: () => setUploading((u) => ({ ...u, [fieldName]: false })),
         });
@@ -209,7 +562,10 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                 form.setData('music_title', w.music_title ?? '');
                 toast.success('Song uploaded.');
             },
-            onError: () => toast.error('Could not upload that file. Use an MP3, M4A, or WAV up to 10 MB.'),
+            onError: () =>
+                toast.error(
+                    'Could not upload that file. Use an MP3, M4A, or WAV up to 10 MB.',
+                ),
             onFinish: () => setUploading((u) => ({ ...u, music: false })),
         });
     }
@@ -229,23 +585,29 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
         setUploading((u) => ({ ...u, gallery: true }));
         const fd = new FormData();
         fd.append('photo', file);
-        router.post('/website/gallery', fd as unknown as Record<string, string>, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: (page) => {
-                const fresh = (page.props as unknown as PageProps).website.photos;
-                setPhotos(fresh);
-                toast.success('Photo added.');
+        router.post(
+            '/website/gallery',
+            fd as unknown as Record<string, string>,
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    const fresh = (page.props as unknown as PageProps).website
+                        .photos;
+                    setPhotos(fresh);
+                    toast.success('Photo added.');
+                },
+                onFinish: () => setUploading((u) => ({ ...u, gallery: false })),
             },
-            onFinish: () => setUploading((u) => ({ ...u, gallery: false })),
-        });
+        );
     }
 
     function deletePhoto(id: number) {
         router.delete(`/website/gallery/${id}`, {
             preserveScroll: true,
             onSuccess: (page) => {
-                const fresh = (page.props as unknown as PageProps).website.photos;
+                const fresh = (page.props as unknown as PageProps).website
+                    .photos;
                 setPhotos(fresh);
             },
         });
@@ -255,6 +617,7 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
         setSelectedPhotos((prev) => {
             const next = new Set(prev);
             next.has(id) ? next.delete(id) : next.add(id);
+
             return next;
         });
     }
@@ -265,15 +628,30 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
     }
 
     function deleteSelectedPhotos() {
-        if (selectedPhotos.size === 0) return;
-        if (!confirm(`Delete ${selectedPhotos.size} selected photo${selectedPhotos.size > 1 ? 's' : ''}?`)) return;
+        if (selectedPhotos.size === 0) {
+            return;
+        }
+
+        if (
+            !confirm(
+                `Delete ${selectedPhotos.size} selected photo${selectedPhotos.size > 1 ? 's' : ''}?`,
+            )
+        ) {
+            return;
+        }
+
         router.post(
             '/website/gallery/bulk-delete',
-            { ids: Array.from(selectedPhotos) } as unknown as Record<string, string>,
+            { ids: Array.from(selectedPhotos) } as unknown as Record<
+                string,
+                string
+            >,
             {
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    setPhotos((page.props as unknown as PageProps).website.photos);
+                    setPhotos(
+                        (page.props as unknown as PageProps).website.photos,
+                    );
                     exitSelecting();
                     toast.success('Photos deleted.');
                 },
@@ -287,14 +665,19 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
     }
 
     function saveCaption() {
-        if (!captionEdit) return;
+        if (!captionEdit) {
+            return;
+        }
+
         router.put(
             `/website/gallery/${captionEdit.id}`,
             { caption: captionText } as unknown as Record<string, string>,
             {
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    setPhotos((page.props as unknown as PageProps).website.photos);
+                    setPhotos(
+                        (page.props as unknown as PageProps).website.photos,
+                    );
                     setCaptionEdit(null);
                     toast.success('Caption saved.');
                 },
@@ -306,7 +689,11 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
-        if (!over || active.id === over.id) return;
+
+        if (!over || active.id === over.id) {
+            return;
+        }
+
         const oldIdx = photos.findIndex((p) => p.id === active.id);
         const newIdx = photos.findIndex((p) => p.id === over.id);
         const reordered = arrayMove(photos, oldIdx, newIdx).map((p, i) => ({
@@ -316,13 +703,21 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
         setPhotos(reordered);
         router.post(
             '/website/gallery/reorder',
-            { items: reordered.map(({ id, sort_order }) => ({ id, sort_order })) } as unknown as Record<string, string>,
+            {
+                items: reordered.map(({ id, sort_order }) => ({
+                    id,
+                    sort_order,
+                })),
+            } as unknown as Record<string, string>,
             { preserveScroll: true },
         );
     }
 
     function addTimelineItem() {
-        if (!newItem.year || !newItem.title) return;
+        if (!newItem.year || !newItem.title) {
+            return;
+        }
+
         form.setData('timeline_items', [...form.data.timeline_items, newItem]);
         setNewItem({ year: '', title: '', body: '' });
     }
@@ -345,7 +740,11 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                         description="Craft the public page your guests see at your wedding's link."
                     />
                     <Button variant="outline" asChild>
-                        <a href={public_url} target="_blank" rel="noopener noreferrer">
+                        <a
+                            href={public_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             <ExternalLink className="size-4" />
                             View site
                         </a>
@@ -358,25 +757,35 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                         <Checkbox
                             id="is_published"
                             checked={can_publish && form.data.is_published}
-                            onCheckedChange={(v) => form.setData('is_published', v === true)}
+                            onCheckedChange={(v) =>
+                                form.setData('is_published', v === true)
+                            }
                             disabled={!writable || !can_publish}
                         />
                         <div>
-                            <Label htmlFor="is_published" className="flex items-center gap-2">
+                            <Label
+                                htmlFor="is_published"
+                                className="flex items-center gap-2"
+                            >
                                 <Globe className="size-4" />
                                 Publish website
                             </Label>
                             {can_publish ? (
                                 <p className="text-sm text-muted-foreground">
-                                    When off, visitors see a simple page with an RSVP link only.
+                                    When off, visitors see a simple page with an
+                                    RSVP link only.
                                 </p>
                             ) : (
                                 <p className="text-sm text-muted-foreground">
                                     Going live is an{' '}
-                                    <a href="/settings/plan" className="font-medium text-[#8a651c] underline">
+                                    <a
+                                        href="/settings/plan"
+                                        className="font-medium text-[#8a651c] underline"
+                                    >
                                         Atelier feature
                                     </a>{' '}
-                                    — upgrade to publish. Keep building in the meantime; your draft is saved.
+                                    — upgrade to publish. Keep building in the
+                                    meantime; your draft is saved.
                                 </p>
                             )}
                         </div>
@@ -394,44 +803,110 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                         {!subdomain_enabled ? (
                             <p className="text-sm text-muted-foreground">
                                 Claim a free, easy-to-share address like{' '}
-                                <span className="font-medium text-[#1e1b17]">amelia-and-julian.{subdomain_base}</span> — an{' '}
-                                <a href="/settings/plan" className="font-medium text-[#8a651c] underline">Atelier feature</a>.
+                                <span className="font-medium text-[#1e1b17]">
+                                    amelia-and-julian.{subdomain_base}
+                                </span>{' '}
+                                — an{' '}
+                                <a
+                                    href="/settings/plan"
+                                    className="font-medium text-[#8a651c] underline"
+                                >
+                                    Atelier feature
+                                </a>
+                                .
                             </p>
                         ) : (
-                            <form onSubmit={saveSubdomain} className="flex flex-col gap-3">
+                            <form
+                                onSubmit={saveSubdomain}
+                                className="flex flex-col gap-3"
+                            >
                                 <p className="text-sm text-muted-foreground">
-                                    A short, shareable link to your site. Lowercase letters, numbers and hyphens.
+                                    A short, shareable link to your site.
+                                    Lowercase letters, numbers and hyphens.
                                 </p>
                                 <div className="flex flex-wrap items-stretch gap-2">
                                     <div className="flex flex-1 items-center overflow-hidden rounded-md border focus-within:ring-1 focus-within:ring-[#775a19]">
                                         <input
                                             value={subForm.data.subdomain}
-                                            onChange={(e) => subForm.setData('subdomain', e.target.value.toLowerCase())}
+                                            onChange={(e) =>
+                                                subForm.setData(
+                                                    'subdomain',
+                                                    e.target.value.toLowerCase(),
+                                                )
+                                            }
                                             placeholder="amelia-and-julian"
                                             disabled={!writable}
                                             className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm outline-none"
                                         />
-                                        <span className="bg-muted px-3 py-2 text-sm text-muted-foreground">.{subdomain_base}</span>
+                                        <span className="bg-muted px-3 py-2 text-sm text-muted-foreground">
+                                            .{subdomain_base}
+                                        </span>
                                     </div>
-                                    <Button type="submit" disabled={!writable || subForm.processing || availability === 'taken' || availability === 'reserved' || availability === 'invalid'}>
-                                        {subForm.processing ? <Spinner /> : null} Save
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            !writable ||
+                                            subForm.processing ||
+                                            availability === 'taken' ||
+                                            availability === 'reserved' ||
+                                            availability === 'invalid'
+                                        }
+                                    >
+                                        {subForm.processing ? (
+                                            <Spinner />
+                                        ) : null}{' '}
+                                        Save
                                     </Button>
                                 </div>
-                                {subForm.errors.subdomain && <p className="text-sm text-red-600">{subForm.errors.subdomain}</p>}
-                                {availability === 'checking' && <p className="text-xs text-muted-foreground">Checking availability…</p>}
-                                {availability === 'ok' && <p className="text-xs text-green-700">✓ {subForm.data.subdomain}.{subdomain_base} is available.</p>}
-                                {availability === 'taken' && <p className="text-xs text-red-600">That address is already taken.</p>}
-                                {availability === 'reserved' && <p className="text-xs text-red-600">That address is reserved — choose another.</p>}
-                                {availability === 'invalid' && <p className="text-xs text-red-600">Use 3+ lowercase letters, numbers or hyphens.</p>}
-                                {website.subdomain && availability === 'idle' && (
-                                    <p className="text-xs text-muted-foreground">
-                                        Live at{' '}
-                                        <a href={`https://${website.subdomain}.${subdomain_base}`} target="_blank" rel="noopener noreferrer" className="font-medium text-[#8a651c] underline">
-                                            {website.subdomain}.{subdomain_base}
-                                        </a>{' '}
-                                        once your site is published.
+                                {subForm.errors.subdomain && (
+                                    <p className="text-sm text-red-600">
+                                        {subForm.errors.subdomain}
                                     </p>
                                 )}
+                                {availability === 'checking' && (
+                                    <p className="text-xs text-muted-foreground">
+                                        Checking availability…
+                                    </p>
+                                )}
+                                {availability === 'ok' && (
+                                    <p className="text-xs text-green-700">
+                                        ✓ {subForm.data.subdomain}.
+                                        {subdomain_base} is available.
+                                    </p>
+                                )}
+                                {availability === 'taken' && (
+                                    <p className="text-xs text-red-600">
+                                        That address is already taken.
+                                    </p>
+                                )}
+                                {availability === 'reserved' && (
+                                    <p className="text-xs text-red-600">
+                                        That address is reserved — choose
+                                        another.
+                                    </p>
+                                )}
+                                {availability === 'invalid' && (
+                                    <p className="text-xs text-red-600">
+                                        Use 3+ lowercase letters, numbers or
+                                        hyphens.
+                                    </p>
+                                )}
+                                {website.subdomain &&
+                                    availability === 'idle' && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Live at{' '}
+                                            <a
+                                                href={`https://${website.subdomain}.${subdomain_base}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="font-medium text-[#8a651c] underline"
+                                            >
+                                                {website.subdomain}.
+                                                {subdomain_base}
+                                            </a>{' '}
+                                            once your site is published.
+                                        </p>
+                                    )}
                             </form>
                         )}
                     </CardContent>
@@ -459,7 +934,10 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                 >
                                     <span
                                         className="block text-xs font-semibold tracking-wide"
-                                        style={{ color: t.accent, fontFamily: t.font }}
+                                        style={{
+                                            color: t.accent,
+                                            fontFamily: t.font,
+                                        }}
                                     >
                                         Aa
                                     </span>
@@ -467,11 +945,14 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                         className="mt-1 h-1 w-8 rounded-full"
                                         style={{ background: t.accent }}
                                     />
-                                    <span className="mt-2 block text-xs font-medium" style={{ color: t.accent }}>
+                                    <span
+                                        className="mt-2 block text-xs font-medium"
+                                        style={{ color: t.accent }}
+                                    >
                                         {t.label}
                                     </span>
                                     {form.data.template === t.id && (
-                                        <span className="absolute right-2 top-2 size-2 rounded-full bg-[#775a19]" />
+                                        <span className="absolute top-2 right-2 size-2 rounded-full bg-[#775a19]" />
                                     )}
                                 </button>
                             ))}
@@ -500,23 +981,41 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                 <ImageUploadButton
                                     disabled={!writable}
                                     uploading={!!uploading.hero}
-                                    onFile={(f) => uploadFile('hero', '/website/hero', f)}
+                                    onFile={(f) =>
+                                        uploadFile('hero', '/website/hero', f)
+                                    }
                                 />
                                 {!website.hero_image_path && (
-                                    <Field label="Or paste a URL" error={form.errors.hero_image_url}>
+                                    <Field
+                                        label="Or paste a URL"
+                                        error={form.errors.hero_image_url}
+                                    >
                                         <Input
                                             value={form.data.hero_image_url}
-                                            onChange={(e) => form.setData('hero_image_url', e.target.value)}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'hero_image_url',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="https://…"
                                             disabled={!writable}
                                         />
                                     </Field>
                                 )}
                             </div>
-                            <Field label="Hero video (YouTube or Vimeo URL)" error={form.errors.hero_video_url}>
+                            <Field
+                                label="Hero video (YouTube or Vimeo URL)"
+                                error={form.errors.hero_video_url}
+                            >
                                 <Input
                                     value={form.data.hero_video_url}
-                                    onChange={(e) => form.setData('hero_video_url', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'hero_video_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.youtube.com/watch?v=…"
                                     disabled={!writable}
                                 />
@@ -530,21 +1029,41 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                             <CardTitle>Welcome</CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
-                            <Field label="Headline" error={form.errors.headline}>
+                            <Field
+                                label="Headline"
+                                error={form.errors.headline}
+                            >
                                 <Input
                                     value={form.data.headline}
-                                    onChange={(e) => form.setData('headline', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('headline', e.target.value)
+                                    }
                                     placeholder="We're getting married!"
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Welcome message" error={form.errors.welcome_message}>
+                            <Field
+                                label="Welcome message"
+                                error={form.errors.welcome_message}
+                            >
                                 <Textarea
                                     value={form.data.welcome_message}
-                                    onChange={(e) => form.setData('welcome_message', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'welcome_message',
+                                            e.target.value,
+                                        )
+                                    }
                                     disabled={!writable}
                                 />
                             </Field>
+                            {writable && (
+                                <AiButton
+                                    enabled={ai_enabled}
+                                    busy={aiBusy === 'welcome'}
+                                    onClick={aiWelcome}
+                                />
+                            )}
                         </CardContent>
                     </Card>
 
@@ -554,14 +1073,29 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                             <CardTitle>Our story</CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
-                            <Field label="Tell your story" error={form.errors.our_story}>
+                            <Field
+                                label="Tell your story"
+                                error={form.errors.our_story}
+                            >
                                 <Textarea
                                     value={form.data.our_story}
-                                    onChange={(e) => form.setData('our_story', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'our_story',
+                                            e.target.value,
+                                        )
+                                    }
                                     rows={6}
                                     disabled={!writable}
                                 />
                             </Field>
+                            {writable && (
+                                <AiButton
+                                    enabled={ai_enabled}
+                                    busy={aiBusy === 'story'}
+                                    onClick={aiStory}
+                                />
+                            )}
                             <div className="flex flex-col gap-2">
                                 <Label>Story image</Label>
                                 {storyPreview && (
@@ -576,7 +1110,13 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                 <ImageUploadButton
                                     disabled={!writable}
                                     uploading={!!uploading.story_image}
-                                    onFile={(f) => uploadFile('story_image', '/website/story-image', f)}
+                                    onFile={(f) =>
+                                        uploadFile(
+                                            'story_image',
+                                            '/website/story-image',
+                                            f,
+                                        )
+                                    }
                                 />
                             </div>
                         </CardContent>
@@ -599,9 +1139,13 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                                 <p className="text-xs font-semibold text-[#775a19]">
                                                     {item.year}
                                                 </p>
-                                                <p className="text-sm font-medium">{item.title}</p>
+                                                <p className="text-sm font-medium">
+                                                    {item.title}
+                                                </p>
                                                 {item.body && (
-                                                    <p className="text-xs text-muted-foreground">{item.body}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {item.body}
+                                                    </p>
                                                 )}
                                             </div>
                                             {writable && (
@@ -610,7 +1154,9 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                                     variant="ghost"
                                                     size="sm"
                                                     className="shrink-0 text-destructive hover:text-destructive"
-                                                    onClick={() => removeTimelineItem(i)}
+                                                    onClick={() =>
+                                                        removeTimelineItem(i)
+                                                    }
                                                 >
                                                     <Trash2 className="size-4" />
                                                 </Button>
@@ -624,24 +1170,41 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                     <Input
                                         placeholder="Year (e.g. 2021)"
                                         value={newItem.year}
-                                        onChange={(e) => setNewItem((n) => ({ ...n, year: e.target.value }))}
+                                        onChange={(e) =>
+                                            setNewItem((n) => ({
+                                                ...n,
+                                                year: e.target.value,
+                                            }))
+                                        }
                                     />
                                     <Input
                                         placeholder="Title (e.g. The proposal)"
                                         value={newItem.title}
-                                        onChange={(e) => setNewItem((n) => ({ ...n, title: e.target.value }))}
+                                        onChange={(e) =>
+                                            setNewItem((n) => ({
+                                                ...n,
+                                                title: e.target.value,
+                                            }))
+                                        }
                                     />
                                     <Input
                                         placeholder="Short description (optional)"
                                         value={newItem.body}
-                                        onChange={(e) => setNewItem((n) => ({ ...n, body: e.target.value }))}
+                                        onChange={(e) =>
+                                            setNewItem((n) => ({
+                                                ...n,
+                                                body: e.target.value,
+                                            }))
+                                        }
                                     />
                                     <Button
                                         type="button"
                                         variant="outline"
                                         className="sm:col-span-3"
                                         onClick={addTimelineItem}
-                                        disabled={!newItem.year || !newItem.title}
+                                        disabled={
+                                            !newItem.year || !newItem.title
+                                        }
                                     >
                                         <Plus className="mr-1.5 size-4" />
                                         Add moment
@@ -660,16 +1223,25 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Field label="YouTube or Vimeo URL" error={form.errors.video_url}>
+                            <Field
+                                label="YouTube or Vimeo URL"
+                                error={form.errors.video_url}
+                            >
                                 <Input
                                     value={form.data.video_url}
-                                    onChange={(e) => form.setData('video_url', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'video_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.youtube.com/watch?v=…"
                                     disabled={!writable}
                                 />
                             </Field>
                             <p className="mt-1.5 text-xs text-muted-foreground">
-                                A full-width video section will appear on your page when a URL is added.
+                                A full-width video section will appear on your
+                                page when a URL is added.
                             </p>
                         </CardContent>
                     </Card>
@@ -684,17 +1256,30 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
                             <p className="text-sm text-muted-foreground">
-                                Add your favourite song and it plays softly when a guest opens the
-                                invitation. Guests can mute it any time.
+                                Add your favourite song and it plays softly when
+                                a guest opens the invitation. Guests can mute it
+                                any time.
                             </p>
 
                             {musicUrl ? (
                                 <div className="flex flex-col gap-3 rounded-lg border p-3">
-                                    <audio controls src={musicUrl} className="w-full" />
-                                    <Field label="Song title (shown to guests)" error={form.errors.music_title}>
+                                    <audio
+                                        controls
+                                        src={musicUrl}
+                                        className="w-full"
+                                    />
+                                    <Field
+                                        label="Song title (shown to guests)"
+                                        error={form.errors.music_title}
+                                    >
                                         <Input
                                             value={form.data.music_title}
-                                            onChange={(e) => form.setData('music_title', e.target.value)}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'music_title',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="Our song"
                                             disabled={!writable}
                                         />
@@ -714,7 +1299,10 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                 </div>
                             ) : (
                                 writable && (
-                                    <AudioUploadButton uploading={!!uploading.music} onFile={uploadMusic} />
+                                    <AudioUploadButton
+                                        uploading={!!uploading.music}
+                                        onFile={uploadMusic}
+                                    />
                                 )
                             )}
                         </CardContent>
@@ -742,7 +1330,9 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                                 type="button"
                                                 variant="destructive"
                                                 size="sm"
-                                                disabled={selectedPhotos.size === 0}
+                                                disabled={
+                                                    selectedPhotos.size === 0
+                                                }
                                                 onClick={deleteSelectedPhotos}
                                             >
                                                 <Trash2 className="mr-1.5 size-3.5" />
@@ -751,9 +1341,17 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                         )}
                                         <Button
                                             type="button"
-                                            variant={selecting ? 'default' : 'outline'}
+                                            variant={
+                                                selecting
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
                                             size="sm"
-                                            onClick={() => (selecting ? exitSelecting() : setSelecting(true))}
+                                            onClick={() =>
+                                                selecting
+                                                    ? exitSelecting()
+                                                    : setSelecting(true)
+                                            }
                                         >
                                             <CheckCircle2 className="mr-1.5 size-3.5" />
                                             {selecting ? 'Done' : 'Select'}
@@ -778,8 +1376,12 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                                                 onDelete={deletePhoto}
                                                 onEdit={openCaptionEdit}
                                                 selecting={selecting}
-                                                selected={selectedPhotos.has(photo.id)}
-                                                onToggleSelect={toggleSelectPhoto}
+                                                selected={selectedPhotos.has(
+                                                    photo.id,
+                                                )}
+                                                onToggleSelect={
+                                                    toggleSelectPhoto
+                                                }
                                                 disabled={!writable}
                                             />
                                         ))}
@@ -802,32 +1404,64 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                             <CardTitle>Details</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Venue name" error={form.errors.venue_name}>
+                            <Field
+                                label="Venue name"
+                                error={form.errors.venue_name}
+                            >
                                 <Input
                                     value={form.data.venue_name}
-                                    onChange={(e) => form.setData('venue_name', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'venue_name',
+                                            e.target.value,
+                                        )
+                                    }
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Venue address" error={form.errors.venue_address}>
+                            <Field
+                                label="Venue address"
+                                error={form.errors.venue_address}
+                            >
                                 <Input
                                     value={form.data.venue_address}
-                                    onChange={(e) => form.setData('venue_address', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'venue_address',
+                                            e.target.value,
+                                        )
+                                    }
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Ceremony time" error={form.errors.ceremony_time}>
+                            <Field
+                                label="Ceremony time"
+                                error={form.errors.ceremony_time}
+                            >
                                 <Input
                                     value={form.data.ceremony_time}
-                                    onChange={(e) => form.setData('ceremony_time', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'ceremony_time',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="4:00 PM"
                                     disabled={!writable}
                                 />
                             </Field>
-                            <Field label="Dress code" error={form.errors.dress_code}>
+                            <Field
+                                label="Dress code"
+                                error={form.errors.dress_code}
+                            >
                                 <Input
                                     value={form.data.dress_code}
-                                    onChange={(e) => form.setData('dress_code', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'dress_code',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="Garden formal"
                                     disabled={!writable}
                                 />
@@ -835,10 +1469,439 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                         </CardContent>
                     </Card>
 
+                    {/* Wedding party */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Users className="size-4" /> Wedding party
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            {party.length > 0 && (
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                    {party.map((m) => (
+                                        <div
+                                            key={m.id}
+                                            className="flex items-start gap-3 rounded-lg border p-3"
+                                        >
+                                            {m.photo_url ? (
+                                                <img
+                                                    src={m.photo_url}
+                                                    alt={m.name}
+                                                    className="size-12 shrink-0 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+                                                    {m.name.slice(0, 1)}
+                                                </div>
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-medium">
+                                                    {m.name}
+                                                </p>
+                                                <p className="text-xs text-[#775a19]">
+                                                    {[
+                                                        m.role,
+                                                        SIDE_LABELS[m.side],
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(' · ')}
+                                                </p>
+                                                {m.bio && (
+                                                    <p className="mt-0.5 text-xs text-muted-foreground">
+                                                        {m.bio}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            {writable && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="shrink-0 text-destructive hover:text-destructive"
+                                                    onClick={() =>
+                                                        deleteMember(m.id)
+                                                    }
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {writable && (
+                                <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
+                                    <Input
+                                        placeholder="Name"
+                                        value={newMember.name}
+                                        onChange={(e) =>
+                                            setNewMember((m) => ({
+                                                ...m,
+                                                name: e.target.value,
+                                            }))
+                                        }
+                                    />
+                                    <Input
+                                        placeholder="Role (e.g. Maid of Honour)"
+                                        value={newMember.role}
+                                        onChange={(e) =>
+                                            setNewMember((m) => ({
+                                                ...m,
+                                                role: e.target.value,
+                                            }))
+                                        }
+                                    />
+                                    <select
+                                        value={newMember.side}
+                                        onChange={(e) =>
+                                            setNewMember((m) => ({
+                                                ...m,
+                                                side: e.target.value,
+                                            }))
+                                        }
+                                        className="h-9 rounded-md border bg-transparent px-3 text-sm"
+                                    >
+                                        {party_sides.map((s) => (
+                                            <option key={s} value={s}>
+                                                {SIDE_LABELS[s] ?? s}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) =>
+                                            setNewMemberPhoto(
+                                                e.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                        className="text-xs text-muted-foreground file:mr-2 file:rounded file:border file:bg-muted file:px-2 file:py-1 file:text-xs"
+                                    />
+                                    <Textarea
+                                        placeholder="Short bio (optional)"
+                                        value={newMember.bio}
+                                        onChange={(e) =>
+                                            setNewMember((m) => ({
+                                                ...m,
+                                                bio: e.target.value,
+                                            }))
+                                        }
+                                        className="sm:col-span-2"
+                                        rows={2}
+                                    />
+                                    <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() =>
+                                                addMember(newMemberPhoto)
+                                            }
+                                            disabled={!newMember.name}
+                                        >
+                                            <Plus className="mr-1.5 size-4" />{' '}
+                                            Add member
+                                        </Button>
+                                        <AiButton
+                                            enabled={ai_enabled}
+                                            busy={
+                                                aiBusy ===
+                                                'party_bio' + newMember.role
+                                            }
+                                            onClick={aiMemberBio}
+                                            label="Draft bio with AI"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* FAQ */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <HelpCircle className="size-4" /> FAQ
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            {form.data.faq_items.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    {form.data.faq_items.map((f, i) => (
+                                        <div
+                                            key={i}
+                                            className="flex items-start gap-3 rounded-lg border p-3"
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-medium">
+                                                    {f.question}
+                                                </p>
+                                                {f.answer && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {f.answer}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            {writable && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="shrink-0 text-destructive hover:text-destructive"
+                                                    onClick={() => removeFaq(i)}
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {writable && (
+                                <>
+                                    <div className="grid gap-3 rounded-lg border p-3">
+                                        <Input
+                                            placeholder="Question"
+                                            value={newFaq.question}
+                                            onChange={(e) =>
+                                                setNewFaq((f) => ({
+                                                    ...f,
+                                                    question: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        <Textarea
+                                            placeholder="Answer"
+                                            value={newFaq.answer}
+                                            onChange={(e) =>
+                                                setNewFaq((f) => ({
+                                                    ...f,
+                                                    answer: e.target.value,
+                                                }))
+                                            }
+                                            rows={2}
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={addFaq}
+                                            disabled={!newFaq.question}
+                                            className="w-fit"
+                                        >
+                                            <Plus className="mr-1.5 size-4" />{' '}
+                                            Add question
+                                        </Button>
+                                    </div>
+                                    <AiButton
+                                        enabled={ai_enabled}
+                                        busy={aiBusy === 'faq'}
+                                        onClick={aiFaq}
+                                        label="Draft FAQ with AI"
+                                    />
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Things to do */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <MapPin className="size-4" /> Things to do
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            <p className="text-sm text-muted-foreground">
+                                Local recommendations for out-of-town guests.
+                            </p>
+                            {form.data.local_recommendations.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    {form.data.local_recommendations.map(
+                                        (r, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-start gap-3 rounded-lg border p-3"
+                                            >
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-medium">
+                                                        {r.title}
+                                                        {r.category && (
+                                                            <span className="ml-1 text-xs font-normal text-[#775a19]">
+                                                                · {r.category}
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                    {r.description && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {r.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {writable && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="shrink-0 text-destructive hover:text-destructive"
+                                                        onClick={() =>
+                                                            removeLocal(i)
+                                                        }
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+                            )}
+                            {writable && (
+                                <>
+                                    <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
+                                        <Input
+                                            placeholder="Name (e.g. Old Port)"
+                                            value={newLocal.title}
+                                            onChange={(e) =>
+                                                setNewLocal((r) => ({
+                                                    ...r,
+                                                    title: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        <Input
+                                            placeholder="Category (e.g. Attraction)"
+                                            value={newLocal.category}
+                                            onChange={(e) =>
+                                                setNewLocal((r) => ({
+                                                    ...r,
+                                                    category: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        <Input
+                                            placeholder="Link (optional)"
+                                            value={newLocal.url}
+                                            onChange={(e) =>
+                                                setNewLocal((r) => ({
+                                                    ...r,
+                                                    url: e.target.value,
+                                                }))
+                                            }
+                                            className="sm:col-span-2"
+                                        />
+                                        <Textarea
+                                            placeholder="Description"
+                                            value={newLocal.description}
+                                            onChange={(e) =>
+                                                setNewLocal((r) => ({
+                                                    ...r,
+                                                    description: e.target.value,
+                                                }))
+                                            }
+                                            rows={2}
+                                            className="sm:col-span-2"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={addLocal}
+                                            disabled={!newLocal.title}
+                                            className="w-fit sm:col-span-2"
+                                        >
+                                            <Plus className="mr-1.5 size-4" />{' '}
+                                            Add place
+                                        </Button>
+                                    </div>
+                                    <AiButton
+                                        enabled={ai_enabled}
+                                        busy={aiBusy === 'local'}
+                                        onClick={aiLocal}
+                                        label="Suggest with AI"
+                                    />
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Guestbook moderation */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <MessageSquare className="size-4" /> Guestbook
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-3">
+                            <p className="text-sm text-muted-foreground">
+                                Guests can leave well-wishes on your published
+                                site. Approve the ones you’d like to show.
+                            </p>
+                            {guestbook.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    No messages yet.
+                                </p>
+                            ) : (
+                                guestbook.map((g) => (
+                                    <div
+                                        key={g.id}
+                                        className="flex items-start gap-3 rounded-lg border p-3"
+                                    >
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium">
+                                                {g.name}
+                                                {!g.approved && (
+                                                    <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                                                        Pending
+                                                    </span>
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {g.message}
+                                            </p>
+                                        </div>
+                                        {writable && (
+                                            <div className="flex shrink-0 gap-1">
+                                                {!g.approved && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-green-700 hover:text-green-700"
+                                                        onClick={() =>
+                                                            approveGuestbook(
+                                                                g.id,
+                                                            )
+                                                        }
+                                                        aria-label="Approve"
+                                                    >
+                                                        <Check className="size-4" />
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-destructive hover:text-destructive"
+                                                    onClick={() =>
+                                                        deleteGuestbook(g.id)
+                                                    }
+                                                    aria-label="Delete"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </CardContent>
+                    </Card>
+
                     {writable && (
                         <div className="flex justify-end">
                             <Button type="submit" disabled={form.processing}>
-                                {form.processing && <Loader2 className="mr-1.5 size-4 animate-spin" />}
+                                {form.processing && (
+                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                )}
                                 Save website
                             </Button>
                         </div>
@@ -857,8 +1920,14 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="mb-3 flex items-center justify-between">
-                            <h3 className="text-sm font-semibold">Edit caption</h3>
-                            <button type="button" onClick={() => setCaptionEdit(null)} aria-label="Close">
+                            <h3 className="text-sm font-semibold">
+                                Edit caption
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setCaptionEdit(null)}
+                                aria-label="Close"
+                            >
                                 <X className="size-4 text-muted-foreground" />
                             </button>
                         </div>
@@ -872,13 +1941,24 @@ export default function WebsiteIndex({ website, public_url, can_publish, subdoma
                             onChange={(e) => setCaptionText(e.target.value)}
                             placeholder="Add a caption…"
                             autoFocus
-                            onKeyDown={(e) => e.key === 'Enter' && saveCaption()}
+                            onKeyDown={(e) =>
+                                e.key === 'Enter' && saveCaption()
+                            }
                         />
                         <div className="mt-4 flex justify-end gap-2">
-                            <Button type="button" variant="outline" size="sm" onClick={() => setCaptionEdit(null)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCaptionEdit(null)}
+                            >
                                 Cancel
                             </Button>
-                            <Button type="button" size="sm" onClick={saveCaption}>
+                            <Button
+                                type="button"
+                                size="sm"
+                                onClick={saveCaption}
+                            >
                                 Save caption
                             </Button>
                         </div>
@@ -909,6 +1989,48 @@ function Field({
     );
 }
 
+/** "✨ Write with AI" — a paid perk. Free couples see an upgrade nudge instead. */
+function AiButton({
+    enabled,
+    busy,
+    onClick,
+    label = 'Write with AI',
+}: {
+    enabled: boolean;
+    busy: boolean;
+    onClick: () => void;
+    label?: string;
+}) {
+    if (!enabled) {
+        return (
+            <a
+                href="/settings/plan"
+                className="inline-flex w-fit items-center gap-1 text-xs font-medium text-[#8a651c] hover:underline"
+            >
+                <Sparkles className="size-3.5" /> {label} — an Atelier perk
+            </a>
+        );
+    }
+
+    return (
+        <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClick}
+            disabled={busy}
+            className="w-fit border-[#e9c176] text-[#8a651c] hover:bg-[#fdf8ee] hover:text-[#6f5217]"
+        >
+            {busy ? (
+                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+            ) : (
+                <Sparkles className="mr-1.5 size-3.5" />
+            )}
+            {label}
+        </Button>
+    );
+}
+
 function ImageUploadButton({
     disabled,
     uploading,
@@ -919,6 +2041,7 @@ function ImageUploadButton({
     onFile: (f: File) => void;
 }) {
     const ref = useRef<HTMLInputElement>(null);
+
     return (
         <>
             <input
@@ -928,7 +2051,11 @@ function ImageUploadButton({
                 className="sr-only"
                 onChange={(e) => {
                     const f = e.target.files?.[0];
-                    if (f) onFile(f);
+
+                    if (f) {
+                        onFile(f);
+                    }
+
                     e.target.value = '';
                 }}
             />
@@ -958,6 +2085,7 @@ function AudioUploadButton({
     onFile: (f: File) => void;
 }) {
     const ref = useRef<HTMLInputElement>(null);
+
     return (
         <>
             <input
@@ -967,7 +2095,11 @@ function AudioUploadButton({
                 className="sr-only"
                 onChange={(e) => {
                     const f = e.target.files?.[0];
-                    if (f) onFile(f);
+
+                    if (f) {
+                        onFile(f);
+                    }
+
                     e.target.value = '';
                 }}
             />
@@ -997,6 +2129,7 @@ function GalleryUploadButton({
     onFile: (f: File) => void;
 }) {
     const ref = useRef<HTMLInputElement>(null);
+
     return (
         <>
             <input
@@ -1047,7 +2180,14 @@ function SortablePhoto({
     disabled: boolean;
 }) {
     // Dragging is disabled while selecting so taps register as selection.
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
         id: photo.id,
         disabled: disabled || selecting,
     });
@@ -1073,10 +2213,18 @@ function SortablePhoto({
                     className="size-full"
                     aria-label="Select photo"
                 >
-                    <img src={photo.url} alt={photo.caption ?? ''} className="size-full object-cover" />
+                    <img
+                        src={photo.url}
+                        alt={photo.caption ?? ''}
+                        className="size-full object-cover"
+                    />
                 </button>
             ) : (
-                <img src={photo.url} alt={photo.caption ?? ''} className="size-full object-cover" />
+                <img
+                    src={photo.url}
+                    alt={photo.caption ?? ''}
+                    className="size-full object-cover"
+                />
             )}
 
             {photo.caption && !selecting && (
@@ -1087,8 +2235,10 @@ function SortablePhoto({
 
             {selecting && (
                 <div
-                    className={`absolute left-1 top-1 flex size-6 items-center justify-center rounded-full border-2 ${
-                        selected ? 'border-[#8a651c] bg-[#8a651c] text-white' : 'border-white bg-black/30 text-transparent'
+                    className={`absolute top-1 left-1 flex size-6 items-center justify-center rounded-full border-2 ${
+                        selected
+                            ? 'border-[#8a651c] bg-[#8a651c] text-white'
+                            : 'border-white bg-black/30 text-transparent'
                     }`}
                 >
                     <CheckCircle2 className="size-4" />
@@ -1101,12 +2251,12 @@ function SortablePhoto({
                         type="button"
                         {...attributes}
                         {...listeners}
-                        className="absolute left-1 top-1 cursor-grab rounded bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                        className="absolute top-1 left-1 cursor-grab rounded bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
                         aria-label="Drag to reorder"
                     >
                         <GripVertical className="size-3" />
                     </button>
-                    <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute top-1 right-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <button
                             type="button"
                             onClick={() => onEdit(photo)}
