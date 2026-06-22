@@ -54,6 +54,29 @@ class WeddingEventTest extends TestCase
         ]);
     }
 
+    public function test_events_index_loads_with_per_event_attending_counts(): void
+    {
+        [$user, $wedding] = $this->premiumCouple();
+
+        $event = WeddingEvent::create([
+            'wedding_id' => $wedding->id, 'name' => 'Reception', 'type' => 'reception', 'sort_order' => 0,
+        ]);
+
+        $attending = Guest::factory()->count(2)->create(['wedding_id' => $wedding->id]);
+        $declined = Guest::factory()->create(['wedding_id' => $wedding->id]);
+        foreach ($attending as $g) {
+            $event->guests()->attach($g->id, ['rsvp_status' => 'attending']);
+        }
+        $event->guests()->attach($declined->id, ['rsvp_status' => 'declined']);
+
+        $this->actingAs($user)->get('/events')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('events/index')
+                ->where('events.0.attending_count', 2)
+            );
+    }
+
     public function test_couple_can_update_and_delete_an_event(): void
     {
         [$user, $wedding] = $this->premiumCouple();

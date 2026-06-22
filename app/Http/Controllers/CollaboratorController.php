@@ -47,7 +47,8 @@ class CollaboratorController extends Controller
         return Inertia::render('collaborators/index', [
             'members' => $members->map(function (User $m) use ($wedding, $authId) {
                 $isOwner = $m->id === $wedding->owner_id;
-                $role = $isOwner ? Role::Owner : Role::tryFrom($m->pivot->role) ?? Role::Collaborator;
+                // Cast guards against a null/blank pivot role (tryFrom(null) is a TypeError).
+                $role = $isOwner ? Role::Owner : (Role::tryFrom((string) $m->pivot->role) ?? Role::Collaborator);
                 $override = $this->decodeOverride($m->pivot->permissions);
 
                 return [

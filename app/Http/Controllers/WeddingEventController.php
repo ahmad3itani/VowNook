@@ -6,6 +6,7 @@ use App\Models\WeddingEvent;
 use App\Support\CurrentWedding;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,12 +26,21 @@ class WeddingEventController extends Controller
     {
         $wedding = $this->current->get();
 
-        $events = WeddingEvent::forWedding($wedding->id)->ordered()
-            ->withCount(['guests as attending_count' => fn ($q) => $q->wherePivot('rsvp_status', 'attending')])
-            ->get();
+        $events = WeddingEvent::forWedding($wedding->id)->ordered()->get();
+
+        // Per-event "attending" tallies from the event_guest pivot. Counted with
+        // an explicit single-table query (not withCount+wherePivot) because both
+        // `guests` and `event_guest` have an `rsvp_status` column — the join form
+        // is an ambiguous reference on Postgres. Mirrors PublicRsvpController.
+        $attending = DB::table('event_guest')
+            ->whereIn('wedding_event_id', $events->pluck('id'))
+            ->where('rsvp_status', 'attending')
+            ->groupBy('wedding_event_id')
+            ->selectRaw('wedding_event_id, count(*) as c')
+            ->pluck('c', 'wedding_event_id');
 
         return Inertia::render('events/index', [
-            'events' => $events->map(fn (WeddingEvent $e) => $this->eventData($e)),
+            'events' => $events->map(fn (WeddingEvent $e) => $this->eventData($e, (int) ($attending[$e->id] ?? 0))),
             'types' => self::TYPES,
         ]);
     }
@@ -108,7 +118,7 @@ class WeddingEventController extends Controller
     }
 
     /** @return array<string,mixed> */
-    private function eventData(WeddingEvent $e): array
+    private function eventData(WeddingEvent $e, int $attendingCount): array
     {
         return [
             'id' => $e->id,
@@ -122,7 +132,7 @@ class WeddingEventController extends Controller
             'dress_code' => $e->dress_code,
             'description' => $e->description,
             'is_rsvpable' => $e->is_rsvpable,
-            'attending_count' => (int) ($e->attending_count ?? 0),
+            'attending_count' => $attendingCount,
         ];
     }
 }

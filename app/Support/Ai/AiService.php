@@ -39,6 +39,59 @@ class AiService
         return str_starts_with((string) $this->apiKey(), 'sk-or-') ? 'openrouter' : 'anthropic';
     }
 
+    /** The model that will actually be used for the active provider. */
+    public function model(): string
+    {
+        return $this->provider() === 'openrouter'
+            ? (string) config('ai.openrouter.model')
+            : (string) config('ai.model');
+    }
+
+    /**
+     * Make a tiny live call and report the raw outcome for diagnostics — unlike
+     * generateStructured(), this surfaces the provider's exact status + error
+     * body (e.g. "model not found", "insufficient credits", "invalid key") so a
+     * misconfiguration can be pinpointed. Never returns the API key.
+     *
+     * @return array{ok: bool, status: int|null, error: string|null}
+     */
+    public function ping(): array
+    {
+        if (! $this->isConfigured()) {
+            return ['ok' => false, 'status' => null, 'error' => 'AI is not configured (no key).'];
+        }
+
+        $openRouter = $this->provider() === 'openrouter';
+
+        $url = $openRouter
+            ? rtrim((string) config('ai.openrouter.base_url'), '/').'/chat/completions'
+            : rtrim((string) config('ai.anthropic.base_url'), '/').'/v1/messages';
+
+        $headers = $openRouter
+            ? ['authorization' => 'Bearer '.$this->apiKey()]
+            : ['x-api-key' => $this->apiKey(), 'anthropic-version' => config('ai.anthropic.version')];
+
+        $payload = $openRouter
+            ? ['model' => $this->model(), 'max_tokens' => 5, 'messages' => [['role' => 'user', 'content' => 'ping']]]
+            : ['model' => $this->model(), 'max_tokens' => 5, 'messages' => [['role' => 'user', 'content' => 'ping']]];
+
+        try {
+            $response = Http::withHeaders($headers)->timeout(20)->post($url, $payload);
+        } catch (Throwable $e) {
+            return ['ok' => false, 'status' => null, 'error' => $e->getMessage()];
+        }
+
+        if ($response->successful()) {
+            return ['ok' => true, 'status' => $response->status(), 'error' => null];
+        }
+
+        return [
+            'ok' => false,
+            'status' => $response->status(),
+            'error' => $response->json('error.message') ?? mb_substr($response->body(), 0, 300),
+        ];
+    }
+
     /**
      * Ask the model to populate a single tool and return that tool's input as a
      * PHP array — the structured result the caller asked for.
