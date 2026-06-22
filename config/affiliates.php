@@ -25,6 +25,10 @@ return [
         'maincolor' => env('STAY22_MAINCOLOR', '8a651c'),
         // Tag for segmenting earnings in the Stay22 dashboard.
         'campaign' => env('STAY22_CAMPAIGN', 'vownook-website'),
+        // Hub Data Reporting API bearer token (secret) — reserved for a future
+        // live earnings pull; their endpoint isn't publicly documented yet.
+        'api_token' => env('STAY22_API_TOKEN'),
+        'dashboard_url' => env('STAY22_DASHBOARD_URL', 'https://hub.stay22.com'),
     ],
 
     /*
@@ -37,6 +41,11 @@ return [
         'marker' => env('TRAVELPAYOUTS_MARKER'),
         'aviasales_base' => env('TRAVELPAYOUTS_AVIASALES_BASE', 'https://search.aviasales.com/flights/'),
         'locale' => env('TRAVELPAYOUTS_LOCALE', 'en'),
+        // API token (secret, from Profile → API token — NOT the public marker).
+        // Powers the live balance pull on the admin affiliate dashboard.
+        'api_token' => env('TRAVELPAYOUTS_API_TOKEN'),
+        'api_base' => env('TRAVELPAYOUTS_API_BASE', 'https://api.travelpayouts.com'),
+        'dashboard_url' => env('TRAVELPAYOUTS_DASHBOARD_URL', 'https://app.travelpayouts.com'),
     ],
 
 ];

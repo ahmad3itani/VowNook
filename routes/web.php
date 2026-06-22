@@ -5,6 +5,7 @@ use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\AdminImpersonationController;
 use App\Http\Controllers\Admin\AdminSupportController;
+use App\Http\Controllers\Admin\AffiliateController as AdminAffiliateController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\FeatureController as AdminFeatureController;
@@ -667,6 +668,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin panel — full oversight console.
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Travel affiliate revenue — adoption + live partner earnings.
+        Route::get('affiliates', [AdminAffiliateController::class, 'index'])->name('affiliates');
 
         // All weddings + drill-in + "open workspace" support entry.
         Route::get('weddings', [AdminWeddingController::class, 'index'])->name('weddings.index');
