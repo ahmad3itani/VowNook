@@ -19,6 +19,12 @@ import { Textarea } from '@/components/ui/textarea';
 
 type Day = { title: string; plan: string; spend_cents: number };
 type Tier = 'essential' | 'signature' | 'dream';
+type LivePrice = {
+    found: boolean;
+    price_cents: number | null;
+    currency: string;
+};
+type Live = { configured: boolean; flight: LivePrice; hotel: LivePrice } | null;
 type Pkg = {
     tier: Tier;
     destination: string;
@@ -45,6 +51,7 @@ type PageProps = {
     chosen_tier: Tier | null;
     stays_url: string | null;
     flights_url: string | null;
+    live: Live;
     affiliate_partner: string;
     flights_partner: string;
     ai_enabled: boolean;
@@ -77,6 +84,7 @@ export default function HoneymoonIndex({
     chosen_tier,
     stays_url,
     flights_url,
+    live,
     affiliate_partner,
     flights_partner,
     ai_enabled,
@@ -174,6 +182,7 @@ export default function HoneymoonIndex({
                                 pkg={chosen}
                                 staysUrl={stays_url}
                                 flightsUrl={flights_url}
+                                live={live}
                                 affiliatePartner={affiliate_partner}
                                 flightsPartner={flights_partner}
                             />
@@ -404,16 +413,39 @@ function PackageCard({
     );
 }
 
+function LivePrice({
+    label,
+    live,
+}: {
+    label: string;
+    live: LivePrice | undefined;
+}) {
+    if (!live?.found || live.price_cents === null) return null;
+    return (
+        <p className="text-sm">
+            <span className="text-muted-foreground">{label} from </span>
+            <span className="font-semibold text-[#775a19]">
+                {money(live.price_cents)}
+            </span>
+            <span className="ml-1.5 rounded-full bg-[#775a19]/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[#775a19] uppercase">
+                live
+            </span>
+        </p>
+    );
+}
+
 function ChosenBooking({
     pkg,
     staysUrl,
     flightsUrl,
+    live,
     affiliatePartner,
     flightsPartner,
 }: {
     pkg: Pkg;
     staysUrl: string | null;
     flightsUrl: string | null;
+    live: Live;
     affiliatePartner: string;
     flightsPartner: string;
 }) {
@@ -497,30 +529,36 @@ function ChosenBooking({
                 <div className="flex flex-col gap-3">
                     <h3 className="text-sm font-medium">Book it</h3>
                     {flightsUrl && (
-                        <Button
-                            asChild
-                            className="w-fit bg-[#775a19] hover:bg-[#634a14]"
-                        >
-                            <a
-                                href={flightsUrl}
-                                target="_blank"
-                                rel="noopener noreferrer sponsored"
+                        <div className="flex flex-col gap-1.5">
+                            <LivePrice label="Flights" live={live?.flight} />
+                            <Button
+                                asChild
+                                className="w-fit bg-[#775a19] hover:bg-[#634a14]"
                             >
-                                <Plane className="size-4" /> Search & book
-                                flights
-                            </a>
-                        </Button>
+                                <a
+                                    href={flightsUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer sponsored"
+                                >
+                                    <Plane className="size-4" /> Search & book
+                                    flights
+                                </a>
+                            </Button>
+                        </div>
                     )}
                     {staysUrl && (
-                        <div className="overflow-hidden rounded-xl border">
-                            <iframe
-                                src={staysUrl}
-                                title={`Stays in ${pkg.destination}`}
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                className="h-[440px] w-full border-0"
-                                allow="geolocation"
-                            />
+                        <div className="flex flex-col gap-1.5">
+                            <LivePrice label="Stays" live={live?.hotel} />
+                            <div className="overflow-hidden rounded-xl border">
+                                <iframe
+                                    src={staysUrl}
+                                    title={`Stays in ${pkg.destination}`}
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    className="h-[440px] w-full border-0"
+                                    allow="geolocation"
+                                />
+                            </div>
                         </div>
                     )}
                     {!staysUrl && !flightsUrl && (

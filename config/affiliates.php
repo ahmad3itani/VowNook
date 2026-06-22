@@ -42,9 +42,10 @@ return [
         'aviasales_base' => env('TRAVELPAYOUTS_AVIASALES_BASE', 'https://search.aviasales.com/flights/'),
         'locale' => env('TRAVELPAYOUTS_LOCALE', 'en'),
         // API token (secret, from Profile → API token — NOT the public marker).
-        // Powers the live balance pull on the admin affiliate dashboard.
+        // Powers the live balance pull + the honeymoon-concierge live prices.
         'api_token' => env('TRAVELPAYOUTS_API_TOKEN'),
         'api_base' => env('TRAVELPAYOUTS_API_BASE', 'https://api.travelpayouts.com'),
+        'hotellook_base' => env('TRAVELPAYOUTS_HOTELLOOK_BASE', 'https://engine.hotellook.com'),
         'dashboard_url' => env('TRAVELPAYOUTS_DASHBOARD_URL', 'https://app.travelpayouts.com'),
     ],
 

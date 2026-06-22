@@ -131,6 +131,40 @@ class HoneymoonTest extends TestCase
             );
     }
 
+    public function test_chosen_package_shows_live_prices_when_configured(): void
+    {
+        config([
+            'affiliates.stay22.id' => 'aff-123',
+            'affiliates.travelpayouts.marker' => 'mk-99',
+            'affiliates.travelpayouts.api_token' => 'tok',
+        ]);
+        Http::fake([
+            'api.travelpayouts.com/v1/prices/cheap*' => Http::response(['data' => ['OGG' => ['0' => ['price' => 910]]]]),
+            'engine.hotellook.com/*' => Http::response([['priceFrom' => 4200]]),
+        ]);
+
+        [$user, $wedding] = $this->premiumCouple();
+        HoneymoonPlan::create([
+            'wedding_id' => $wedding->id,
+            'start_date' => '2026-10-01', 'end_date' => '2026-10-09',
+            'chosen_tier' => 'signature',
+            'packages' => [[
+                'tier' => 'signature', 'destination' => 'Maui', 'airport' => 'OGG', 'origin_airport' => 'YYZ',
+                'why' => 'Yes', 'hotel_name' => 'Suite', 'flight_cents' => 98000, 'hotel_cents' => 456000,
+                'activities_cents' => 0, 'food_cents' => 0, 'total_cents' => 554000, 'days' => [],
+            ]],
+        ]);
+
+        $this->actingAs($user)->get('/honeymoon')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('live.flight.found', true)
+                ->where('live.flight.price_cents', 91000)
+                ->where('live.hotel.found', true)
+                ->where('live.hotel.price_cents', 420000)
+            );
+    }
+
     public function test_start_over_clears_packages(): void
     {
         [$user, $wedding] = $this->premiumCouple();

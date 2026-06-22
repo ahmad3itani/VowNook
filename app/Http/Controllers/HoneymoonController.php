@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HoneymoonPlan;
 use App\Models\Wedding;
 use App\Support\Affiliates\TravelAffiliates;
+use App\Support\Affiliates\TravelPricing;
 use App\Support\Ai\AiException;
 use App\Support\Ai\AiService;
 use App\Support\CurrentWedding;
@@ -36,6 +37,7 @@ class HoneymoonController extends Controller
 
         $staysUrl = null;
         $flightsUrl = null;
+        $live = null;
         $chosen = $plan && $plan->chosen_tier
             ? collect($plan->packages ?? [])->firstWhere('tier', $plan->chosen_tier)
             : null;
@@ -43,6 +45,16 @@ class HoneymoonController extends Controller
         if ($chosen) {
             $staysUrl = $affiliates->stay22DestinationUrl($chosen['destination'] ?? null, $plan->start_date, $plan->end_date);
             $flightsUrl = $affiliates->aviasalesRangeUrl($chosen['airport'] ?? null, $plan->start_date, $plan->end_date);
+
+            // Live prices for the package they're about to book (cached, graceful).
+            $pricing = app(TravelPricing::class);
+            $start = $plan->start_date?->toDateString();
+            $end = $plan->end_date?->toDateString();
+            $live = [
+                'configured' => $pricing->configured(),
+                'flight' => $pricing->flightPrice($chosen['origin_airport'] ?? null, $chosen['airport'] ?? null, $start, $end),
+                'hotel' => $pricing->hotelPrice($chosen['destination'] ?? null, $start, $end),
+            ];
         }
 
         return Inertia::render('honeymoon/index', [
@@ -55,6 +67,7 @@ class HoneymoonController extends Controller
             'chosen_tier' => $plan?->chosen_tier,
             'stays_url' => $staysUrl,
             'flights_url' => $flightsUrl,
+            'live' => $live,
             'affiliate_partner' => TravelAffiliates::PARTNER,
             'flights_partner' => TravelAffiliates::FLIGHTS_PARTNER,
             'ai_enabled' => app(AiService::class)->isConfigured() && request()->user()->canUseAi(),
@@ -172,6 +185,7 @@ class HoneymoonController extends Controller
                                 'tier' => ['type' => 'string', 'enum' => self::TIERS],
                                 'destination' => ['type' => 'string', 'description' => 'A specific destination, e.g. "Maui, Hawaii".'],
                                 'airport' => ['type' => 'string', 'description' => 'Nearest airport IATA code, e.g. "OGG".'],
+                                'origin_airport' => ['type' => 'string', 'description' => 'IATA code of the couple’s departure airport (from their home city), e.g. "YYZ".'],
                                 'why' => ['type' => 'string', 'description' => 'A warm 1-2 sentence pitch: why this fits them.'],
                                 'hotel_name' => ['type' => 'string', 'description' => 'A specific, real, well-regarded hotel or resort.'],
                                 'flight_estimate_dollars' => ['type' => 'number', 'description' => 'Round-trip flights for two, CAD.'],
@@ -288,6 +302,7 @@ class HoneymoonController extends Controller
                     'tier' => $p['tier'],
                     'destination' => (string) ($p['destination'] ?? ''),
                     'airport' => strtoupper(trim((string) ($p['airport'] ?? ''))),
+                    'origin_airport' => strtoupper(trim((string) ($p['origin_airport'] ?? ''))),
                     'why' => (string) ($p['why'] ?? ''),
                     'hotel_name' => (string) ($p['hotel_name'] ?? ''),
                     'flight_cents' => $flight,
