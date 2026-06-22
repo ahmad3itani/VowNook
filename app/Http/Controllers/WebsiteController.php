@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\WeddingWebsiteRequest;
+use App\Models\GuestbookEntry;
+use App\Models\User;
 use App\Models\Wedding;
+use App\Models\WeddingPartyMember;
 use App\Models\WeddingWebsite;
+use App\Support\Ai\AiService;
 use App\Support\CurrentWedding;
 use App\Support\ImageOptimizer;
+use App\Support\Referrals;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,6 +42,11 @@ class WebsiteController extends Controller
             'can_publish' => $this->canPublish($wedding, $request->user()),
             'subdomain_base' => config('app.root_domain'),
             'subdomain_enabled' => $wedding->owner?->canUseFeature('subdomain') ?? false,
+            // AI-fill is a paid perk (and needs a configured key). Free couples
+            // still get the full editor — they just write the copy themselves.
+            'ai_enabled' => app(AiService::class)->isConfigured()
+                && (($request->user()?->is_admin ?? false) || ($wedding->owner?->canUseFeature('ai') ?? false)),
+            'party_sides' => WeddingPartyMember::SIDES,
         ]);
     }
 
@@ -47,8 +59,8 @@ class WebsiteController extends Controller
             'subdomain' => [
                 'nullable', 'string', 'min:3', 'max:40',
                 'regex:/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/',
-                \Illuminate\Validation\Rule::notIn(self::RESERVED_SUBDOMAINS),
-                \Illuminate\Validation\Rule::unique('wedding_websites', 'subdomain')
+                Rule::notIn(self::RESERVED_SUBDOMAINS),
+                Rule::unique('wedding_websites', 'subdomain')
                     ->ignore($wedding->website?->id),
             ],
         ], [
@@ -66,7 +78,7 @@ class WebsiteController extends Controller
     }
 
     /** Live availability check for the editor. */
-    public function checkSubdomain(Request $request): \Illuminate\Http\JsonResponse
+    public function checkSubdomain(Request $request): JsonResponse
     {
         $wedding = $this->current->get();
         $value = strtolower(trim((string) $request->query('value', '')));
@@ -104,14 +116,14 @@ class WebsiteController extends Controller
 
         // Publishing the website is the qualifying action that rewards a referrer.
         if (! empty($data['is_published'])) {
-            \App\Support\Referrals::rewardForActivation($wedding);
+            Referrals::rewardForActivation($wedding);
         }
 
         return back()->with('status', 'website-saved');
     }
 
     /** Entitlement to publish: admins, or a wedding owner on a paid plan. */
-    private function canPublish(Wedding $wedding, ?\App\Models\User $actor): bool
+    private function canPublish(Wedding $wedding, ?User $actor): bool
     {
         return ($actor?->is_admin ?? false)
             || ($wedding->owner?->canUseFeature('website_publish') ?? false);
@@ -200,38 +212,59 @@ class WebsiteController extends Controller
         $photos = $website?->photos()->get() ?? collect();
 
         return [
-            'is_published'       => (bool) ($website?->is_published ?? false),
-            'subdomain'          => $website?->subdomain,
-            'template'           => $website?->template ?? 'classic',
-            'headline'           => $website?->headline,
-            'welcome_message'    => $website?->welcome_message,
-            'our_story'          => $website?->our_story,
-            'venue_name'         => $website?->venue_name,
-            'venue_address'      => $website?->venue_address,
-            'ceremony_time'      => $website?->ceremony_time,
-            'dress_code'         => $website?->dress_code,
-            'hero_image_url'     => $website?->hero_image_url,
-            'hero_image_path'    => $website?->hero_image_path,
+            'is_published' => (bool) ($website?->is_published ?? false),
+            'subdomain' => $website?->subdomain,
+            'template' => $website?->template ?? 'classic',
+            'headline' => $website?->headline,
+            'welcome_message' => $website?->welcome_message,
+            'our_story' => $website?->our_story,
+            'venue_name' => $website?->venue_name,
+            'venue_address' => $website?->venue_address,
+            'ceremony_time' => $website?->ceremony_time,
+            'dress_code' => $website?->dress_code,
+            'hero_image_url' => $website?->hero_image_url,
+            'hero_image_path' => $website?->hero_image_path,
             'hero_image_preview' => $website?->hero_image_path
                 ? route('website.media', [$wedding->slug, 'hero', basename($website->hero_image_path)])
                 : null,
-            'hero_video_url'     => $website?->hero_video_url,
-            'story_image_path'   => $website?->story_image_path,
+            'hero_video_url' => $website?->hero_video_url,
+            'story_image_path' => $website?->story_image_path,
             'story_image_preview' => $website?->story_image_path
                 ? route('website.media', [$wedding->slug, 'story', basename($website->story_image_path)])
                 : null,
-            'timeline_items'     => $website?->timeline_items ?? [],
-            'video_url'          => $website?->video_url,
-            'music_path'         => $website?->music_path,
-            'music_title'        => $website?->music_title,
-            'music_url'          => $website?->music_path
+            'timeline_items' => $website?->timeline_items ?? [],
+            'video_url' => $website?->video_url,
+            'music_path' => $website?->music_path,
+            'music_title' => $website?->music_title,
+            'music_url' => $website?->music_path
                 ? route('website.media', [$wedding->slug, 'music', basename($website->music_path)])
                 : null,
-            'photos'             => $photos->map(fn ($p) => [
-                'id'       => $p->id,
-                'url'      => route('website.media', [$wedding->slug, 'gallery', basename($p->path)]),
-                'caption'  => $p->caption,
+            'photos' => $photos->map(fn ($p) => [
+                'id' => $p->id,
+                'url' => route('website.media', [$wedding->slug, 'gallery', basename($p->path)]),
+                'caption' => $p->caption,
                 'sort_order' => $p->sort_order,
+            ])->values(),
+            'travel_notes' => $website?->travel_notes,
+            'faq_items' => $website?->faq_items ?? [],
+            'local_recommendations' => $website?->local_recommendations ?? [],
+            'party' => WeddingPartyMember::forWedding($wedding->id)->ordered()->get()->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'role' => $m->role,
+                'side' => $m->side,
+                'bio' => $m->bio,
+                'photo_url' => $m->photo_path
+                    ? route('website.media', [$wedding->slug, 'party', basename($m->photo_path)])
+                    : null,
+                'sort_order' => $m->sort_order,
+            ])->values(),
+            'guestbook' => GuestbookEntry::forWedding($wedding->id)->latest()->get()->map(fn ($e) => [
+                'id' => $e->id,
+                'name' => $e->name,
+                'message' => $e->message,
+                'approved' => $e->isApproved(),
+                'created_at' => $e->created_at?->toIso8601String(),
             ])->values(),
         ];
     }

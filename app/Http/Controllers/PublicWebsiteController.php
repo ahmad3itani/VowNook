@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GuestbookEntry;
 use App\Models\TimelineEvent;
 use App\Models\Wedding;
 use App\Models\WeddingAccommodation;
 use App\Models\WeddingEvent;
+use App\Models\WeddingPartyMember;
 use App\Support\Seo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -25,32 +27,32 @@ class PublicWebsiteController extends Controller
             $photos = $website->photos()->get();
 
             $content = [
-                'template'           => $website->template ?? 'classic',
-                'headline'           => $website->headline,
-                'welcome_message'    => $website->welcome_message,
-                'our_story'          => $website->our_story,
-                'venue_name'         => $website->venue_name,
-                'venue_address'      => $website->venue_address,
-                'ceremony_time'      => $website->ceremony_time,
-                'dress_code'         => $website->dress_code,
-                'hero_image_url'     => $website->hero_image_url,
+                'template' => $website->template ?? 'classic',
+                'headline' => $website->headline,
+                'welcome_message' => $website->welcome_message,
+                'our_story' => $website->our_story,
+                'venue_name' => $website->venue_name,
+                'venue_address' => $website->venue_address,
+                'ceremony_time' => $website->ceremony_time,
+                'dress_code' => $website->dress_code,
+                'hero_image_url' => $website->hero_image_url,
                 'hero_image_preview' => $website->hero_image_path && Storage::exists($website->hero_image_path)
                     ? route('website.media', [$wedding->slug, 'hero', basename($website->hero_image_path)])
                     : null,
-                'hero_video_url'     => $website->hero_video_url,
+                'hero_video_url' => $website->hero_video_url,
                 'story_image_preview' => $website->story_image_path && Storage::exists($website->story_image_path)
                     ? route('website.media', [$wedding->slug, 'story', basename($website->story_image_path)])
                     : null,
-                'timeline_items'     => $website->timeline_items ?? [],
-                'video_url'          => $website->video_url,
-                'music_title'        => $website->music_title,
-                'music_url'          => $website->music_path && Storage::exists($website->music_path)
+                'timeline_items' => $website->timeline_items ?? [],
+                'video_url' => $website->video_url,
+                'music_title' => $website->music_title,
+                'music_url' => $website->music_path && Storage::exists($website->music_path)
                     ? route('website.media', [$wedding->slug, 'music', basename($website->music_path)])
                     : null,
-                'photos'             => $photos->map(fn ($p) => [
-                    'id'       => $p->id,
-                    'url'      => route('website.media', [$wedding->slug, 'gallery', basename($p->path)]),
-                    'caption'  => $p->caption,
+                'photos' => $photos->map(fn ($p) => [
+                    'id' => $p->id,
+                    'url' => route('website.media', [$wedding->slug, 'gallery', basename($p->path)]),
+                    'caption' => $p->caption,
                     'sort_order' => $p->sort_order,
                 ])->values(),
             ];
@@ -84,9 +86,9 @@ class PublicWebsiteController extends Controller
                 ->orderBy('starts_at')
                 ->get(['title', 'type', 'starts_at', 'location'])
                 ->map(fn (TimelineEvent $e) => [
-                    'title'    => $e->title,
-                    'type'     => $e->type?->value,
-                    'time'     => $e->starts_at?->format('g:i A'),
+                    'title' => $e->title,
+                    'type' => $e->type?->value,
+                    'time' => $e->starts_at?->format('g:i A'),
                     'location' => $e->location,
                 ])
                 ->values();
@@ -166,18 +168,53 @@ class PublicWebsiteController extends Controller
                 ])->values();
         }
 
+        // Wedding party, FAQ, local "things to do", and approved guestbook
+        // well-wishes — all public only on a published site.
+        $party = [];
+        $faq = [];
+        $localGuide = [];
+        $guestbook = [];
+
+        if ($published) {
+            $party = WeddingPartyMember::forWedding($wedding->id)->ordered()->get()
+                ->map(fn (WeddingPartyMember $m) => [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                    'role' => $m->role,
+                    'side' => $m->side,
+                    'bio' => $m->bio,
+                    'photo_url' => $m->photo_path && Storage::exists($m->photo_path)
+                        ? route('website.media', [$wedding->slug, 'party', basename($m->photo_path)]) : null,
+                ])->values();
+
+            $faq = collect($website?->faq_items ?? [])->values();
+            $localGuide = collect($website?->local_recommendations ?? [])->values();
+
+            $guestbook = GuestbookEntry::forWedding($wedding->id)->approved()->latest()->get()
+                ->map(fn (GuestbookEntry $e) => [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'message' => $e->message,
+                    'date' => $e->created_at?->translatedFormat('M j, Y'),
+                ])->values();
+        }
+
         return Inertia::render('public/website', [
             'wedding' => [
-                'name'       => $wedding->name,
-                'slug'       => $wedding->slug,
+                'name' => $wedding->name,
+                'slug' => $wedding->slug,
                 'event_date' => $wedding->event_date?->toIso8601String(),
             ],
             'published' => $published,
-            'content'   => $content,
-            'schedule'  => $schedule,
-            'events'    => $events,
-            'travel'    => $travel,
-            'registry'  => $registry,
+            'content' => $content,
+            'schedule' => $schedule,
+            'events' => $events,
+            'travel' => $travel,
+            'registry' => $registry,
+            'party' => $party,
+            'faq' => $faq,
+            'local_guide' => $localGuide,
+            'guestbook' => $guestbook,
         ])->withViewData(['seo' => $seo]);
     }
 }

@@ -34,13 +34,17 @@ class WeddingWebsite extends Model
         'music_path',
         'music_title',
         'travel_notes',
+        'faq_items',
+        'local_recommendations',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_published'   => 'boolean',
+            'is_published' => 'boolean',
             'timeline_items' => 'array',
+            'faq_items' => 'array',
+            'local_recommendations' => 'array',
         ];
     }
 

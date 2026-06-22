@@ -29,6 +29,7 @@ use App\Http\Controllers\EmailTrackController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GiftController;
+use App\Http\Controllers\GuestbookController;
 use App\Http\Controllers\GuestBroadcastController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestGroupController;
@@ -78,11 +79,13 @@ use App\Http\Controllers\VendorPortalController;
 use App\Http\Controllers\VendorProfileController;
 use App\Http\Controllers\VendorReviewController;
 use App\Http\Controllers\VendorServiceController;
+use App\Http\Controllers\WebsiteAiController;
 use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\WebsiteGalleryController;
 use App\Http\Controllers\WebsiteMediaController;
 use App\Http\Controllers\WeddingController;
 use App\Http\Controllers\WeddingEventController;
+use App\Http\Controllers\WeddingPartyController;
 use App\Support\OntarioCities;
 use Illuminate\Support\Facades\Route;
 
@@ -193,8 +196,12 @@ Route::middleware('throttle:120,1')->group(function () {
 
     // Public media serving for wedding website images (no auth required).
     Route::get('w/{wedding:slug}/media/{type}/{filename}', [WebsiteMediaController::class, 'serve'])
-        ->where('type', 'hero|story|gallery|music|registry|travel')
+        ->where('type', 'hero|story|gallery|music|registry|travel|party')
         ->name('website.media');
+
+    // Guestbook — a guest leaves a well-wish on a published wedding site.
+    Route::post('w/{wedding:slug}/guestbook', [GuestbookController::class, 'store'])
+        ->middleware('throttle:10,1')->name('public.guestbook.store');
 
     // Email open-tracking pixel for save-the-dates / invitations.
     Route::get('e/{token}.gif', [EmailTrackController::class, 'pixel'])
@@ -426,6 +433,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:website,write')->name('website.gallery.update');
     Route::delete('website/gallery/{photo}', [WebsiteGalleryController::class, 'destroy'])
         ->middleware('permission:website,write')->name('website.gallery.destroy');
+
+    // Wedding party (bridal party / groomsmen / family).
+    Route::post('website/party', [WeddingPartyController::class, 'store'])
+        ->middleware('permission:website,write')->name('website.party.store');
+    Route::post('website/party/reorder', [WeddingPartyController::class, 'reorder'])
+        ->middleware('permission:website,write')->name('website.party.reorder');
+    Route::put('website/party/{member}', [WeddingPartyController::class, 'update'])
+        ->middleware('permission:website,write')->name('website.party.update');
+    Route::delete('website/party/{member}', [WeddingPartyController::class, 'destroy'])
+        ->middleware('permission:website,write')->name('website.party.destroy');
+
+    // Guestbook moderation (couple-side).
+    Route::post('website/guestbook/{entry}/approve', [GuestbookController::class, 'approve'])
+        ->middleware('permission:website,write')->name('website.guestbook.approve');
+    Route::delete('website/guestbook/{entry}', [GuestbookController::class, 'destroy'])
+        ->middleware('permission:website,write')->name('website.guestbook.destroy');
+
+    // AI-fill for website copy — paid plans only.
+    Route::post('website/ai-fill', [WebsiteAiController::class, 'generate'])
+        ->middleware(['permission:website,write', 'plan.feature:ai', 'throttle:20,1'])->name('website.ai-fill');
 
     // Gift registry (funds + items) — Atelier feature, gated on the website section.
     Route::get('registry', [RegistryController::class, 'index'])
