@@ -206,6 +206,141 @@ class AiService
         return $text;
     }
 
+    // ── Streaming chat ───────────────────────────────────────────────────────
+
+    /**
+     * Stream a multi-turn conversation, calling $onDelta with each text chunk as
+     * it arrives, and return the full accumulated reply. Same two providers as
+     * chat(); both speak Server-Sent Events, which we parse line by line.
+     *
+     * @param  array<int, array{role:string, content:string}>  $messages
+     * @param  callable(string):void  $onDelta
+     *
+     * @throws AiException
+     */
+    public function streamChat(string $system, array $messages, callable $onDelta): string
+    {
+        if (! $this->isConfigured()) {
+            throw new AiException('AI assistance is not configured.');
+        }
+
+        $openRouter = $this->provider() === 'openrouter';
+
+        $url = $openRouter
+            ? rtrim((string) config('ai.openrouter.base_url'), '/').'/chat/completions'
+            : rtrim((string) config('ai.anthropic.base_url'), '/').'/v1/messages';
+
+        $headers = $openRouter
+            ? [
+                'authorization' => 'Bearer '.$this->apiKey(),
+                'content-type' => 'application/json',
+                'http-referer' => (string) config('app.url'),
+                'x-title' => (string) config('app.name'),
+            ]
+            : [
+                'x-api-key' => $this->apiKey(),
+                'anthropic-version' => config('ai.anthropic.version'),
+                'content-type' => 'application/json',
+            ];
+
+        $payload = $openRouter
+            ? [
+                'model' => config('ai.openrouter.model'),
+                'max_tokens' => (int) config('ai.max_tokens'),
+                'stream' => true,
+                'messages' => array_merge([['role' => 'system', 'content' => $system]], $messages),
+            ]
+            : [
+                'model' => config('ai.model'),
+                'max_tokens' => (int) config('ai.max_tokens'),
+                'stream' => true,
+                'system' => $system,
+                'messages' => $messages,
+            ];
+
+        try {
+            $response = Http::withHeaders($headers)
+                ->withOptions(['stream' => true])
+                ->timeout((int) config('ai.timeout'))
+                ->post($url, $payload);
+        } catch (ConnectionException $e) {
+            Log::warning('AI stream connection failed', ['message' => $e->getMessage()]);
+
+            throw new AiException('The AI service is temporarily unreachable. Please try again.');
+        } catch (Throwable $e) {
+            Log::error('AI stream failed unexpectedly', ['message' => $e->getMessage()]);
+
+            throw new AiException('Something went wrong. Please try again.');
+        }
+
+        if ($response->failed()) {
+            Log::warning('AI stream returned an error status', ['status' => $response->status()]);
+
+            throw new AiException(in_array($response->status(), [429, 500, 503, 529], true)
+                ? 'The AI service is busy right now. Please try again in a moment.'
+                : 'Something went wrong. Please try again.');
+        }
+
+        $full = '';
+        $buffer = '';
+        $body = $response->toPsrResponse()->getBody();
+
+        while (! $body->eof()) {
+            $chunk = $body->read(2048);
+
+            if ($chunk === '') {
+                continue;
+            }
+
+            $buffer .= $chunk;
+
+            while (($nl = strpos($buffer, "\n")) !== false) {
+                $line = rtrim(substr($buffer, 0, $nl), "\r");
+                $buffer = substr($buffer, $nl + 1);
+
+                $text = $this->parseStreamLine($line, $openRouter);
+
+                if ($text !== null && $text !== '') {
+                    $full .= $text;
+                    $onDelta($text);
+                }
+            }
+        }
+
+        return $this->ensureText($full);
+    }
+
+    /** Pull the text delta out of one SSE line, or null for non-text/control lines. */
+    protected function parseStreamLine(string $line, bool $openRouter): ?string
+    {
+        if (! str_starts_with($line, 'data:')) {
+            return null;
+        }
+
+        $data = trim(substr($line, 5));
+
+        if ($data === '' || $data === '[DONE]') {
+            return null;
+        }
+
+        $json = json_decode($data, true);
+
+        if (! is_array($json)) {
+            return null;
+        }
+
+        if ($openRouter) {
+            return $json['choices'][0]['delta']['content'] ?? null;
+        }
+
+        if (($json['type'] ?? null) === 'content_block_delta'
+            && ($json['delta']['type'] ?? null) === 'text_delta') {
+            return $json['delta']['text'] ?? null;
+        }
+
+        return null;
+    }
+
     // ── Anthropic (Messages API) ─────────────────────────────────────────────
 
     /**

@@ -103,6 +103,24 @@ const CHAT_SUGGESTIONS = [
     'How do we politely ask for no kids?',
 ];
 
+/** Three pulsing dots shown in the assistant bubble before the first token arrives. */
+function TypingDots() {
+    return (
+        <span
+            className="flex items-center gap-1 py-0.5"
+            aria-label="Planner is typing"
+        >
+            {[0, 1, 2].map((i) => (
+                <span
+                    key={i}
+                    className="size-1.5 animate-bounce rounded-full bg-[#775a19]/50"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                />
+            ))}
+        </span>
+    );
+}
+
 /** A persisted, wedding-aware conversation with the AI planner. */
 function ChatPlanner({
     weddingName,
@@ -121,38 +139,116 @@ function ChatPlanner({
         if (el) el.scrollTop = el.scrollHeight;
     }, [messages, sending]);
 
+    function patchLastAssistant(patch: Partial<ChatMessage>) {
+        setMessages((prev) => {
+            const next = prev.slice();
+            const last = next[next.length - 1];
+            if (last && last.role === 'assistant') {
+                next[next.length - 1] = { ...last, ...patch };
+            }
+            return next;
+        });
+    }
+
+    function dropEmptyAssistant() {
+        setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            return last && last.role === 'assistant' && last.content === ''
+                ? prev.slice(0, -1)
+                : prev;
+        });
+    }
+
     async function send(text: string) {
         const q = text.trim();
         if (!q || sending) return;
         setInput('');
-        setMessages((prev) => [...prev, { role: 'user', content: q }]);
+        // Append the user turn + an empty assistant bubble we fill as deltas stream in.
+        setMessages((prev) => [
+            ...prev,
+            { role: 'user', content: q },
+            { role: 'assistant', content: '' },
+        ]);
         setSending(true);
+
         try {
-            const res = await fetch('/assistant/chat', {
+            const res = await fetch('/assistant/chat/stream', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
-                    Accept: 'application/json',
+                    Accept: 'text/event-stream',
                     'X-XSRF-TOKEN': xsrfToken(),
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({ message: q }),
             });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok)
-                throw new Error(
-                    data.message ?? 'Something went wrong. Please try again.',
+
+            const contentType = res.headers.get('content-type') ?? '';
+            if (
+                !res.ok ||
+                !res.body ||
+                !contentType.includes('text/event-stream')
+            ) {
+                const data = await res.json().catch(() => ({}));
+                dropEmptyAssistant();
+                toast.error(
+                    data.available === false
+                        ? 'AI isn’t configured on this server yet.'
+                        : (data.message ??
+                              'Something went wrong. Please try again.'),
                 );
-            if (data.available === false) {
-                toast.error('AI isn’t configured on this server yet.');
                 return;
             }
-            setMessages((prev) => [
-                ...prev,
-                { id: data.id, role: 'assistant', content: data.reply ?? '…' },
-            ]);
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let acc = '';
+            let errorMsg = '';
+
+            for (;;) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+
+                let sep: number;
+                while ((sep = buffer.indexOf('\n\n')) !== -1) {
+                    const frame = buffer.slice(0, sep).trim();
+                    buffer = buffer.slice(sep + 2);
+                    if (!frame.startsWith('data:')) continue;
+                    const json = frame.slice(5).trim();
+                    if (!json) continue;
+
+                    let p: {
+                        delta?: string;
+                        error?: string;
+                        done?: boolean;
+                        id?: number;
+                    };
+                    try {
+                        p = JSON.parse(json);
+                    } catch {
+                        continue;
+                    }
+
+                    if (typeof p.delta === 'string') {
+                        acc += p.delta;
+                        patchLastAssistant({ content: acc });
+                    } else if (p.error) {
+                        errorMsg = p.error;
+                    } else if (p.done && typeof p.id === 'number') {
+                        patchLastAssistant({ id: p.id });
+                    }
+                }
+            }
+
+            if (errorMsg) {
+                toast.error(errorMsg);
+                if (acc === '') dropEmptyAssistant();
+            }
         } catch (e) {
+            dropEmptyAssistant();
             toast.error(
                 e instanceof Error ? e.message : 'Something went wrong.',
             );
@@ -244,21 +340,14 @@ function ChatPlanner({
                                     <Sparkles className="size-3.5" />
                                 </span>
                                 <div className="max-w-[85%] rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-2.5 text-sm text-foreground">
-                                    <FormattedMessage text={m.content} />
+                                    {m.content === '' ? (
+                                        <TypingDots />
+                                    ) : (
+                                        <FormattedMessage text={m.content} />
+                                    )}
                                 </div>
                             </div>
                         ),
-                    )}
-
-                    {sending && (
-                        <div className="flex items-center gap-2.5">
-                            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#775a19]/10 text-[#775a19]">
-                                <Sparkles className="size-3.5" />
-                            </span>
-                            <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Spinner /> Thinking…
-                            </span>
-                        </div>
                     )}
                 </div>
 

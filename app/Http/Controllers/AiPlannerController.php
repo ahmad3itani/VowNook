@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 /**
@@ -118,16 +119,7 @@ class AiPlannerController extends Controller
         }
 
         $text = trim($validator->validated()['message']);
-
-        // Recent history from the DB + this new turn (not yet persisted — we only
-        // save the pair once the model actually answers, so failures leave no
-        // orphaned half-conversation behind).
-        $history = AiChatMessage::forWedding($wedding->id)->ordered()->get()
-            ->slice(-self::CHAT_HISTORY)
-            ->map(fn (AiChatMessage $m) => ['role' => $m->role, 'content' => $m->content])
-            ->values()
-            ->all();
-        $history[] = ['role' => 'user', 'content' => $text];
+        $history = $this->chatHistory($wedding, $text);
 
         try {
             $reply = $this->ai->chat($this->chatSystemPrompt($wedding), $history);
@@ -143,10 +135,108 @@ class AiPlannerController extends Controller
             ]);
         }
 
-        AiChatMessage::create(['wedding_id' => $wedding->id, 'role' => 'user', 'content' => $text]);
-        $saved = AiChatMessage::create(['wedding_id' => $wedding->id, 'role' => 'assistant', 'content' => $reply]);
+        $saved = $this->persistTurn($wedding, $text, $reply);
 
         return response()->json(['available' => true, 'ok' => true, 'reply' => $reply, 'id' => $saved->id]);
+    }
+
+    /**
+     * The same conversation, streamed token-by-token over Server-Sent Events so
+     * long answers appear as they're written instead of after a pause. Gating
+     * failures still answer with plain JSON before the stream opens.
+     */
+    public function chatStream(Request $request): StreamedResponse|JsonResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        if (! $request->user()->canUseAi()) {
+            return response()->json([
+                'message' => 'AI assistance is a paid feature. Upgrade your plan to unlock it.',
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'message' => ['required', 'string', 'max:2000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        if (! $this->ai->isConfigured()) {
+            return response()->json(['available' => false]);
+        }
+
+        $text = trim($validator->validated()['message']);
+        $history = $this->chatHistory($wedding, $text);
+        $system = $this->chatSystemPrompt($wedding);
+
+        return response()->stream(function () use ($wedding, $text, $history, $system) {
+            try {
+                $full = $this->ai->streamChat($system, $history, fn (string $delta) => $this->sse(['delta' => $delta]));
+            } catch (AiException $e) {
+                $this->sse(['error' => $e->getMessage()]);
+
+                return;
+            } catch (Throwable $e) {
+                report($e);
+                $this->sse(['error' => 'Sorry — I had trouble answering just now. Please try again in a moment.']);
+
+                return;
+            }
+
+            $saved = $this->persistTurn($wedding, $text, $full);
+            $this->sse(['done' => true, 'id' => $saved->id]);
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache, no-transform',
+            // Tell nginx/proxies not to buffer, so deltas reach the browser live.
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
+
+    /** Write one SSE frame and flush it to the client immediately. */
+    protected function sse(array $payload): void
+    {
+        echo 'data: '.json_encode($payload)."\n\n";
+
+        // Flushing pushes the frame to the browser live. We skip it under test,
+        // where ob_flush() would empty the buffer the harness reads back.
+        if (! app()->environment('testing')) {
+            if (ob_get_level() > 0) {
+                @ob_flush();
+            }
+            flush();
+        }
+    }
+
+    /**
+     * Recent persisted turns (capped for cost) plus the new user message, which
+     * is not persisted until the model actually answers — so a failed turn never
+     * leaves an orphaned half-conversation.
+     *
+     * @return array<int, array{role:string, content:string}>
+     */
+    protected function chatHistory($wedding, string $text): array
+    {
+        $history = AiChatMessage::forWedding($wedding->id)->ordered()->get()
+            ->slice(-self::CHAT_HISTORY)
+            ->map(fn (AiChatMessage $m) => ['role' => $m->role, 'content' => $m->content])
+            ->values()
+            ->all();
+
+        $history[] = ['role' => 'user', 'content' => $text];
+
+        return $history;
+    }
+
+    /** Persist a completed exchange and return the saved assistant message. */
+    protected function persistTurn($wedding, string $user, string $assistant): AiChatMessage
+    {
+        AiChatMessage::create(['wedding_id' => $wedding->id, 'role' => 'user', 'content' => $user]);
+
+        return AiChatMessage::create(['wedding_id' => $wedding->id, 'role' => 'assistant', 'content' => $assistant]);
     }
 
     /** Clear the conversation so the couple can start fresh. */

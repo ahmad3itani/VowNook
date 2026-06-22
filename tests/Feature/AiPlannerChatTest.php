@@ -141,6 +141,45 @@ class AiPlannerChatTest extends TestCase
         $this->assertDatabaseCount('ai_chat_messages', 0);
     }
 
+    public function test_chat_stream_streams_deltas_and_persists_the_reply(): void
+    {
+        [$user, $wedding] = $this->ownerWithWedding();
+        $this->enableAi();
+
+        $sse = 'data: '.json_encode(['type' => 'content_block_delta', 'delta' => ['type' => 'text_delta', 'text' => 'Book ']])."\n\n"
+            .'data: '.json_encode(['type' => 'content_block_delta', 'delta' => ['type' => 'text_delta', 'text' => 'the venue.']])."\n\n"
+            .'data: '.json_encode(['type' => 'message_stop'])."\n\n";
+
+        Http::fake(['api.anthropic.com/*' => Http::response($sse, 200, ['Content-Type' => 'text/event-stream'])]);
+
+        $response = $this->actingAs($user)->post('/assistant/chat/stream', ['message' => 'Where do we start?']);
+        $response->assertOk();
+
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('Book ', $content);
+        $this->assertStringContainsString('the venue.', $content);
+        $this->assertStringContainsString('"done":true', $content);
+
+        // The full reply is assembled from the deltas and persisted once.
+        $this->assertDatabaseHas('ai_chat_messages', [
+            'wedding_id' => $wedding->id, 'role' => 'assistant', 'content' => 'Book the venue.',
+        ]);
+    }
+
+    public function test_chat_stream_is_gated_to_paid_plans(): void
+    {
+        [$user] = $this->ownerWithWedding('free');
+        $this->enableAi();
+        Http::fake();
+
+        $this->actingAs($user)
+            ->post('/assistant/chat/stream', ['message' => 'hi'])
+            ->assertForbidden();
+
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('ai_chat_messages', 0);
+    }
+
     public function test_index_exposes_chat_history(): void
     {
         [$user, $wedding] = $this->ownerWithWedding();
