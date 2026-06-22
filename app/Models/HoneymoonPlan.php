@@ -21,6 +21,9 @@ class HoneymoonPlan extends Model
         'end_date',
         'budget_items',
         'notes',
+        'preferences',
+        'packages',
+        'chosen_tier',
     ];
 
     protected function casts(): array
@@ -29,6 +32,8 @@ class HoneymoonPlan extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'budget_items' => 'array',
+            'preferences' => 'array',
+            'packages' => 'array',
         ];
     }
 

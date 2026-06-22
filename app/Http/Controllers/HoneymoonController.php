@@ -8,19 +8,24 @@ use App\Support\Affiliates\TravelAffiliates;
 use App\Support\Ai\AiException;
 use App\Support\Ai\AiService;
 use App\Support\CurrentWedding;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Couple-side honeymoon planner — destination, dates, a simple budget, plus an
- * affiliate hotel map and flight search to the destination (so bookings earn
- * commission). Atelier-gated via the route's plan.feature:travel middleware.
+ * AI honeymoon concierge. From the couple's vibe + budget + dates, it designs
+ * THREE all-inclusive, budget-tiered packages (Essential / Signature / Dream),
+ * each with a destination, a "why this one", a day-by-day plan with a daily
+ * spend, and a cost breakdown. The couple compares, chooses one, then books the
+ * flight + hotel through our affiliate partners. Atelier-gated by the route.
  */
 class HoneymoonController extends Controller
 {
+    public const TIERS = ['essential', 'signature', 'dream'];
+
     public function __construct(protected CurrentWedding $current) {}
 
     public function index(): Response
@@ -29,170 +34,299 @@ class HoneymoonController extends Controller
         $plan = HoneymoonPlan::forWedding($wedding->id)->first();
         $affiliates = app(TravelAffiliates::class);
 
+        $staysUrl = null;
+        $flightsUrl = null;
+        $chosen = $plan && $plan->chosen_tier
+            ? collect($plan->packages ?? [])->firstWhere('tier', $plan->chosen_tier)
+            : null;
+
+        if ($chosen) {
+            $staysUrl = $affiliates->stay22DestinationUrl($chosen['destination'] ?? null, $plan->start_date, $plan->end_date);
+            $flightsUrl = $affiliates->aviasalesRangeUrl($chosen['airport'] ?? null, $plan->start_date, $plan->end_date);
+        }
+
         return Inertia::render('honeymoon/index', [
-            'plan' => [
-                'destination' => $plan?->destination,
-                'airport' => $plan?->airport,
-                'start_date' => $plan?->start_date?->toDateString(),
-                'end_date' => $plan?->end_date?->toDateString(),
-                'budget_items' => $plan?->budget_items ?? [],
-                'notes' => $plan?->notes,
+            'preferences' => $plan?->preferences ?? [],
+            'dates' => [
+                'start' => $plan?->start_date?->toDateString(),
+                'end' => $plan?->end_date?->toDateString(),
             ],
-            'stays_url' => $plan?->destination
-                ? $affiliates->stay22DestinationUrl($plan->destination, $plan->start_date, $plan->end_date)
-                : null,
-            'flights_url' => $plan?->airport
-                ? $affiliates->aviasalesRangeUrl($plan->airport, $plan->start_date, $plan->end_date)
-                : null,
+            'packages' => $plan?->packages ?? [],
+            'chosen_tier' => $plan?->chosen_tier,
+            'stays_url' => $staysUrl,
+            'flights_url' => $flightsUrl,
             'affiliate_partner' => TravelAffiliates::PARTNER,
             'flights_partner' => TravelAffiliates::FLIGHTS_PARTNER,
-            'affiliate_enabled' => $affiliates->isConfigured(),
-            'flights_enabled' => $affiliates->flightsConfigured(),
-            // "Plan it with AI" — a paid perk; free couples just fill it themselves.
             'ai_enabled' => app(AiService::class)->isConfigured() && request()->user()->canUseAi(),
         ]);
     }
 
-    /**
-     * Draft a honeymoon plan from the couple's preferences — a specific
-     * destination + airport, a budget breakdown, and a warm highlights blurb.
-     * Returns it for the couple to review and save (never a silent write).
-     * Gated to paid plans; degrades gracefully when AI isn't configured.
-     */
-    public function aiPlan(Request $request, AiService $ai): JsonResponse
+    /** Craft three budget-tiered honeymoon packages from the couple's brief. */
+    public function generate(Request $request, AiService $ai): RedirectResponse
     {
         $wedding = $this->current->get();
         abort_unless($wedding !== null, 403, 'No active wedding.');
 
-        if (! $request->user()->canUseAi()) {
-            return response()->json([
-                'message' => 'AI assistance is a paid feature. Upgrade your plan to unlock it.',
-            ], 403);
-        }
-
         $data = $request->validate([
-            'preferences' => ['nullable', 'string', 'max:1000'],
-            'destination' => ['nullable', 'string', 'max:160'],
+            'vibe' => ['nullable', 'string', 'max:1000'],
             'budget' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
             'departure' => ['nullable', 'string', 'max:120'],
             'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'interests' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if (! $ai->isConfigured()) {
-            return response()->json(['available' => false]);
+        if (! $request->user()->canUseAi()) {
+            return back()->withErrors(['ai' => 'The honeymoon concierge is an Atelier (paid) feature.']);
         }
 
+        if (! $ai->isConfigured()) {
+            return back()->withErrors(['ai' => 'AI isn’t configured on this server yet.']);
+        }
+
+        try {
+            $packages = $this->craftPackages($ai, $wedding, $data);
+        } catch (AiException $e) {
+            return back()->withErrors(['ai' => $e->getMessage()]);
+        }
+
+        if ($packages === []) {
+            return back()->withErrors(['ai' => 'The concierge couldn’t craft a plan just now — please try again.']);
+        }
+
+        HoneymoonPlan::updateOrCreate(
+            ['wedding_id' => $wedding->id],
+            [
+                'preferences' => [
+                    'vibe' => $data['vibe'] ?? null,
+                    'budget' => isset($data['budget']) ? (float) $data['budget'] : null,
+                    'departure' => $data['departure'] ?? null,
+                    'interests' => $data['interests'] ?? null,
+                ],
+                'start_date' => $data['start_date'] ?? null,
+                'end_date' => $data['end_date'] ?? null,
+                'packages' => $packages,
+                'chosen_tier' => null,
+            ],
+        );
+
+        return back()->with('status', 'honeymoon-crafted');
+    }
+
+    /** Lock in one of the three tiers; copies its details onto the plan for booking. */
+    public function choose(Request $request): RedirectResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        $data = $request->validate(['tier' => ['required', Rule::in(self::TIERS)]]);
+
+        $plan = HoneymoonPlan::forWedding($wedding->id)->first();
+        abort_unless($plan !== null, 404);
+
+        $pkg = collect($plan->packages ?? [])->firstWhere('tier', $data['tier']);
+        abort_unless($pkg !== null, 404);
+
+        $plan->update([
+            'chosen_tier' => $data['tier'],
+            'destination' => $pkg['destination'] ?? null,
+            'airport' => $pkg['airport'] ?? null,
+            'notes' => $pkg['why'] ?? null,
+            'budget_items' => $this->budgetFromPackage($pkg),
+        ]);
+
+        return back()->with('status', 'honeymoon-chosen');
+    }
+
+    /** Clear the crafted packages so the couple can start a fresh brief. */
+    public function startOver(): RedirectResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        HoneymoonPlan::forWedding($wedding->id)->update(['packages' => null, 'chosen_tier' => null]);
+
+        return back();
+    }
+
+    // ── AI ───────────────────────────────────────────────────────────────────
+
+    /**
+     * @param  array<string,mixed>  $data
+     * @return array<int, array<string,mixed>>
+     */
+    private function craftPackages(AiService $ai, Wedding $wedding, array $data): array
+    {
         $tool = [
-            'name' => 'propose_honeymoon',
-            'description' => 'Propose a honeymoon plan for the couple.',
+            'name' => 'propose_honeymoons',
+            'description' => 'Return three budget-tiered honeymoon packages.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
-                    'destination' => ['type' => 'string', 'description' => 'One specific destination, e.g. "Maui, Hawaii".'],
-                    'airport' => ['type' => 'string', 'description' => 'The 3-letter IATA code of the nearest airport, e.g. "OGG".'],
-                    'highlights' => ['type' => 'string', 'description' => 'A warm 2-4 sentence overview: why it fits, top things to do, a tip. No headings, no markdown.'],
-                    'budget_items' => [
+                    'packages' => [
                         'type' => 'array',
+                        'description' => 'Exactly three packages: one per tier (essential, signature, dream).',
                         'items' => [
                             'type' => 'object',
                             'properties' => [
-                                'label' => ['type' => 'string', 'description' => 'e.g. "Flights", "Resort (7 nights)", "Activities".'],
-                                'amount_dollars' => ['type' => 'number', 'description' => 'Estimated cost in CAD dollars.'],
+                                'tier' => ['type' => 'string', 'enum' => self::TIERS],
+                                'destination' => ['type' => 'string', 'description' => 'A specific destination, e.g. "Maui, Hawaii".'],
+                                'airport' => ['type' => 'string', 'description' => 'Nearest airport IATA code, e.g. "OGG".'],
+                                'why' => ['type' => 'string', 'description' => 'A warm 1-2 sentence pitch: why this fits them.'],
+                                'hotel_name' => ['type' => 'string', 'description' => 'A specific, real, well-regarded hotel or resort.'],
+                                'flight_estimate_dollars' => ['type' => 'number', 'description' => 'Round-trip flights for two, CAD.'],
+                                'hotel_estimate_dollars' => ['type' => 'number', 'description' => 'The whole stay, CAD.'],
+                                'activities_estimate_dollars' => ['type' => 'number', 'description' => 'Activities/experiences for the trip, CAD.'],
+                                'food_estimate_dollars' => ['type' => 'number', 'description' => 'Food & dining for the trip, CAD.'],
+                                'days' => [
+                                    'type' => 'array',
+                                    'description' => 'A day-by-day plan, one entry per day.',
+                                    'items' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'title' => ['type' => 'string', 'description' => 'Short day title, e.g. "Arrival & sunset dinner".'],
+                                            'plan' => ['type' => 'string', 'description' => 'One sentence on the day’s plan.'],
+                                            'spend_dollars' => ['type' => 'number', 'description' => 'Suggested spend that day, CAD.'],
+                                        ],
+                                        'required' => ['title', 'plan', 'spend_dollars'],
+                                    ],
+                                ],
                             ],
-                            'required' => ['label', 'amount_dollars'],
+                            'required' => ['tier', 'destination', 'airport', 'why', 'hotel_name', 'flight_estimate_dollars', 'hotel_estimate_dollars', 'days'],
                         ],
                     ],
                 ],
-                'required' => ['destination', 'airport', 'highlights', 'budget_items'],
+                'required' => ['packages'],
             ],
         ];
 
-        try {
-            $result = $ai->generateStructured($this->aiSystem(), $this->aiContext($wedding, $data), $tool);
-        } catch (AiException $e) {
-            return response()->json(['available' => true, 'error' => $e->getMessage()]);
-        }
+        $result = $ai->generateStructured($this->conciergeSystem(), $this->context($wedding, $data), $tool);
 
-        return response()->json([
-            'available' => true,
-            'destination' => (string) ($result['destination'] ?? ''),
-            'airport' => strtoupper(trim((string) ($result['airport'] ?? ''))),
-            'notes' => (string) ($result['highlights'] ?? ''),
-            'budget_items' => collect($result['budget_items'] ?? [])
-                ->take(30)
-                ->map(fn ($i) => [
-                    'label' => (string) ($i['label'] ?? ''),
-                    'amount_cents' => (int) round(max(0, (float) ($i['amount_dollars'] ?? 0)) * 100),
-                ])
-                ->filter(fn ($i) => $i['label'] !== '')
-                ->values()
-                ->all(),
-        ]);
+        return $this->normalizePackages($result['packages'] ?? []);
     }
 
-    private function aiSystem(): string
+    private function conciergeSystem(): string
     {
-        return 'You are a thoughtful honeymoon planner. From the couple\'s preferences, propose ONE specific '
-            .'destination with its nearest airport (3-letter IATA code), a warm short highlights/tips overview, '
-            .'and a realistic budget breakdown in Canadian dollars that roughly fits their stated total (if any). '
-            .'Consider the season if dates are given. Keep it tasteful and concrete — real places, real prices.';
+        return 'You are an elite honeymoon concierge. Design EXACTLY THREE all-inclusive honeymoon packages at '
+            .'three budget tiers: "essential" (comfortably under their budget), "signature" (right at their budget '
+            .'and the best fit for their vibe), and "dream" (an aspirational stretch). For each: a specific real '
+            .'destination with its nearest airport IATA code, a warm short "why this one", a specific real hotel or '
+            .'resort, realistic Canadian-dollar estimates (flights for two, the whole hotel stay, activities, food), '
+            .'and a day-by-day plan — one line and a suggested daily spend per day, for the full number of nights. '
+            .'Be concrete and tasteful: real places, real-ish prices, genuinely different tiers.';
     }
 
     /** @param  array<string,mixed>  $data */
-    private function aiContext(Wedding $wedding, array $data): string
+    private function context(Wedding $wedding, array $data): string
     {
         $parts = ["The couple is {$wedding->name}."];
 
-        if (filled($data['preferences'] ?? null)) {
-            $parts[] = 'What they want: '.trim($data['preferences']).'.';
+        if (filled($data['vibe'] ?? null)) {
+            $parts[] = 'They want: '.trim($data['vibe']).'.';
         }
-        if (filled($data['destination'] ?? null)) {
-            $parts[] = 'They are leaning toward: '.trim($data['destination']).' (refine or confirm this).';
+        if (filled($data['interests'] ?? null)) {
+            $parts[] = 'Interests: '.trim($data['interests']).'.';
         }
         if (filled($data['departure'] ?? null)) {
-            $parts[] = 'They are travelling from '.trim($data['departure']).'.';
+            $parts[] = 'Flying from '.trim($data['departure']).'.';
         }
         if (isset($data['budget']) && (float) $data['budget'] > 0) {
             $parts[] = 'Total budget: about CAD $'.number_format((float) $data['budget']).'.';
         }
-        if (filled($data['start_date'] ?? null) && filled($data['end_date'] ?? null)) {
-            $parts[] = "Dates: {$data['start_date']} to {$data['end_date']}.";
+
+        $nights = $this->nights($data);
+        if ($nights !== null) {
+            $parts[] = "Trip length: {$nights} nights (".$data['start_date'].' to '.$data['end_date'].').';
+        } else {
+            $parts[] = 'Plan for about 7 nights.';
         }
 
         return implode(' ', $parts);
     }
 
-    public function save(Request $request): RedirectResponse
+    /** @param  array<string,mixed>  $data */
+    private function nights(array $data): ?int
     {
-        $wedding = $this->current->get();
+        if (! filled($data['start_date'] ?? null) || ! filled($data['end_date'] ?? null)) {
+            return null;
+        }
 
-        $data = $request->validate([
-            'destination' => ['nullable', 'string', 'max:160'],
-            'airport' => ['nullable', 'string', 'max:60'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-            'budget_items' => ['nullable', 'array', 'max:30'],
-            'budget_items.*.label' => ['required_with:budget_items.*', 'string', 'max:120'],
-            'budget_items.*.amount_cents' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
-        ]);
+        $n = (int) Carbon::parse($data['start_date'])->diffInDays(Carbon::parse($data['end_date']));
 
-        HoneymoonPlan::updateOrCreate(
-            ['wedding_id' => $wedding->id],
-            [
-                'destination' => $data['destination'] ?? null,
-                'airport' => isset($data['airport']) ? trim($data['airport']) : null,
-                'start_date' => $data['start_date'] ?? null,
-                'end_date' => $data['end_date'] ?? null,
-                'notes' => $data['notes'] ?? null,
-                'budget_items' => collect($data['budget_items'] ?? [])
-                    ->map(fn ($i) => ['label' => (string) $i['label'], 'amount_cents' => (int) ($i['amount_cents'] ?? 0)])
+        return $n > 0 ? min($n, 30) : null;
+    }
+
+    /**
+     * @param  array<int, mixed>  $raw
+     * @return array<int, array<string,mixed>>
+     */
+    private function normalizePackages(array $raw): array
+    {
+        return collect($raw)
+            ->map(function ($p) {
+                if (! is_array($p) || ! in_array($p['tier'] ?? null, self::TIERS, true)) {
+                    return null;
+                }
+
+                $flight = $this->cents($p['flight_estimate_dollars'] ?? 0);
+                $hotel = $this->cents($p['hotel_estimate_dollars'] ?? 0);
+                $activities = $this->cents($p['activities_estimate_dollars'] ?? 0);
+                $food = $this->cents($p['food_estimate_dollars'] ?? 0);
+
+                $days = collect($p['days'] ?? [])
+                    ->take(30)
+                    ->map(fn ($d) => [
+                        'title' => (string) ($d['title'] ?? ''),
+                        'plan' => (string) ($d['plan'] ?? ''),
+                        'spend_cents' => $this->cents($d['spend_dollars'] ?? 0),
+                    ])
+                    ->filter(fn ($d) => $d['title'] !== '')
                     ->values()
-                    ->all(),
-            ],
-        );
+                    ->all();
 
-        return back()->with('status', 'honeymoon-saved');
+                return [
+                    'tier' => $p['tier'],
+                    'destination' => (string) ($p['destination'] ?? ''),
+                    'airport' => strtoupper(trim((string) ($p['airport'] ?? ''))),
+                    'why' => (string) ($p['why'] ?? ''),
+                    'hotel_name' => (string) ($p['hotel_name'] ?? ''),
+                    'flight_cents' => $flight,
+                    'hotel_cents' => $hotel,
+                    'activities_cents' => $activities,
+                    'food_cents' => $food,
+                    'total_cents' => $flight + $hotel + $activities + $food,
+                    'days' => $days,
+                ];
+            })
+            ->filter(fn ($p) => $p !== null && $p['destination'] !== '')
+            ->unique('tier')
+            ->sortBy(fn ($p) => array_search($p['tier'], self::TIERS, true))
+            ->values()
+            ->all();
+    }
+
+    /** @return array<int, array{label:string, amount_cents:int}> */
+    private function budgetFromPackage(array $pkg): array
+    {
+        $map = [
+            'flight_cents' => 'Flights',
+            'hotel_cents' => 'Hotel',
+            'activities_cents' => 'Activities',
+            'food_cents' => 'Food & dining',
+        ];
+
+        $items = [];
+        foreach ($map as $key => $label) {
+            if ((int) ($pkg[$key] ?? 0) > 0) {
+                $items[] = ['label' => $label, 'amount_cents' => (int) $pkg[$key]];
+            }
+        }
+
+        return $items;
+    }
+
+    private function cents(mixed $dollars): int
+    {
+        return (int) round(max(0, (float) $dollars) * 100);
     }
 }

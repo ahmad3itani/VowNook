@@ -15,81 +15,16 @@ class HoneymoonTest extends TestCase
     use RefreshDatabase;
 
     /** @return array{0: User, 1: Wedding} */
-    private function premiumCouple(string $eventDate = '2026-09-12'): array
+    private function premiumCouple(): array
     {
         $user = User::factory()->plan('premium')->create(['account_type' => 'couple']);
-        $wedding = Wedding::factory()->create(['owner_id' => $user->id, 'event_date' => $eventDate]);
+        $wedding = Wedding::factory()->create(['owner_id' => $user->id, 'event_date' => '2026-09-12']);
         $user->forceFill(['current_wedding_id' => $wedding->id])->save();
 
         return [$user, $wedding];
     }
 
-    public function test_free_couple_is_redirected(): void
-    {
-        $user = User::factory()->plan('free')->create(['account_type' => 'couple']);
-        $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
-        $user->forceFill(['current_wedding_id' => $wedding->id])->save();
-
-        $this->actingAs($user)->get('/honeymoon')->assertRedirect(route('plan.edit'));
-    }
-
-    public function test_premium_couple_can_view_and_save(): void
-    {
-        [$user, $wedding] = $this->premiumCouple();
-
-        $this->actingAs($user)->get('/honeymoon')
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('honeymoon/index'));
-
-        $this->actingAs($user)->put('/honeymoon', [
-            'destination' => 'Maui, Hawaii',
-            'airport' => 'OGG',
-            'start_date' => '2026-10-01',
-            'end_date' => '2026-10-10',
-            'notes' => 'Snorkeling!',
-            'budget_items' => [
-                ['label' => 'Flights', 'amount_cents' => 240000],
-                ['label' => 'Resort', 'amount_cents' => 500000],
-            ],
-        ])->assertRedirect();
-
-        $this->assertDatabaseHas('honeymoon_plans', [
-            'wedding_id' => $wedding->id, 'destination' => 'Maui, Hawaii', 'airport' => 'OGG',
-        ]);
-
-        $plan = HoneymoonPlan::forWedding($wedding->id)->first();
-        $this->assertCount(2, $plan->budget_items);
-    }
-
-    public function test_end_date_must_not_precede_start(): void
-    {
-        [$user] = $this->premiumCouple();
-
-        $this->actingAs($user)->put('/honeymoon', [
-            'start_date' => '2026-10-10', 'end_date' => '2026-10-01',
-        ])->assertSessionHasErrors('end_date');
-    }
-
-    public function test_affiliate_urls_appear_when_configured(): void
-    {
-        config(['affiliates.stay22.id' => 'aff-123', 'affiliates.travelpayouts.marker' => 'mk-99']);
-        [$user, $wedding] = $this->premiumCouple();
-        HoneymoonPlan::create([
-            'wedding_id' => $wedding->id, 'destination' => 'Maui', 'airport' => 'OGG',
-            'start_date' => '2026-10-01', 'end_date' => '2026-10-10',
-        ]);
-
-        $this->actingAs($user)->get('/honeymoon')
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->whereType('stays_url', 'string')
-                ->whereType('flights_url', 'string')
-            );
-    }
-
-    // ── Plan with AI ───────────────────────────────────────────────────────────
-
-    protected function enableAi(): void
+    private function enableAi(): void
     {
         config([
             'ai.enabled' => true,
@@ -102,60 +37,114 @@ class HoneymoonTest extends TestCase
         ]);
     }
 
-    public function test_ai_plan_drafts_a_honeymoon(): void
+    private function fakePackages(): void
     {
-        [$user] = $this->premiumCouple();
-        $this->enableAi();
         Http::fake(['api.anthropic.com/*' => Http::response([
-            'content' => [['type' => 'tool_use', 'name' => 'propose_honeymoon', 'input' => [
-                'destination' => 'Maui, Hawaii',
-                'airport' => 'ogg',
-                'highlights' => 'A relaxing beach escape with great food.',
-                'budget_items' => [
-                    ['label' => 'Flights', 'amount_dollars' => 2400],
-                    ['label' => 'Resort', 'amount_dollars' => 5000],
+            'content' => [['type' => 'tool_use', 'name' => 'propose_honeymoons', 'input' => [
+                'packages' => [
+                    ['tier' => 'essential', 'destination' => 'Riviera Maya', 'airport' => 'CUN', 'why' => 'Most beach for your budget.', 'hotel_name' => 'Resort A', 'flight_estimate_dollars' => 640, 'hotel_estimate_dollars' => 3120, 'activities_estimate_dollars' => 800, 'food_estimate_dollars' => 900, 'days' => [['title' => 'Arrive', 'plan' => 'Settle in.', 'spend_dollars' => 120]]],
+                    ['tier' => 'signature', 'destination' => 'Maui, Hawaii', 'airport' => 'ogg', 'why' => 'Your vibe exactly.', 'hotel_name' => 'Ocean Suite', 'flight_estimate_dollars' => 980, 'hotel_estimate_dollars' => 4560, 'activities_estimate_dollars' => 1200, 'food_estimate_dollars' => 1100, 'days' => [['title' => 'Road to Hana', 'plan' => 'Scenic drive.', 'spend_dollars' => 190]]],
+                    ['tier' => 'dream', 'destination' => 'Bora Bora', 'airport' => 'BOB', 'why' => 'The splurge.', 'hotel_name' => 'Overwater Villa', 'flight_estimate_dollars' => 1840, 'hotel_estimate_dollars' => 7900, 'activities_estimate_dollars' => 2000, 'food_estimate_dollars' => 1500, 'days' => [['title' => 'Lagoon', 'plan' => 'Snorkel.', 'spend_dollars' => 260]]],
                 ],
             ]]],
             'stop_reason' => 'tool_use',
         ])]);
-
-        $this->actingAs($user)
-            ->postJson('/honeymoon/ai', ['preferences' => 'beach, warm, around $9000'])
-            ->assertOk()
-            ->assertJsonPath('available', true)
-            ->assertJsonPath('destination', 'Maui, Hawaii')
-            ->assertJsonPath('airport', 'OGG')
-            ->assertJsonPath('budget_items.0.amount_cents', 240000);
     }
 
-    public function test_ai_plan_redirects_a_free_couple(): void
+    public function test_free_couple_is_redirected(): void
     {
         $user = User::factory()->plan('free')->create(['account_type' => 'couple']);
         $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
         $user->forceFill(['current_wedding_id' => $wedding->id])->save();
-        $this->enableAi();
-        Http::fake();
 
-        // The Atelier-gated route blocks a free couple before any AI call.
-        $this->actingAs($user)
-            ->post('/honeymoon/ai', ['preferences' => 'x'])
-            ->assertForbidden();
-
-        Http::assertNothingSent();
+        $this->actingAs($user)->get('/honeymoon')->assertRedirect(route('plan.edit'));
     }
 
-    public function test_ai_plan_degrades_when_not_configured(): void
+    public function test_premium_couple_can_view(): void
+    {
+        [$user] = $this->premiumCouple();
+
+        $this->actingAs($user)->get('/honeymoon')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('honeymoon/index'));
+    }
+
+    public function test_generate_crafts_three_tiered_packages(): void
+    {
+        [$user, $wedding] = $this->premiumCouple();
+        $this->enableAi();
+        $this->fakePackages();
+
+        $this->actingAs($user)->post('/honeymoon/generate', [
+            'vibe' => 'beach and food', 'budget' => 9000, 'departure' => 'Toronto',
+            'start_date' => '2026-10-01', 'end_date' => '2026-10-09',
+        ])->assertRedirect();
+
+        $plan = HoneymoonPlan::forWedding($wedding->id)->first();
+        $this->assertNotNull($plan);
+        $this->assertCount(3, $plan->packages);
+        $this->assertSame('essential', $plan->packages[0]['tier']);
+        $this->assertSame('OGG', $plan->packages[1]['airport']); // normalised to uppercase
+        $this->assertSame((640 + 3120 + 800 + 900) * 100, $plan->packages[0]['total_cents']);
+    }
+
+    public function test_generate_degrades_when_not_configured(): void
     {
         [$user] = $this->premiumCouple();
         config(['ai.enabled' => true, 'ai.anthropic.key' => null, 'ai.openrouter.key' => null]);
         Http::fake();
 
-        $this->actingAs($user)
-            ->postJson('/honeymoon/ai', ['preferences' => 'x'])
-            ->assertOk()
-            ->assertJsonPath('available', false);
+        $this->actingAs($user)->post('/honeymoon/generate', ['vibe' => 'x'])
+            ->assertRedirect()
+            ->assertSessionHasErrors('ai');
 
         Http::assertNothingSent();
+    }
+
+    public function test_choose_locks_a_tier_and_enables_booking(): void
+    {
+        config(['affiliates.stay22.id' => 'aff-123', 'affiliates.travelpayouts.marker' => 'mk-99']);
+        [$user, $wedding] = $this->premiumCouple();
+
+        HoneymoonPlan::create([
+            'wedding_id' => $wedding->id,
+            'start_date' => '2026-10-01', 'end_date' => '2026-10-09',
+            'packages' => [[
+                'tier' => 'signature', 'destination' => 'Maui', 'airport' => 'OGG', 'why' => 'Yes',
+                'hotel_name' => 'Suite', 'flight_cents' => 98000, 'hotel_cents' => 456000,
+                'activities_cents' => 120000, 'food_cents' => 110000, 'total_cents' => 784000, 'days' => [],
+            ]],
+        ]);
+
+        $this->actingAs($user)->put('/honeymoon/choose', ['tier' => 'signature'])->assertRedirect();
+
+        $this->assertDatabaseHas('honeymoon_plans', [
+            'wedding_id' => $wedding->id, 'chosen_tier' => 'signature', 'destination' => 'Maui', 'airport' => 'OGG',
+        ]);
+
+        $this->actingAs($user)->get('/honeymoon')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('chosen_tier', 'signature')
+                ->whereType('stays_url', 'string')
+                ->whereType('flights_url', 'string')
+            );
+    }
+
+    public function test_start_over_clears_packages(): void
+    {
+        [$user, $wedding] = $this->premiumCouple();
+        HoneymoonPlan::create([
+            'wedding_id' => $wedding->id,
+            'packages' => [['tier' => 'signature', 'destination' => 'X']],
+            'chosen_tier' => 'signature',
+        ]);
+
+        $this->actingAs($user)->delete('/honeymoon')->assertRedirect();
+
+        $plan = HoneymoonPlan::forWedding($wedding->id)->first();
+        $this->assertNull($plan->packages);
+        $this->assertNull($plan->chosen_tier);
     }
 
     public function test_travel_page_exposes_preview_urls(): void

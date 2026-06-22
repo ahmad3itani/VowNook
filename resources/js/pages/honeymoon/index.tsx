@@ -1,6 +1,13 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Palmtree, Plane, Plus, Sparkles, Trash2 } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import {
+    CalendarDays,
+    Check,
+    Hotel,
+    Plane,
+    RotateCcw,
+    Sparkles,
+} from 'lucide-react';
+import { FormEvent } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -10,508 +17,526 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
-type BudgetItem = { label: string; amount_cents: number };
+type Day = { title: string; plan: string; spend_cents: number };
+type Tier = 'essential' | 'signature' | 'dream';
+type Pkg = {
+    tier: Tier;
+    destination: string;
+    airport: string;
+    why: string;
+    hotel_name: string;
+    flight_cents: number;
+    hotel_cents: number;
+    activities_cents: number;
+    food_cents: number;
+    total_cents: number;
+    days: Day[];
+};
 
 type PageProps = {
-    plan: {
-        destination: string | null;
-        airport: string | null;
-        start_date: string | null;
-        end_date: string | null;
-        budget_items: BudgetItem[];
-        notes: string | null;
+    preferences: {
+        vibe?: string | null;
+        budget?: number | null;
+        departure?: string | null;
+        interests?: string | null;
     };
+    dates: { start: string | null; end: string | null };
+    packages: Pkg[];
+    chosen_tier: Tier | null;
     stays_url: string | null;
     flights_url: string | null;
     affiliate_partner: string;
     flights_partner: string;
-    affiliate_enabled: boolean;
-    flights_enabled: boolean;
     ai_enabled: boolean;
 };
 
-const money = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    maximumFractionDigits: 0,
-});
+const TIER_META: Record<
+    Tier,
+    { label: string; blurb: string; featured?: boolean }
+> = {
+    essential: { label: 'Essential', blurb: 'Comfortably under budget' },
+    signature: {
+        label: 'Signature',
+        blurb: 'Right at your budget — your best fit',
+        featured: true,
+    },
+    dream: { label: 'Dream', blurb: 'An aspirational stretch' },
+};
 
-// Inertia sets an XSRF-TOKEN cookie; forward it on our JSON fetch.
-function xsrfToken(): string {
-    const m = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    return m ? decodeURIComponent(m[1]) : '';
-}
+const money = (cents: number) =>
+    (cents / 100).toLocaleString('en-CA', {
+        style: 'currency',
+        currency: 'CAD',
+        maximumFractionDigits: 0,
+    });
 
 export default function HoneymoonIndex({
-    plan,
+    preferences,
+    dates,
+    packages,
+    chosen_tier,
     stays_url,
     flights_url,
     affiliate_partner,
     flights_partner,
-    affiliate_enabled,
-    flights_enabled,
     ai_enabled,
 }: PageProps) {
-    const form = useForm({
-        destination: plan.destination ?? '',
-        airport: plan.airport ?? '',
-        start_date: plan.start_date ?? '',
-        end_date: plan.end_date ?? '',
-        notes: plan.notes ?? '',
-        budget_items: (plan.budget_items ?? []) as BudgetItem[],
+    const brief = useForm({
+        vibe: preferences.vibe ?? '',
+        budget: preferences.budget ? String(preferences.budget) : '',
+        departure: preferences.departure ?? '',
+        start_date: dates.start ?? '',
+        end_date: dates.end ?? '',
+        interests: preferences.interests ?? '',
     });
 
-    const [prefs, setPrefs] = useState('');
-    const [departure, setDeparture] = useState('');
-    const [aiBudget, setAiBudget] = useState('');
-    const [planning, setPlanning] = useState(false);
+    const chosen = chosen_tier
+        ? (packages.find((p) => p.tier === chosen_tier) ?? null)
+        : null;
 
-    async function planWithAi() {
-        if (planning) return;
-        setPlanning(true);
-        try {
-            const res = await fetch('/honeymoon/ai', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-XSRF-TOKEN': xsrfToken(),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    preferences: prefs,
-                    destination: form.data.destination,
-                    departure,
-                    budget: aiBudget ? Number(aiBudget) : null,
-                    start_date: form.data.start_date || null,
-                    end_date: form.data.end_date || null,
-                }),
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok)
-                throw new Error(
-                    data.message ?? 'Could not plan that right now.',
-                );
-            if (data.available === false) {
-                toast.error('AI isn’t configured on this server yet.');
-                return;
-            }
-            if (data.error) {
-                toast.error(data.error);
-                return;
-            }
-            form.setData({
-                ...form.data,
-                destination: data.destination || form.data.destination,
-                airport: data.airport || form.data.airport,
-                notes: data.notes || form.data.notes,
-                budget_items: data.budget_items?.length
-                    ? data.budget_items
-                    : form.data.budget_items,
-            });
-            toast.success('Filled in a plan — review, tweak, and save.');
-        } catch (e) {
-            toast.error(
-                e instanceof Error ? e.message : 'Something went wrong.',
-            );
-        } finally {
-            setPlanning(false);
-        }
-    }
-
-    function save(e: FormEvent) {
+    function craft(e: FormEvent) {
         e.preventDefault();
-        form.put('/honeymoon', {
+        brief.post('/honeymoon/generate', {
             preserveScroll: true,
-            onSuccess: () => toast.success('Honeymoon plan saved.'),
+            onError: (errs) =>
+                toast.error(
+                    errs.ai ?? 'Could not craft a plan. Please try again.',
+                ),
         });
     }
 
-    function addBudget() {
-        form.setData('budget_items', [
-            ...form.data.budget_items,
-            { label: '', amount_cents: 0 },
-        ]);
-    }
-
-    function updateBudget(i: number, patch: Partial<BudgetItem>) {
-        form.setData(
-            'budget_items',
-            form.data.budget_items.map((b, idx) =>
-                idx === i ? { ...b, ...patch } : b,
-            ),
+    function choose(tier: Tier) {
+        router.put(
+            '/honeymoon/choose',
+            { tier },
+            {
+                preserveScroll: true,
+                onSuccess: () =>
+                    toast.success(
+                        'Locked in — book your flight & hotel below.',
+                    ),
+            },
         );
     }
 
-    function removeBudget(i: number) {
-        form.setData(
-            'budget_items',
-            form.data.budget_items.filter((_, idx) => idx !== i),
-        );
+    function startOver() {
+        if (!confirm('Start a new brief? This clears the crafted options.'))
+            return;
+        router.delete('/honeymoon', { preserveScroll: true });
     }
-
-    const total = form.data.budget_items.reduce(
-        (s, b) => s + (b.amount_cents || 0),
-        0,
-    );
 
     return (
         <>
-            <Head title="Honeymoon planner" />
+            <Head title="Honeymoon concierge" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 <Heading
-                    title="Honeymoon planner"
-                    description="Pick your destination and dates, set a budget, then book stays and flights right here."
+                    title="Honeymoon concierge"
+                    description="Tell us your dream and budget — we’ll craft three ready-to-book honeymoons to choose from."
                 />
 
-                {/* Plan with AI */}
-                {ai_enabled && (
-                    <Card className="border-[#775a19]/25 bg-[#fdf8ee]">
-                        <CardContent className="flex flex-col gap-3 py-5">
-                            <div className="flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded-full bg-[#775a19] text-white">
-                                    <Sparkles className="size-4" />
-                                </span>
-                                <div>
-                                    <p className="leading-none font-medium">
-                                        Plan it with AI
-                                    </p>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        Describe your dream trip — we’ll suggest
-                                        a destination, budget, and tips to start
-                                        from.
-                                    </p>
-                                </div>
-                            </div>
-                            <Textarea
-                                value={prefs}
-                                onChange={(e) => setPrefs(e.target.value)}
-                                rows={2}
-                                placeholder="e.g. a relaxing beach getaway, great food, around $9,000, somewhere warm in October"
-                            />
-                            <div className="flex flex-wrap items-end gap-3">
-                                <div className="grid gap-1.5">
-                                    <Label
-                                        htmlFor="departure"
-                                        className="text-xs"
-                                    >
-                                        Flying from (optional)
-                                    </Label>
-                                    <Input
-                                        id="departure"
-                                        value={departure}
-                                        onChange={(e) =>
-                                            setDeparture(e.target.value)
-                                        }
-                                        placeholder="e.g. Toronto"
-                                        className="w-40"
-                                    />
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label
-                                        htmlFor="ai-budget"
-                                        className="text-xs"
-                                    >
-                                        Total budget (CAD, optional)
-                                    </Label>
-                                    <Input
-                                        id="ai-budget"
-                                        type="number"
-                                        min={0}
-                                        value={aiBudget}
-                                        onChange={(e) =>
-                                            setAiBudget(e.target.value)
-                                        }
-                                        placeholder="e.g. 9000"
-                                        className="w-44"
-                                    />
-                                </div>
-                                <Button
-                                    type="button"
-                                    onClick={planWithAi}
-                                    disabled={planning}
-                                    className="bg-[#775a19] hover:bg-[#634a14]"
-                                >
-                                    {planning ? (
-                                        <Spinner />
-                                    ) : (
-                                        <Sparkles className="size-4" />
-                                    )}
-                                    Plan with AI
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Trip details */}
-                <Card>
-                    <CardContent className="flex flex-col gap-4 py-5">
-                        <form onSubmit={save} className="flex flex-col gap-4">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="destination">
-                                        Destination
-                                    </Label>
-                                    <Input
-                                        id="destination"
-                                        value={form.data.destination}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'destination',
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="e.g. Maui, Hawaii"
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="airport">
-                                        Destination airport (code)
-                                    </Label>
-                                    <Input
-                                        id="airport"
-                                        value={form.data.airport}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'airport',
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="e.g. OGG"
-                                        className="uppercase"
-                                        maxLength={60}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="start">Leaving</Label>
-                                    <Input
-                                        id="start"
-                                        type="date"
-                                        value={form.data.start_date}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'start_date',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="end">Returning</Label>
-                                    <Input
-                                        id="end"
-                                        type="date"
-                                        value={form.data.end_date}
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'end_date',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    {form.errors.end_date && (
-                                        <p className="text-xs text-destructive">
-                                            {form.errors.end_date}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="notes">Notes (optional)</Label>
-                                <Textarea
-                                    id="notes"
-                                    rows={2}
-                                    value={form.data.notes}
-                                    onChange={(e) =>
-                                        form.setData('notes', e.target.value)
-                                    }
-                                    placeholder="Must-dos, who's booking what, passport reminders…"
-                                />
-                            </div>
-
-                            {/* Budget */}
-                            <div className="flex flex-col gap-3 border-t pt-4">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="font-medium">
-                                        Honeymoon budget
-                                    </h2>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={addBudget}
-                                    >
-                                        <Plus className="size-4" /> Add line
-                                    </Button>
-                                </div>
-
-                                {form.data.budget_items.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground">
-                                        Add flights, your stay, activities,
-                                        spending money…
-                                    </p>
-                                ) : (
-                                    <div className="flex flex-col gap-2">
-                                        {form.data.budget_items.map((b, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Input
-                                                    value={b.label}
-                                                    onChange={(e) =>
-                                                        updateBudget(i, {
-                                                            label: e.target
-                                                                .value,
-                                                        })
-                                                    }
-                                                    placeholder="e.g. Flights"
-                                                    className="flex-1"
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    min={0}
-                                                    value={
-                                                        Math.round(
-                                                            b.amount_cents /
-                                                                100,
-                                                        ) || ''
-                                                    }
-                                                    onChange={(e) =>
-                                                        updateBudget(i, {
-                                                            amount_cents:
-                                                                Math.round(
-                                                                    Number(
-                                                                        e.target
-                                                                            .value,
-                                                                    ) * 100,
-                                                                ),
-                                                        })
-                                                    }
-                                                    placeholder="0"
-                                                    className="w-32"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        removeBudget(i)
-                                                    }
-                                                    aria-label="Remove line"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        <div className="flex items-center justify-end gap-3 pt-1 text-sm">
-                                            <span className="text-muted-foreground">
-                                                Estimated total
-                                            </span>
-                                            <span className="font-semibold">
-                                                {money.format(total / 100)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div>
-                                <Button
-                                    type="submit"
-                                    disabled={form.processing}
-                                >
-                                    {form.processing && <Spinner />} Save plan
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
-
-                {/* Stays at the destination */}
-                {stays_url && (
-                    <Card>
-                        <CardContent className="flex flex-col gap-3 py-5">
-                            <div className="flex items-center gap-2">
-                                <Palmtree className="size-5 text-[#775a19]" />
-                                <h2 className="font-medium">
-                                    Where to stay
-                                    {form.data.destination
-                                        ? ` in ${form.data.destination}`
-                                        : ''}
-                                </h2>
-                            </div>
-                            <div className="overflow-hidden rounded-xl border">
-                                <iframe
-                                    src={stays_url}
-                                    title="Stays at your honeymoon destination"
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    className="h-[460px] w-full border-0"
-                                    allow="geolocation"
-                                />
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Stays from our travel partner,{' '}
-                                {affiliate_partner}. VowNook may earn a small
-                                commission if you book — at no extra cost to
-                                you.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Flights to the destination */}
-                {flights_url && (
-                    <Card>
-                        <CardContent className="flex flex-col items-start gap-3 py-5">
-                            <div className="flex items-center gap-2">
-                                <Plane className="size-5 text-[#775a19]" />
-                                <h2 className="font-medium">
-                                    Find your flights
-                                </h2>
-                            </div>
+                {packages.length === 0 ? (
+                    <Brief
+                        brief={brief}
+                        aiEnabled={ai_enabled}
+                        onSubmit={craft}
+                    />
+                ) : (
+                    <>
+                        <div className="flex items-center justify-between">
                             <p className="text-sm text-muted-foreground">
-                                We’ve pre-set a search to{' '}
-                                {form.data.airport || 'your destination'} for
-                                your dates — just add your departure city.
+                                Three ways to honeymoon, tailored to your brief.
+                                Pick the one you love.
                             </p>
-                            <Button asChild>
-                                <a
-                                    href={flights_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer sponsored"
-                                >
-                                    Search flights
-                                </a>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={startOver}
+                                className="text-muted-foreground"
+                            >
+                                <RotateCcw className="size-3.5" /> New brief
                             </Button>
-                            <p className="text-xs text-muted-foreground">
-                                Flight search by {flights_partner}. VowNook may
-                                earn a small commission if you book — at no
-                                extra cost to you.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
+                        </div>
 
-                {(!affiliate_enabled || !flights_enabled) &&
-                    (!stays_url || !flights_url) && (
-                        <p className="text-sm text-muted-foreground">
-                            Tip: add your destination
-                            {!flights_url ? ' and its airport code' : ''} above,
-                            then save — your
-                            {affiliate_enabled ? ' hotel map' : ''}
-                            {affiliate_enabled && flights_enabled ? ' and' : ''}
-                            {flights_enabled ? ' flight search' : ''} will
-                            appear here.
-                        </p>
-                    )}
+                        <div className="grid gap-4 lg:grid-cols-3">
+                            {packages.map((p) => (
+                                <PackageCard
+                                    key={p.tier}
+                                    pkg={p}
+                                    chosen={chosen_tier === p.tier}
+                                    onChoose={() => choose(p.tier)}
+                                />
+                            ))}
+                        </div>
+
+                        {chosen && (
+                            <ChosenBooking
+                                pkg={chosen}
+                                staysUrl={stays_url}
+                                flightsUrl={flights_url}
+                                affiliatePartner={affiliate_partner}
+                                flightsPartner={flights_partner}
+                            />
+                        )}
+                    </>
+                )}
             </div>
         </>
+    );
+}
+
+function Brief({
+    brief,
+    aiEnabled,
+    onSubmit,
+}: {
+    brief: ReturnType<typeof useForm<Record<string, string>>>;
+    aiEnabled: boolean;
+    onSubmit: (e: FormEvent) => void;
+}) {
+    return (
+        <Card className="border-[#775a19]/25 bg-[#fdf8ee]">
+            <CardContent className="py-6">
+                <form onSubmit={onSubmit} className="flex flex-col gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="vibe">
+                            What’s your dream honeymoon?
+                        </Label>
+                        <Textarea
+                            id="vibe"
+                            rows={2}
+                            value={brief.data.vibe}
+                            onChange={(e) =>
+                                brief.setData('vibe', e.target.value)
+                            }
+                            placeholder="e.g. a relaxing beach getaway with great food and a little adventure"
+                        />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label htmlFor="budget">Total budget (CAD)</Label>
+                            <Input
+                                id="budget"
+                                type="number"
+                                min={0}
+                                value={brief.data.budget}
+                                onChange={(e) =>
+                                    brief.setData('budget', e.target.value)
+                                }
+                                placeholder="e.g. 9000"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="departure">Flying from</Label>
+                            <Input
+                                id="departure"
+                                value={brief.data.departure}
+                                onChange={(e) =>
+                                    brief.setData('departure', e.target.value)
+                                }
+                                placeholder="e.g. Toronto"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="start">Leaving</Label>
+                            <Input
+                                id="start"
+                                type="date"
+                                value={brief.data.start_date}
+                                onChange={(e) =>
+                                    brief.setData('start_date', e.target.value)
+                                }
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="end">Returning</Label>
+                            <Input
+                                id="end"
+                                type="date"
+                                value={brief.data.end_date}
+                                onChange={(e) =>
+                                    brief.setData('end_date', e.target.value)
+                                }
+                            />
+                            {brief.errors.end_date && (
+                                <p className="text-xs text-destructive">
+                                    {brief.errors.end_date}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="interests">
+                            Anything you love? (optional)
+                        </Label>
+                        <Input
+                            id="interests"
+                            value={brief.data.interests}
+                            onChange={(e) =>
+                                brief.setData('interests', e.target.value)
+                            }
+                            placeholder="snorkelling, fine dining, hiking, spas…"
+                        />
+                    </div>
+
+                    {aiEnabled ? (
+                        <div>
+                            <Button
+                                type="submit"
+                                disabled={brief.processing}
+                                className="bg-[#775a19] hover:bg-[#634a14]"
+                            >
+                                {brief.processing ? (
+                                    <Spinner />
+                                ) : (
+                                    <Sparkles className="size-4" />
+                                )}
+                                {brief.processing
+                                    ? 'Crafting your honeymoons…'
+                                    : 'Craft my honeymoon'}
+                            </Button>
+                            {brief.processing && (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Designing three tailored options — this
+                                    takes a few seconds.
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            The AI concierge isn’t available on this server yet.
+                        </p>
+                    )}
+                </form>
+            </CardContent>
+        </Card>
+    );
+}
+
+function PackageCard({
+    pkg,
+    chosen,
+    onChoose,
+}: {
+    pkg: Pkg;
+    chosen: boolean;
+    onChoose: () => void;
+}) {
+    const meta = TIER_META[pkg.tier];
+    const perDay =
+        pkg.days.length > 0 ? Math.round(pkg.total_cents / pkg.days.length) : 0;
+
+    return (
+        <Card
+            className={`relative overflow-visible ${meta.featured ? 'border-2 border-[#775a19]' : ''}`}
+        >
+            {meta.featured && (
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#775a19] px-3 py-0.5 text-[10px] font-medium text-white">
+                    Best for you
+                </span>
+            )}
+            <CardContent className="flex h-full flex-col gap-2.5 py-5">
+                <p className="text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                    {meta.label}
+                </p>
+                <p className="font-serif text-xl text-[#1e1b17]">
+                    {pkg.destination}
+                </p>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                    {pkg.why}
+                </p>
+
+                <div className="mt-1 flex flex-col gap-1.5 border-t pt-3 text-sm">
+                    <p className="flex items-center gap-2">
+                        <Plane className="size-3.5 shrink-0 text-[#775a19]" />
+                        <span className="text-muted-foreground">
+                            {pkg.airport} ·
+                        </span>
+                        <span className="font-medium">
+                            {money(pkg.flight_cents)}
+                        </span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                        <Hotel className="mt-0.5 size-3.5 shrink-0 text-[#775a19]" />
+                        <span className="min-w-0">
+                            <span className="block truncate">
+                                {pkg.hotel_name}
+                            </span>
+                            <span className="font-medium">
+                                {money(pkg.hotel_cents)}
+                            </span>
+                        </span>
+                    </p>
+                    {pkg.days.length > 0 && (
+                        <p className="flex items-center gap-2 text-muted-foreground">
+                            <CalendarDays className="size-3.5 shrink-0 text-[#775a19]" />
+                            {pkg.days.length}-day plan · ~{money(perDay)}/day
+                        </p>
+                    )}
+                </div>
+
+                <div className="mt-auto flex items-baseline justify-between pt-3">
+                    <span className="text-xs text-muted-foreground">Total</span>
+                    <span className="font-serif text-2xl text-[#775a19]">
+                        {money(pkg.total_cents)}
+                    </span>
+                </div>
+
+                <Button
+                    onClick={onChoose}
+                    variant={chosen ? 'outline' : 'default'}
+                    className={
+                        chosen
+                            ? 'border-[#775a19] text-[#775a19]'
+                            : 'bg-[#775a19] hover:bg-[#634a14]'
+                    }
+                >
+                    {chosen ? (
+                        <>
+                            <Check className="size-4" /> Chosen
+                        </>
+                    ) : (
+                        'Choose this'
+                    )}
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
+function ChosenBooking({
+    pkg,
+    staysUrl,
+    flightsUrl,
+    affiliatePartner,
+    flightsPartner,
+}: {
+    pkg: Pkg;
+    staysUrl: string | null;
+    flightsUrl: string | null;
+    affiliatePartner: string;
+    flightsPartner: string;
+}) {
+    const breakdown = [
+        { label: 'Flights', cents: pkg.flight_cents },
+        { label: 'Hotel', cents: pkg.hotel_cents },
+        { label: 'Activities', cents: pkg.activities_cents },
+        { label: 'Food & dining', cents: pkg.food_cents },
+    ].filter((b) => b.cents > 0);
+
+    return (
+        <Card className="border-[#775a19]/30">
+            <CardContent className="flex flex-col gap-5 py-6">
+                <div>
+                    <p className="text-xs tracking-[0.2em] text-[#775a19] uppercase">
+                        Your honeymoon
+                    </p>
+                    <h2 className="font-serif text-3xl text-[#1e1b17]">
+                        {pkg.destination}
+                    </h2>
+                    <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                        {pkg.why}
+                    </p>
+                </div>
+
+                {/* Day by day */}
+                {pkg.days.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                        <h3 className="text-sm font-medium">Your day-by-day</h3>
+                        <ol className="flex flex-col gap-2">
+                            {pkg.days.map((d, i) => (
+                                <li
+                                    key={i}
+                                    className="flex gap-3 rounded-lg border p-3"
+                                >
+                                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#775a19]/10 text-xs font-semibold text-[#775a19]">
+                                        {i + 1}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium">
+                                            {d.title}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {d.plan}
+                                        </p>
+                                    </div>
+                                    {d.spend_cents > 0 && (
+                                        <span className="shrink-0 text-sm text-[#775a19]">
+                                            {money(d.spend_cents)}
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
+
+                {/* Budget breakdown */}
+                <div className="flex flex-col gap-1.5 rounded-xl border p-4">
+                    <h3 className="mb-1 text-sm font-medium">What it costs</h3>
+                    {breakdown.map((b) => (
+                        <div
+                            key={b.label}
+                            className="flex items-center justify-between text-sm"
+                        >
+                            <span className="text-muted-foreground">
+                                {b.label}
+                            </span>
+                            <span>{money(b.cents)}</span>
+                        </div>
+                    ))}
+                    <div className="mt-1 flex items-center justify-between border-t pt-2 text-sm font-semibold">
+                        <span>Total</span>
+                        <span className="text-[#775a19]">
+                            {money(pkg.total_cents)}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Book it */}
+                <div className="flex flex-col gap-3">
+                    <h3 className="text-sm font-medium">Book it</h3>
+                    {flightsUrl && (
+                        <Button
+                            asChild
+                            className="w-fit bg-[#775a19] hover:bg-[#634a14]"
+                        >
+                            <a
+                                href={flightsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer sponsored"
+                            >
+                                <Plane className="size-4" /> Search & book
+                                flights
+                            </a>
+                        </Button>
+                    )}
+                    {staysUrl && (
+                        <div className="overflow-hidden rounded-xl border">
+                            <iframe
+                                src={staysUrl}
+                                title={`Stays in ${pkg.destination}`}
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                className="h-[440px] w-full border-0"
+                                allow="geolocation"
+                            />
+                        </div>
+                    )}
+                    {!staysUrl && !flightsUrl && (
+                        <p className="text-sm text-muted-foreground">
+                            Booking links appear here once our travel partners
+                            are connected.
+                        </p>
+                    )}
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                        Flights via {flightsPartner}, stays via{' '}
+                        {affiliatePartner}. VowNook may earn a small commission
+                        if you book — at no extra cost to you.
+                    </p>
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 
