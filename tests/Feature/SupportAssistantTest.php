@@ -31,13 +31,31 @@ class SupportAssistantTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/support/ask', ['question' => 'How do I add guests?'])
+            ->postJson('/support/ask', ['question' => 'What happens after the wedding day?'])
             ->assertOk()
             ->assertJson([
                 'available' => true,
                 'answer' => 'Open Guests and click Add guest.',
                 'confident' => true,
             ]);
+    }
+
+    public function test_common_questions_answer_instantly_without_the_ai(): void
+    {
+        // Even with NO AI configured, a common question still gets a real answer
+        // from the curated knowledge base — and no upstream call is made.
+        config(['ai.enabled' => false, 'ai.anthropic.key' => null, 'ai.openrouter.key' => null]);
+        Http::fake();
+
+        $user = User::factory()->create();
+
+        $res = $this->actingAs($user)
+            ->postJson('/support/ask', ['question' => 'How do I share the website?'])
+            ->assertOk()
+            ->assertJson(['available' => true, 'confident' => true]);
+
+        $this->assertStringContainsString('vownook.com', $res->json('answer'));
+        Http::assertNothingSent();
     }
 
     public function test_it_answers_via_openrouter_when_the_key_is_an_openrouter_key(): void
@@ -68,7 +86,7 @@ class SupportAssistantTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/support/ask', ['question' => 'How do I upgrade?'])
+            ->postJson('/support/ask', ['question' => 'Can I export my budget?'])
             ->assertOk()
             ->assertJson([
                 'available' => true,
@@ -88,7 +106,7 @@ class SupportAssistantTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/support/ask', ['question' => 'How do I share the website?'])
+            ->postJson('/support/ask', ['question' => 'Why did my payment fail?'])
             ->assertOk()
             ->assertJson(['available' => true, 'confident' => false]);
     }
@@ -107,7 +125,7 @@ class SupportAssistantTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/support/ask', ['question' => 'How do I share the website?'])
+            ->postJson('/support/ask', ['question' => 'My account is acting strange.'])
             ->assertOk()
             ->assertJson(['available' => true, 'confident' => false]);
     }

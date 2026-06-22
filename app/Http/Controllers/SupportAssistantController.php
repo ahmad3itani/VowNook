@@ -18,13 +18,21 @@ class SupportAssistantController extends Controller
 {
     public function ask(Request $request, AiService $ai): JsonResponse
     {
-        if (! $ai->isConfigured()) {
-            return response()->json(['available' => false]);
-        }
-
         $data = $request->validate([
             'question' => ['required', 'string', 'max:1000'],
         ]);
+
+        // Curated instant answers for the most common questions. These work even
+        // when the AI provider is slow, erroring, or unconfigured — so the help
+        // bot always handles the basics ("how do I share my site?") reliably,
+        // with zero latency and zero cost.
+        if ($quick = $this->quickAnswer($data['question'])) {
+            return response()->json(['available' => true, 'answer' => $quick, 'confident' => true]);
+        }
+
+        if (! $ai->isConfigured()) {
+            return response()->json(['available' => false]);
+        }
 
         $tool = [
             'name' => 'provide_help',
@@ -71,6 +79,48 @@ class SupportAssistantController extends Controller
             'answer' => (string) ($result['answer'] ?? ''),
             'confident' => (bool) ($result['confident'] ?? false),
         ]);
+    }
+
+    /**
+     * Match the most common questions to a curated, always-correct answer so the
+     * basics never depend on the AI provider being reachable. Returns null when
+     * nothing clearly matches, and we fall through to the AI for the long tail.
+     */
+    private function quickAnswer(string $question): ?string
+    {
+        $q = mb_strtolower($question);
+
+        $has = function (array $needles) use ($q): bool {
+            foreach ($needles as $n) {
+                if (str_contains($q, $n)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        return match (true) {
+            $has(['share', 'link to', 'my link', 'web address', ' url', 'send the invit', 'send my site', 'send out the invit']) => 'To share your site, first publish it (Website → flip **Publish**, an Atelier feature). Then share your link: your free address **your-names.vownook.com** (claim it under Website → “Your web address”), or the **/w/your-names** link. Both are shown right on the Website page — copy either and send it to your guests.',
+
+            $has(['publish', 'go live', 'make it live', 'make my site live']) => 'Open **Website**, finish your content, then turn on the **Publish** toggle (an Atelier feature). Once published, guests can view your site and RSVP.',
+
+            $has(['add guest', 'add a guest', 'invite guest', 'import guest', 'guest list', 'upload guest']) => 'Open **Guests** from the sidebar, then click **Add guest** (or import a CSV). You can group guests into households and track their RSVPs from the same page.',
+
+            $has(['rsvp', 'collect response', 'collect rsvp', 'who is coming', 'who’s coming']) => 'Publish your wedding website — guests RSVP on its **/rsvp** page. You can set meal options for them to choose from, and send reminders to anyone who hasn’t replied from the **Guests** page.',
+
+            $has(['upgrade', 'atelier', 'how much', 'pricing', 'price', 'subscription', 'cost to', 'free tier', 'free plan']) => 'Open **Settings → Plan** to upgrade to **Atelier**. It unlocks publishing your website, the seating/floor-plan studio, the gift & cash registry, multiple events, save-the-dates, a custom web address, the AI assistant, and more.',
+
+            $has(['collaborat', 'add my partner', 'invite my partner', 'invite my planner', 'add my planner', 'add my family', 'my team', 'add someone']) => 'Open **Collaborators**, enter the person’s email, and choose exactly what they can access (guests, budget, website, and so on). They’ll get an email invite to join your wedding.',
+
+            $has(['seating', 'floor plan', 'seat chart', 'table plan', 'assign seat', 'seating chart']) => 'Use the **Floor plan** tool (an Atelier feature) to lay out your tables and assign guests to seats. On a phone you can tap a guest then tap a seat; full drag-edit is on desktop.',
+
+            $has(['vendor', 'quote', 'marketplace', 'photographer', 'florist', 'caterer', 'book a ']) => 'Open **Marketplace**, browse by category and city, open a vendor and click **Request a quote**. Compare the offers under **Vendors → My quotes**, then book — deposits are paid securely via Stripe.',
+
+            $has(['registry', 'cash fund', 'honeymoon fund', 'gift list', 'wedding gift']) => 'Open **Registry** to add cash funds (a honeymoon fund, for example) and gift items. Guests can contribute securely right from your website.',
+
+            default => null,
+        };
     }
 
     private function systemPrompt(): string
