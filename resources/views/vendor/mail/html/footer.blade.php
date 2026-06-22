@@ -4,6 +4,7 @@
 <tr>
 <td class="content-cell" align="center">
 {{ Illuminate\Mail\Markdown::parse($slot) }}
+<p style="margin-top: 6px;"><a href="{{ config('app.url') }}">{{ config('app.url') }}</a> &middot; Plan your wedding, beautifully.</p>
 </td>
 </tr>
 </table>

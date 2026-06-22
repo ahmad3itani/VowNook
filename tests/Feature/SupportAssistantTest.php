@@ -77,7 +77,7 @@ class SupportAssistantTest extends TestCase
 
     public function test_it_degrades_when_ai_is_not_configured(): void
     {
-        config(['ai.anthropic.key' => null]);
+        config(['ai.anthropic.key' => null, 'ai.openrouter.key' => null]);
 
         $user = User::factory()->create();
 

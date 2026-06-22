@@ -116,7 +116,7 @@ class AiPlannerTest extends TestCase
     public function test_generate_degrades_gracefully_when_not_configured(): void
     {
         [$user] = $this->ownerWithWedding();
-        config(['ai.enabled' => true, 'ai.anthropic.key' => null]);
+        config(['ai.enabled' => true, 'ai.anthropic.key' => null, 'ai.openrouter.key' => null]);
         Http::fake();
 
         $this->actingAs($user)
