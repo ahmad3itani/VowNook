@@ -103,6 +103,12 @@ const CHAT_SUGGESTIONS = [
     'How do we politely ask for no kids?',
 ];
 
+const ACTION_KINDS: { kind: Kind; label: string; icon: typeof ListChecks }[] = [
+    { kind: 'checklist', label: 'Add to checklist', icon: ListChecks },
+    { kind: 'budget', label: 'Add to budget', icon: Wallet },
+    { kind: 'timeline', label: 'Add to timeline', icon: CalendarClock },
+];
+
 /** Three pulsing dots shown in the assistant bubble before the first token arrives. */
 function TypingDots() {
     return (
@@ -125,14 +131,56 @@ function TypingDots() {
 function ChatPlanner({
     weddingName,
     history,
+    can,
+    onSuggest,
 }: {
     weddingName: string;
     history: ChatMessage[];
+    can: Record<Kind, boolean>;
+    onSuggest: (kind: Kind, items: Item[]) => void;
 }) {
     const [messages, setMessages] = useState<ChatMessage[]>(history);
     const [input, setInput] = useState('');
     const [sending, setSending] = useState(false);
+    const [extractingKey, setExtractingKey] = useState<string | null>(null);
     const threadRef = useRef<HTMLDivElement>(null);
+
+    const canAct = ACTION_KINDS.some((a) => can[a.kind]);
+
+    async function runAction(text: string, kind: Kind, key: string) {
+        if (extractingKey) return;
+        setExtractingKey(key);
+        try {
+            const res = await fetch('/assistant/extract', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': xsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ kind, text }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok)
+                throw new Error(data.message ?? 'Could not read suggestions.');
+            const items = (data.items ?? []) as Item[];
+            if (items.length === 0) {
+                toast.message(
+                    'Nothing to add from that reply — try asking for specific items.',
+                );
+                return;
+            }
+            onSuggest(kind, items);
+        } catch (e) {
+            toast.error(
+                e instanceof Error ? e.message : 'Something went wrong.',
+            );
+        } finally {
+            setExtractingKey(null);
+        }
+    }
 
     useEffect(() => {
         const el = threadRef.current;
@@ -339,12 +387,56 @@ function ChatPlanner({
                                 <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#775a19]/10 text-[#775a19]">
                                     <Sparkles className="size-3.5" />
                                 </span>
-                                <div className="max-w-[85%] rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-2.5 text-sm text-foreground">
-                                    {m.content === '' ? (
-                                        <TypingDots />
-                                    ) : (
-                                        <FormattedMessage text={m.content} />
-                                    )}
+                                <div className="flex max-w-[85%] min-w-0 flex-col items-start gap-2">
+                                    <div className="max-w-full rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-2.5 text-sm text-foreground">
+                                        {m.content === '' ? (
+                                            <TypingDots />
+                                        ) : (
+                                            <FormattedMessage
+                                                text={m.content}
+                                            />
+                                        )}
+                                    </div>
+                                    {m.content !== '' &&
+                                        canAct &&
+                                        !(
+                                            sending && i === messages.length - 1
+                                        ) && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {ACTION_KINDS.filter(
+                                                    (a) => can[a.kind],
+                                                ).map((a) => {
+                                                    const Icon = a.icon;
+                                                    const key = `${i}-${a.kind}`;
+                                                    return (
+                                                        <button
+                                                            key={a.kind}
+                                                            type="button"
+                                                            disabled={
+                                                                extractingKey !==
+                                                                null
+                                                            }
+                                                            onClick={() =>
+                                                                runAction(
+                                                                    m.content,
+                                                                    a.kind,
+                                                                    key,
+                                                                )
+                                                            }
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-[#775a19]/30 bg-card px-3 py-1 text-xs text-[#775a19] transition-colors hover:bg-[#775a19]/[0.06] disabled:opacity-50"
+                                                        >
+                                                            {extractingKey ===
+                                                            key ? (
+                                                                <Spinner />
+                                                            ) : (
+                                                                <Icon className="size-3.5" />
+                                                            )}
+                                                            {a.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                 </div>
                             </div>
                         ),
@@ -422,6 +514,26 @@ export default function AssistantIndex({
 
     const active = GENERATORS.find((g) => g.kind === kind)!;
     const canApply = can[kind];
+
+    const planStarterRef = useRef<HTMLDivElement>(null);
+
+    // A chat action ("Add to my checklist") drops its extracted items straight
+    // into the Plan Starter table below, so the couple reviews before saving.
+    function applySuggestion(k: Kind, suggested: Item[]) {
+        setKind(k);
+        setItems(suggested);
+        toast.success(
+            `Loaded ${suggested.length} ${k} suggestion${suggested.length === 1 ? '' : 's'} below — review and add.`,
+        );
+        window.setTimeout(
+            () =>
+                planStarterRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                }),
+            60,
+        );
+    }
 
     function switchKind(next: Kind) {
         setKind(next);
@@ -540,11 +652,16 @@ export default function AssistantIndex({
                             <ChatPlanner
                                 weddingName={wedding.name}
                                 history={history}
+                                can={can}
+                                onSuggest={applySuggestion}
                             />
                         )}
 
                         {/* Quick starters — one-click drafts the couple edits before saving. */}
-                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-2">
+                        <div
+                            ref={planStarterRef}
+                            className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-2"
+                        >
                             <h2 className="font-serif text-lg">
                                 Quick starters
                             </h2>

@@ -327,14 +327,88 @@ class AiPlannerController extends Controller
         return back()->with('status', "ai-applied-{$kind}-{$count}");
     }
 
+    /**
+     * Turn a chat reply into structured, editable items for the requested kind —
+     * powers the "Add to my checklist/budget/timeline" actions under a planner
+     * message. Returns the items for the couple to review (apply() still saves).
+     */
+    public function extract(Request $request): JsonResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        $validator = Validator::make($request->all(), [
+            'kind' => ['required', Rule::in(self::KINDS)],
+            'text' => ['required', 'string', 'max:6000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        if (! $request->user()->canUseAi()) {
+            return response()->json([
+                'message' => 'AI assistance is a paid feature. Upgrade your plan to unlock it.',
+            ], 403);
+        }
+
+        $data = $validator->validated();
+        $this->authorizeWrite($data['kind']);
+
+        if (! $this->ai->isConfigured()) {
+            return response()->json(['message' => 'AI assistance is not configured on this server.'], 422);
+        }
+
+        try {
+            $items = match ($data['kind']) {
+                'checklist' => $this->extractChecklist($data['text']),
+                'budget' => $this->extractBudget($data['text']),
+                'timeline' => $this->extractTimeline($data['text']),
+            };
+        } catch (AiException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['kind' => $data['kind'], 'items' => $items]);
+    }
+
     // ── Checklist ────────────────────────────────────────────────────────────
 
     /** @return array<int, array<string,mixed>> */
     protected function generateChecklist($wedding, array $data): array
     {
-        $tool = [
+        $system = 'You are an expert Ontario, Canada wedding planner. Produce a practical, '
+            .'comprehensive planning checklist. Use realistic Canadian timelines and vendor types. '
+            .'Be specific and actionable. Avoid duplicates. Return 20-35 tasks.';
+
+        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->checklistTool());
+
+        return $this->normalizeChecklist($result['tasks'] ?? []);
+    }
+
+    /**
+     * Extract just the concrete tasks an assistant chat reply suggested — the
+     * "Add to my checklist" action. Reuses the same tool + normaliser as generate.
+     *
+     * @return array<int, array<string,mixed>>
+     */
+    protected function extractChecklist(string $text): array
+    {
+        $system = 'From the planner message below, extract ONLY the concrete planning tasks it actually '
+            .'suggests — do not invent unrelated ones. Pick a sensible category, priority and months-before '
+            .'for each.';
+
+        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->checklistTool());
+
+        return $this->normalizeChecklist($result['tasks'] ?? []);
+    }
+
+    /** @return array<string,mixed> */
+    protected function checklistTool(): array
+    {
+        return [
             'name' => 'propose_checklist',
-            'description' => 'Return a wedding planning checklist tailored to the couple.',
+            'description' => 'Return wedding planning tasks for the couple.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
@@ -359,14 +433,15 @@ class AiPlannerController extends Controller
                 'required' => ['tasks'],
             ],
         ];
+    }
 
-        $system = 'You are an expert Ontario, Canada wedding planner. Produce a practical, '
-            .'comprehensive planning checklist. Use realistic Canadian timelines and vendor types. '
-            .'Be specific and actionable. Avoid duplicates. Return 20-35 tasks.';
-
-        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $tool);
-
-        return collect($result['tasks'] ?? [])
+    /**
+     * @param  array<int, array<string,mixed>>  $tasks
+     * @return array<int, array<string,mixed>>
+     */
+    protected function normalizeChecklist(array $tasks): array
+    {
+        return collect($tasks)
             ->take(self::MAX_ITEMS)
             ->map(fn ($t) => [
                 'title' => (string) ($t['title'] ?? ''),
@@ -425,9 +500,36 @@ class AiPlannerController extends Controller
     {
         $hasTotal = isset($data['total_budget']) && (float) $data['total_budget'] > 0;
 
-        $tool = [
+        $system = 'You are an expert Ontario, Canada wedding-budget planner. Build a realistic starter '
+            .'budget using current Ontario market prices in Canadian dollars. Group line items under clear '
+            .'categories (Venue, Catering, Photography, Attire, Flowers, Music, Stationery, etc.). '
+            .($hasTotal
+                ? 'The line items must sum to approximately the couple\'s stated total budget.'
+                : 'Estimate sensible absolute amounts for a typical Ontario wedding.')
+            .' Return 12-24 line items.';
+
+        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->budgetTool());
+
+        return $this->normalizeBudget($result['items'] ?? []);
+    }
+
+    /** @return array<int, array<string,mixed>> */
+    protected function extractBudget(string $text): array
+    {
+        $system = 'From the planner message below, extract ONLY the budget line items or costs it actually '
+            .'mentions, grouped under sensible categories, in Canadian dollars. Do not invent unrelated items.';
+
+        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->budgetTool());
+
+        return $this->normalizeBudget($result['items'] ?? []);
+    }
+
+    /** @return array<string,mixed> */
+    protected function budgetTool(): array
+    {
+        return [
             'name' => 'propose_budget',
-            'description' => 'Return a starter wedding budget broken into categories and line items.',
+            'description' => 'Return wedding budget line items broken into categories.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
@@ -447,18 +549,15 @@ class AiPlannerController extends Controller
                 'required' => ['items'],
             ],
         ];
+    }
 
-        $system = 'You are an expert Ontario, Canada wedding-budget planner. Build a realistic starter '
-            .'budget using current Ontario market prices in Canadian dollars. Group line items under clear '
-            .'categories (Venue, Catering, Photography, Attire, Flowers, Music, Stationery, etc.). '
-            .($hasTotal
-                ? 'The line items must sum to approximately the couple\'s stated total budget.'
-                : 'Estimate sensible absolute amounts for a typical Ontario wedding.')
-            .' Return 12-24 line items.';
-
-        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $tool);
-
-        return collect($result['items'] ?? [])
+    /**
+     * @param  array<int, array<string,mixed>>  $items
+     * @return array<int, array<string,mixed>>
+     */
+    protected function normalizeBudget(array $items): array
+    {
+        return collect($items)
             ->take(self::MAX_ITEMS)
             ->map(fn ($i) => [
                 'category' => trim((string) ($i['category'] ?? 'Other')) ?: 'Other',
@@ -520,9 +619,32 @@ class AiPlannerController extends Controller
     /** @return array<int, array<string,mixed>> */
     protected function generateTimeline($wedding, array $data): array
     {
-        $tool = [
+        $system = 'You are an expert Ontario, Canada wedding-day coordinator. Produce a realistic '
+            .'wedding-day run-of-show from getting-ready through the send-off, with sensible times and '
+            .'durations. Use 24-hour times. Return 10-18 events in chronological order.';
+
+        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->timelineTool());
+
+        return $this->normalizeTimeline($result['events'] ?? []);
+    }
+
+    /** @return array<int, array<string,mixed>> */
+    protected function extractTimeline(string $text): array
+    {
+        $system = 'From the planner message below, extract ONLY the day-of events or moments it actually '
+            .'mentions, in chronological order with sensible 24-hour times. Do not invent unrelated events.';
+
+        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->timelineTool());
+
+        return $this->normalizeTimeline($result['events'] ?? []);
+    }
+
+    /** @return array<string,mixed> */
+    protected function timelineTool(): array
+    {
+        return [
             'name' => 'propose_timeline',
-            'description' => 'Return a wedding-day run-of-show timeline.',
+            'description' => 'Return wedding-day run-of-show events.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
@@ -544,14 +666,15 @@ class AiPlannerController extends Controller
                 'required' => ['events'],
             ],
         ];
+    }
 
-        $system = 'You are an expert Ontario, Canada wedding-day coordinator. Produce a realistic '
-            .'wedding-day run-of-show from getting-ready through the send-off, with sensible times and '
-            .'durations. Use 24-hour times. Return 10-18 events in chronological order.';
-
-        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $tool);
-
-        return collect($result['events'] ?? [])
+    /**
+     * @param  array<int, array<string,mixed>>  $events
+     * @return array<int, array<string,mixed>>
+     */
+    protected function normalizeTimeline(array $events): array
+    {
+        return collect($events)
             ->take(self::MAX_ITEMS)
             ->map(fn ($e) => [
                 'title' => (string) ($e['title'] ?? ''),

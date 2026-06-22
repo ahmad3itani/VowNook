@@ -294,4 +294,58 @@ class AiPlannerTest extends TestCase
                 ->where('can.checklist', true)
             );
     }
+
+    // ── Extract (chat reply → editable items) ───────────────────────────────────
+
+    public function test_extract_turns_chat_text_into_checklist_items(): void
+    {
+        [$user] = $this->ownerWithWedding();
+        $this->enableAi();
+        $this->fakeTool('propose_checklist', [
+            'tasks' => [
+                ['title' => 'Book the venue', 'category' => 'planning', 'priority' => 'high', 'months_before' => 12],
+            ],
+        ]);
+
+        $this->actingAs($user)
+            ->postJson('/assistant/extract', [
+                'kind' => 'checklist',
+                'text' => 'A few things: you should book your venue and order the cake.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('kind', 'checklist')
+            ->assertJsonPath('items.0.title', 'Book the venue');
+    }
+
+    public function test_extract_is_paid_gated(): void
+    {
+        $user = User::factory()->create(['plan' => 'free']);
+        $wedding = Wedding::factory()->create(['owner_id' => $user->id]);
+        $user->forceFill(['current_wedding_id' => $wedding->id])->save();
+        $this->enableAi();
+        Http::fake();
+
+        $this->actingAs($user)
+            ->postJson('/assistant/extract', ['kind' => 'checklist', 'text' => 'book venue'])
+            ->assertForbidden();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_viewer_cannot_extract(): void
+    {
+        $owner = User::factory()->create();
+        $wedding = Wedding::factory()->create(['owner_id' => $owner->id]);
+        $viewer = User::factory()->create(['plan' => 'premium']);
+        $wedding->members()->attach($viewer->id, ['role' => Role::Viewer->value]);
+        $viewer->forceFill(['current_wedding_id' => $wedding->id])->save();
+        $this->enableAi();
+        Http::fake();
+
+        $this->actingAs($viewer)
+            ->postJson('/assistant/extract', ['kind' => 'checklist', 'text' => 'book venue'])
+            ->assertForbidden();
+
+        Http::assertNothingSent();
+    }
 }

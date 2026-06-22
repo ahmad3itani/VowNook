@@ -294,6 +294,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('assistant', [AiPlannerController::class, 'index'])->name('assistant.index');
     Route::post('assistant/generate', [AiPlannerController::class, 'generate'])
         ->middleware('throttle:15,1')->name('assistant.generate');
+    // Turn a chat reply into editable checklist/budget/timeline items to review.
+    Route::post('assistant/extract', [AiPlannerController::class, 'extract'])
+        ->middleware('throttle:20,1')->name('assistant.extract');
     Route::post('assistant/apply', [AiPlannerController::class, 'apply'])->name('assistant.apply');
     // Conversational AI planner — a persisted, wedding-aware chat. The stream
     // variant returns the reply token-by-token over SSE; chat() is the JSON
