@@ -17,7 +17,8 @@ class SupportTicketReceived extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        // Database first so the in-app bell is recorded even if mail later fails.
+        return ['database', 'mail'];
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -104,12 +104,17 @@ class SupportTicketController extends Controller
             'assigned_to' => $ticket->assigned_to ?? $request->user()->id,
         ])->save();
 
-        // Email the requester (account holders also get an in-app notification).
-        if ($ticket->user) {
-            $ticket->user->notify(new SupportTicketReplied($ticket, $data['body']));
-        } else {
-            Notification::route('mail', $ticket->email)
-                ->notify(new SupportTicketReplied($ticket, $data['body']));
+        // Notify the requester — but a mail failure must not 500 the reply (the
+        // reply is already saved; the requester sees it in their thread).
+        try {
+            if ($ticket->user) {
+                $ticket->user->notify(new SupportTicketReplied($ticket, $data['body']));
+            } else {
+                Notification::route('mail', $ticket->email)
+                    ->notify(new SupportTicketReplied($ticket, $data['body']));
+            }
+        } catch (\Throwable $e) {
+            report($e);
         }
 
         ActivityLogger::log('admin.support.reply', $ticket);

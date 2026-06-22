@@ -6,8 +6,10 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use App\Notifications\SupportTicketReceived;
 use App\Notifications\SupportTicketReplied;
+use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Mockery;
 use Tests\TestCase;
 
 class SupportTicketTest extends TestCase
@@ -56,6 +58,29 @@ class SupportTicketTest extends TestCase
         ]);
 
         Notification::assertSentTo($admin, SupportTicketReceived::class);
+    }
+
+    /** Regression: a mail-transport failure must not 500 the support form. */
+    public function test_ticket_is_still_saved_when_the_admin_alert_fails(): void
+    {
+        User::factory()->admin()->create();
+        $couple = User::factory()->create();
+
+        // Reproduce the production failure: notifying admins throws (bad SMTP key).
+        $dispatcher = Mockery::mock(Dispatcher::class);
+        $dispatcher->shouldReceive('send', 'sendNow')->andThrow(new \RuntimeException('mail transport down'));
+        $this->app->instance(Dispatcher::class, $dispatcher);
+
+        $this->actingAs($couple)->post('/support', [
+            'subject' => 'Billing question',
+            'category' => 'billing',
+            'message' => 'When am I charged?',
+        ])->assertRedirect(); // not a 500
+
+        $this->assertDatabaseHas('support_tickets', [
+            'user_id' => $couple->id,
+            'subject' => 'Billing question',
+        ]);
     }
 
     public function test_user_cannot_view_another_users_ticket(): void

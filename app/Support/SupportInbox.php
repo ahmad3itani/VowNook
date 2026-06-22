@@ -17,10 +17,17 @@ class SupportInbox
     {
         $ticket = SupportTicket::create($attributes);
 
-        $admins = User::where('is_admin', true)->get();
+        // Alerting admins must never break the requester's submission: a mail
+        // transport failure (e.g. an invalid SMTP key) should not 500 the form.
+        // The ticket is already saved and is the source of truth in the inbox.
+        try {
+            $admins = User::where('is_admin', true)->get();
 
-        if ($admins->isNotEmpty()) {
-            Notification::send($admins, new SupportTicketReceived($ticket));
+            if ($admins->isNotEmpty()) {
+                Notification::send($admins, new SupportTicketReceived($ticket));
+            }
+        } catch (\Throwable $e) {
+            report($e);
         }
 
         return $ticket;

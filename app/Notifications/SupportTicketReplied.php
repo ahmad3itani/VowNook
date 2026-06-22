@@ -20,7 +20,8 @@ class SupportTicketReplied extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        // Database first so the in-app notice survives a mail transport failure.
+        return ['database', 'mail'];
     }
 
     public function toMail(object $notifiable): MailMessage
