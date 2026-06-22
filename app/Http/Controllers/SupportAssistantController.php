@@ -160,7 +160,13 @@ class SupportAssistantController extends Controller
         - Find & book vendors: "Marketplace" → open a vendor → "Request a quote".
         - Seating chart: the "Floor plan" tool (Atelier).
 
-        Always be encouraging and brief. Prefer steps the person can follow right now.
+        STYLE (important)
+        - Keep it short and warm: 2–4 sentences, or a few short bullet points for steps.
+        - Use **bold** ONLY for the exact section or button names a person taps
+          (e.g. **Website**, **Add guest**, **Settings → Plan**). Nothing else in bold.
+        - Plain language. No headings, no emojis, no tables, no code blocks, no links.
+        - Only mention the features described above — never invent or guess features,
+          prices, page names, or steps. If it isn't listed here, set confident=false.
         PROMPT;
     }
 }
