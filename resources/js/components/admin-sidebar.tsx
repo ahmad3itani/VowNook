@@ -10,6 +10,7 @@ import {
     Newspaper,
     Settings2,
     Store,
+    ToggleRight,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -38,6 +39,7 @@ const adminNavItems: NavItem[] = [
     { title: 'Activity', href: '/admin/activity', icon: Activity },
     { title: 'Reports', href: '/admin/reports', icon: Flag },
     { title: 'Blog', href: '/admin/blog', icon: Newspaper, matchPrefix: true },
+    { title: 'Features', href: '/admin/features', icon: ToggleRight },
     { title: 'Settings', href: '/admin/settings', icon: Settings2 },
     { title: 'Localisation', href: '/admin/localisation', icon: Languages },
 ];

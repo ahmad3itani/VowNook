@@ -1,41 +1,22 @@
 <?php
 
+use App\Enums\VendorCategory;
+use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\AdminImpersonationController;
 use App\Http\Controllers\Admin\AdminSupportController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\FeatureController as AdminFeatureController;
+use App\Http\Controllers\Admin\LocalisationController;
 use App\Http\Controllers\Admin\MarketplaceController as AdminMarketplaceController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\WeddingController as AdminWeddingController;
-use App\Http\Controllers\SupportController;
-use App\Http\Controllers\AiPlannerController;
-use App\Http\Controllers\InquiryController;
-use App\Http\Controllers\InquiryMessageController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\MarketplaceBrowseController;
-use App\Http\Controllers\OfferController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\StripeWebhookController;
-use App\Http\Controllers\VendorPayoutController;
-use App\Http\Controllers\QuoteComparisonController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\VendorInquiryController;
-use App\Http\Controllers\VendorReviewController;
-use App\Http\Controllers\Admin\LocalisationController;
-use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\VendorModerationController;
-use App\Http\Controllers\PublicBlogController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\PublicMarketplaceController;
-use App\Http\Controllers\PublicPageController;
-use App\Http\Controllers\PublicLocalController;
-use App\Http\Controllers\PublicVendorProfileController;
-use App\Http\Controllers\VendorProfileController;
-use App\Http\Controllers\VendorServiceController;
-use App\Http\Controllers\VendorPortalController;
+use App\Http\Controllers\Admin\WeddingController as AdminWeddingController;
+use App\Http\Controllers\AiPlannerController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
@@ -44,42 +25,64 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CrewController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailPreferenceController;
+use App\Http\Controllers\EmailTrackController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\GiftController;
+use App\Http\Controllers\GuestBroadcastController;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\GuestReminderController;
 use App\Http\Controllers\GuestGroupController;
+use App\Http\Controllers\GuestReminderController;
+use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\InquiryMessageController;
 use App\Http\Controllers\InspirationController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MarketplaceBrowseController;
 use App\Http\Controllers\MealOptionsController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OfferController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlannerDashboardController;
 use App\Http\Controllers\PlannerListingController;
 use App\Http\Controllers\PlannerTemplateController;
+use App\Http\Controllers\PublicBlogController;
+use App\Http\Controllers\PublicLocalController;
+use App\Http\Controllers\PublicMarketplaceController;
+use App\Http\Controllers\PublicPageController;
+use App\Http\Controllers\PublicRegistryController;
 use App\Http\Controllers\PublicRsvpController;
 use App\Http\Controllers\PublicSeatingController;
+use App\Http\Controllers\PublicVendorProfileController;
 use App\Http\Controllers\PublicWebsiteController;
+use App\Http\Controllers\QuoteComparisonController;
 use App\Http\Controllers\RegistryController;
-use App\Http\Controllers\PublicRegistryController;
-use App\Http\Controllers\WeddingEventController;
-use App\Http\Controllers\AccommodationController;
-use App\Http\Controllers\GuestBroadcastController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SaveTheDateController;
-use App\Http\Controllers\EmailTrackController;
-use App\Http\Controllers\GiftController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\SubdomainSiteController;
+use App\Http\Controllers\SupportController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\VendorAvailabilityController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorDashboardController;
 use App\Http\Controllers\VendorEarningsController;
-use App\Http\Controllers\WeddingController;
+use App\Http\Controllers\VendorInquiryController;
+use App\Http\Controllers\VendorPayoutController;
+use App\Http\Controllers\VendorPortalController;
+use App\Http\Controllers\VendorProfileController;
+use App\Http\Controllers\VendorReviewController;
+use App\Http\Controllers\VendorServiceController;
 use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\WebsiteGalleryController;
 use App\Http\Controllers\WebsiteMediaController;
-use App\Http\Controllers\SubdomainSiteController;
+use App\Http\Controllers\WeddingController;
+use App\Http\Controllers\WeddingEventController;
+use App\Support\OntarioCities;
 use Illuminate\Support\Facades\Route;
 
 // Free personal web address — {name}.vownook.com resolves a couple's published
@@ -224,11 +227,11 @@ Route::middleware('throttle:120,1')->group(function () {
     // Programmatic local-SEO pages — constrained to known category/city slugs so
     // they never shadow literal routes. Defined last in the public group.
     Route::get('{category}/{city}', [PublicLocalController::class, 'cityCategory'])
-        ->where('category', \App\Enums\VendorCategory::seoSlugPattern())
-        ->where('city', \App\Support\OntarioCities::slugPattern())
+        ->where('category', VendorCategory::seoSlugPattern())
+        ->where('city', OntarioCities::slugPattern())
         ->name('local.city-category');
     Route::get('{category}', [PublicLocalController::class, 'category'])
-        ->where('category', \App\Enums\VendorCategory::seoSlugPattern())
+        ->where('category', VendorCategory::seoSlugPattern())
         ->name('local.category');
 });
 
@@ -630,6 +633,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.password_reset');
         Route::post('users/{user}/resend-verification', [AdminUserController::class, 'resendVerification'])->name('users.resend_verification');
         Route::post('users/{user}/impersonate', [AdminImpersonationController::class, 'start'])->name('users.impersonate');
+
+        // Free-tier feature unlocks (guest experience).
+        Route::get('features', [AdminFeatureController::class, 'index'])->name('features.index');
+        Route::put('features', [AdminFeatureController::class, 'update'])->name('features.update');
 
         // Platform-wide audit trail.
         Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');

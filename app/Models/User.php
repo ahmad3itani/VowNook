@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccountType;
+use App\Support\PlanFeatures;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -165,9 +166,18 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
         return $this->getAttributes()['plan'] ?? config('plans.default');
     }
 
-    /** Whether the user's plan tier includes a named feature flag. */
+    /**
+     * Whether the user's plan tier includes a named feature flag. Free-tier
+     * users additionally respect any admin override (the console can unlock or
+     * re-lock premium tools for the free "guest" experience); paid tiers always
+     * follow their plan config.
+     */
     public function hasFeature(string $key): bool
     {
+        if ($this->planKey() === config('plans.default')) {
+            return PlanFeatures::freeTierGrants($key);
+        }
+
         return (bool) ($this->plan()['features'][$key] ?? false);
     }
 
