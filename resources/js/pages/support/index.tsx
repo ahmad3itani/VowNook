@@ -1,6 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { LifeBuoy, Plus } from 'lucide-react';
-import { FormEvent } from 'react';
+import { LifeBuoy, Plus, Send, Sparkles } from 'lucide-react';
+import { FormEvent, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,85 @@ type Ticket = {
     created_at: string | null;
 };
 
-type PageProps = { tickets: Ticket[]; categories: string[] };
+type PageProps = { tickets: Ticket[]; categories: string[]; ai_enabled: boolean };
+
+function readXsrf(): string {
+    const c = document.cookie.split('; ').find((x) => x.startsWith('XSRF-TOKEN='));
+    return c ? decodeURIComponent(c.split('=')[1]) : '';
+}
+
+function AskAi() {
+    const [question, setQuestion] = useState('');
+    const [answer, setAnswer] = useState<{ text: string; confident: boolean } | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    async function ask(e: FormEvent) {
+        e.preventDefault();
+        if (!question.trim() || loading) return;
+        setLoading(true);
+        setAnswer(null);
+        try {
+            const res = await fetch('/support/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': readXsrf(),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ question }),
+            });
+            const data = await res.json();
+            setAnswer({
+                text: data.answer ?? 'Sorry, I couldn’t answer that right now — please send a request below.',
+                confident: !!data.confident,
+            });
+        } catch {
+            setAnswer({
+                text: 'Sorry, something went wrong. Please send a request below and our team will help.',
+                confident: false,
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <Card className="border-[#e9c176]/50 bg-[#fdf8ee]">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                    <Sparkles className="size-4 text-[#8a651c]" /> Ask VowNook AI
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                    Instant answers to common questions — like how to add guests, publish your site, or upgrade.
+                </p>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+                <form onSubmit={ask} className="flex gap-2">
+                    <Input
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="e.g. How do I collect RSVPs?"
+                        aria-label="Ask the VowNook assistant"
+                    />
+                    <Button type="submit" disabled={loading || !question.trim()} className="bg-[#8a651c] hover:bg-[#6f5016]">
+                        {loading ? 'Thinking…' : <Send className="size-4" />}
+                    </Button>
+                </form>
+                {answer && (
+                    <div className="rounded-lg border border-[#e9c176]/50 bg-white/70 p-3 text-sm">
+                        <p className="whitespace-pre-line text-foreground">{answer.text}</p>
+                        {!answer.confident && (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                Still need a hand? Send a request below and our team will follow up.
+                            </p>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 function statusVariant(status: string): 'default' | 'secondary' | 'outline' {
     if (status === 'open') return 'default';
@@ -33,7 +111,7 @@ function fmt(iso: string | null): string {
     return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function SupportIndex({ tickets, categories }: PageProps) {
+export default function SupportIndex({ tickets, categories, ai_enabled }: PageProps) {
     const form = useForm({ subject: '', category: 'general', message: '' });
 
     function submit(e: FormEvent) {
@@ -46,7 +124,9 @@ export default function SupportIndex({ tickets, categories }: PageProps) {
             <Head title="Help & support" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <Heading title="Help & support" description="Get help from our team — we usually reply within a day." />
+                <Heading title="Help & support" description="Get instant answers from our AI helper, or send our team a request — we usually reply within a day." />
+
+                {ai_enabled && <AskAi />}
 
                 <div className="grid gap-6 lg:grid-cols-5">
                     {/* New request */}

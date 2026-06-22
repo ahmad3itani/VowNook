@@ -64,6 +64,7 @@ use App\Http\Controllers\SeatingElementController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubdomainSiteController;
+use App\Http\Controllers\SupportAssistantController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\SwitchWeddingController;
 use App\Http\Controllers\TimelineController;
@@ -246,6 +247,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // In-app help & support (couples, vendors, planners) — open + track tickets.
     Route::get('support', [SupportController::class, 'index'])->name('support.index');
     Route::post('support', [SupportController::class, 'store'])->middleware('throttle:10,1')->name('support.store');
+    Route::post('support/ask', [SupportAssistantController::class, 'ask'])->middleware('throttle:15,1')->name('support.ask');
     Route::get('support/{ticket}', [SupportController::class, 'show'])->name('support.show');
     Route::post('support/{ticket}/reply', [SupportController::class, 'reply'])
         ->middleware('throttle:20,1')->name('support.reply');

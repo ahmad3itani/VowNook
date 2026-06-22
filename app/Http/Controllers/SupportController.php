@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\SupportTicketStatus;
 use App\Models\SupportTicket;
+use App\Support\Ai\AiService;
 use App\Support\SupportInbox;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class SupportController extends Controller
         return Inertia::render('support/index', [
             'tickets' => $tickets,
             'categories' => SupportTicket::CATEGORIES,
+            'ai_enabled' => app(AiService::class)->isConfigured(),
         ]);
     }
 
