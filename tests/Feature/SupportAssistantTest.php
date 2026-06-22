@@ -38,6 +38,43 @@ class SupportAssistantTest extends TestCase
             ]);
     }
 
+    public function test_it_answers_via_openrouter_when_the_key_is_an_openrouter_key(): void
+    {
+        // An OpenRouter key (sk-or-…) put in ANTHROPIC_API_KEY is auto-detected
+        // and routed to OpenRouter's OpenAI-compatible endpoint.
+        config(['ai.enabled' => true, 'ai.anthropic.key' => 'sk-or-v1-test']);
+
+        Http::fake([
+            'openrouter.ai/*' => Http::response([
+                'choices' => [[
+                    'message' => [
+                        'role' => 'assistant',
+                        'tool_calls' => [[
+                            'id' => 'call_1',
+                            'type' => 'function',
+                            'function' => [
+                                'name' => 'provide_help',
+                                'arguments' => json_encode(['answer' => 'Open Settings → Plan to upgrade.', 'confident' => true]),
+                            ],
+                        ]],
+                    ],
+                    'finish_reason' => 'tool_calls',
+                ]],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson('/support/ask', ['question' => 'How do I upgrade?'])
+            ->assertOk()
+            ->assertJson([
+                'available' => true,
+                'answer' => 'Open Settings → Plan to upgrade.',
+                'confident' => true,
+            ]);
+    }
+
     public function test_it_degrades_when_ai_is_not_configured(): void
     {
         config(['ai.anthropic.key' => null]);

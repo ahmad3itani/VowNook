@@ -26,6 +26,16 @@ return [
         'version' => env('ANTHROPIC_VERSION', '2023-06-01'),
     ],
 
+    // OpenRouter (OpenAI-compatible gateway to many models, incl. Claude). The
+    // provider is auto-detected from the key prefix (`sk-or-…`), so the key can
+    // live in either ANTHROPIC_API_KEY or OPENROUTER_API_KEY and still work.
+    'openrouter' => [
+        'key' => env('OPENROUTER_API_KEY'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
+        // A widely-available, stable slug; override for a newer/cheaper model.
+        'model' => env('AI_OPENROUTER_MODEL', 'anthropic/claude-3.5-sonnet'),
+    ],
+
     // Balanced model for structured generation/extraction at consumer volume.
     'model' => env('AI_MODEL', 'claude-sonnet-4-6'),
 
