@@ -517,6 +517,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('honeymoon/generate', [HoneymoonController::class, 'generate'])
             ->middleware('throttle:10,1')->name('honeymoon.generate');
         Route::put('honeymoon/choose', [HoneymoonController::class, 'choose'])->name('honeymoon.choose');
+        Route::post('honeymoon/registry', [HoneymoonController::class, 'addToRegistry'])->name('honeymoon.registry');
         Route::delete('honeymoon', [HoneymoonController::class, 'startOver'])->name('honeymoon.reset');
     });
 

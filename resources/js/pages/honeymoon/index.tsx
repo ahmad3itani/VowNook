@@ -2,6 +2,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import {
     CalendarDays,
     Check,
+    Gift,
     Hotel,
     Plane,
     RotateCcw,
@@ -25,6 +26,12 @@ type LivePrice = {
     currency: string;
 };
 type Live = { configured: boolean; flight: LivePrice; hotel: LivePrice } | null;
+type Experience = {
+    name: string;
+    blurb: string;
+    est_cents: number;
+    url: string;
+};
 type Pkg = {
     tier: Tier;
     destination: string;
@@ -52,6 +59,9 @@ type PageProps = {
     stays_url: string | null;
     flights_url: string | null;
     live: Live;
+    experiences: Experience[];
+    registry_added: boolean;
+    experiences_partner: string;
     affiliate_partner: string;
     flights_partner: string;
     ai_enabled: boolean;
@@ -85,6 +95,9 @@ export default function HoneymoonIndex({
     stays_url,
     flights_url,
     live,
+    experiences,
+    registry_added,
+    experiences_partner,
     affiliate_partner,
     flights_partner,
     ai_enabled,
@@ -183,6 +196,9 @@ export default function HoneymoonIndex({
                                 staysUrl={stays_url}
                                 flightsUrl={flights_url}
                                 live={live}
+                                experiences={experiences}
+                                registryAdded={registry_added}
+                                experiencesPartner={experiences_partner}
                                 affiliatePartner={affiliate_partner}
                                 flightsPartner={flights_partner}
                             />
@@ -439,6 +455,9 @@ function ChosenBooking({
     staysUrl,
     flightsUrl,
     live,
+    experiences,
+    registryAdded,
+    experiencesPartner,
     affiliatePartner,
     flightsPartner,
 }: {
@@ -446,9 +465,26 @@ function ChosenBooking({
     staysUrl: string | null;
     flightsUrl: string | null;
     live: Live;
+    experiences: Experience[];
+    registryAdded: boolean;
+    experiencesPartner: string;
     affiliatePartner: string;
     flightsPartner: string;
 }) {
+    function fundWithRegistry() {
+        router.post(
+            '/honeymoon/registry',
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () =>
+                    toast.success(
+                        'Added to your registry — guests can chip in now.',
+                    ),
+            },
+        );
+    }
+
     const breakdown = [
         { label: 'Flights', cents: pkg.flight_cents },
         { label: 'Hotel', cents: pkg.hotel_cents },
@@ -503,6 +539,51 @@ function ChosenBooking({
                     </div>
                 )}
 
+                {/* Experiences */}
+                {experiences.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                        <h3 className="text-sm font-medium">
+                            Experiences to book
+                        </h3>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                            {experiences.map((x, i) => (
+                                <div
+                                    key={i}
+                                    className="flex flex-col gap-1 rounded-lg border p-3"
+                                >
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p className="text-sm font-medium">
+                                            {x.name}
+                                        </p>
+                                        {x.est_cents > 0 && (
+                                            <span className="shrink-0 text-sm text-[#775a19]">
+                                                {money(x.est_cents)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {x.blurb && (
+                                        <p className="text-xs text-muted-foreground">
+                                            {x.blurb}
+                                        </p>
+                                    )}
+                                    <a
+                                        href={x.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer sponsored"
+                                        className="mt-1 w-fit text-xs font-medium text-[#775a19] hover:underline"
+                                    >
+                                        Find &amp; book →
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Experiences via {experiencesPartner}. VowNook may
+                            earn a small commission if you book.
+                        </p>
+                    </div>
+                )}
+
                 {/* Budget breakdown */}
                 <div className="flex flex-col gap-1.5 rounded-xl border p-4">
                     <h3 className="mb-1 text-sm font-medium">What it costs</h3>
@@ -523,6 +604,34 @@ function ChosenBooking({
                             {money(pkg.total_cents)}
                         </span>
                     </div>
+                </div>
+
+                {/* Registry tie-in — the unique bit: guests fund the real trip */}
+                <div className="flex flex-col items-start gap-2 rounded-xl border border-[#775a19]/30 bg-[#fdf8ee] p-4">
+                    <h3 className="text-sm font-medium">
+                        Let your guests fund it
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        Turn this honeymoon into registry gifts — flights, your
+                        stay, and each experience — so guests can chip in toward
+                        the real trip.
+                    </p>
+                    {registryAdded ? (
+                        <a
+                            href="/registry"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#775a19] hover:underline"
+                        >
+                            <Check className="size-4" /> Added to your registry
+                            — manage it
+                        </a>
+                    ) : (
+                        <Button
+                            onClick={fundWithRegistry}
+                            className="bg-[#775a19] hover:bg-[#634a14]"
+                        >
+                            <Gift className="size-4" /> Add to our registry
+                        </Button>
+                    )}
                 </div>
 
                 {/* Book it */}

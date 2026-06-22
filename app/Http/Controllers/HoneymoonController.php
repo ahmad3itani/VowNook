@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HoneymoonPlan;
+use App\Models\RegistryFund;
 use App\Models\Wedding;
 use App\Support\Affiliates\TravelAffiliates;
 use App\Support\Affiliates\TravelPricing;
@@ -12,6 +13,8 @@ use App\Support\CurrentWedding;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,6 +45,8 @@ class HoneymoonController extends Controller
             ? collect($plan->packages ?? [])->firstWhere('tier', $plan->chosen_tier)
             : null;
 
+        $experiences = [];
+
         if ($chosen) {
             $staysUrl = $affiliates->stay22DestinationUrl($chosen['destination'] ?? null, $plan->start_date, $plan->end_date);
             $flightsUrl = $affiliates->aviasalesRangeUrl($chosen['airport'] ?? null, $plan->start_date, $plan->end_date);
@@ -55,6 +60,14 @@ class HoneymoonController extends Controller
                 'flight' => $pricing->flightPrice($chosen['origin_airport'] ?? null, $chosen['airport'] ?? null, $start, $end),
                 'hotel' => $pricing->hotelPrice($chosen['destination'] ?? null, $start, $end),
             ];
+
+            // Each experience gets a bookable search link at the destination.
+            $experiences = collect($chosen['experiences'] ?? [])->map(fn ($e) => [
+                'name' => $e['name'] ?? '',
+                'blurb' => $e['blurb'] ?? '',
+                'est_cents' => $e['est_cents'] ?? 0,
+                'url' => $affiliates->experienceUrl((string) ($e['name'] ?? ''), $chosen['destination'] ?? null),
+            ])->values();
         }
 
         return Inertia::render('honeymoon/index', [
@@ -68,6 +81,9 @@ class HoneymoonController extends Controller
             'stays_url' => $staysUrl,
             'flights_url' => $flightsUrl,
             'live' => $live,
+            'experiences' => $experiences,
+            'registry_added' => (bool) ($plan?->registry_added ?? false),
+            'experiences_partner' => TravelAffiliates::EXPERIENCES_PARTNER,
             'affiliate_partner' => TravelAffiliates::PARTNER,
             'flights_partner' => TravelAffiliates::FLIGHTS_PARTNER,
             'ai_enabled' => app(AiService::class)->isConfigured() && request()->user()->canUseAi(),
@@ -120,6 +136,7 @@ class HoneymoonController extends Controller
                 'end_date' => $data['end_date'] ?? null,
                 'packages' => $packages,
                 'chosen_tier' => null,
+                'registry_added' => false,
             ],
         );
 
@@ -157,9 +174,71 @@ class HoneymoonController extends Controller
         $wedding = $this->current->get();
         abort_unless($wedding !== null, 403, 'No active wedding.');
 
-        HoneymoonPlan::forWedding($wedding->id)->update(['packages' => null, 'chosen_tier' => null]);
+        HoneymoonPlan::forWedding($wedding->id)->update(['packages' => null, 'chosen_tier' => null, 'registry_added' => false]);
 
         return back();
+    }
+
+    /**
+     * Turn the chosen package into registry funds — flights, the stay, and each
+     * experience — so guests can contribute toward the real honeymoon. Reuses
+     * the existing registry + Stripe contribution flow.
+     */
+    public function addToRegistry(Request $request): RedirectResponse
+    {
+        $wedding = $this->current->get();
+        abort_unless($wedding !== null, 403, 'No active wedding.');
+
+        $plan = HoneymoonPlan::forWedding($wedding->id)->first();
+        $chosen = $plan && $plan->chosen_tier
+            ? collect($plan->packages ?? [])->firstWhere('tier', $plan->chosen_tier)
+            : null;
+
+        abort_unless($chosen !== null, 404);
+
+        if ($plan->registry_added) {
+            return back();
+        }
+
+        $dest = $chosen['destination'] ?? 'our honeymoon';
+        $funds = [];
+
+        if ((int) ($chosen['flight_cents'] ?? 0) > 0) {
+            $funds[] = ['title' => "Flights to {$dest}", 'blurb' => 'Help us get there.', 'goal_cents' => (int) $chosen['flight_cents']];
+        }
+        if ((int) ($chosen['hotel_cents'] ?? 0) > 0) {
+            $funds[] = ['title' => trim((string) ($chosen['hotel_name'] ?? '')) ?: "Our stay in {$dest}", 'blurb' => "Our stay in {$dest}.", 'goal_cents' => (int) $chosen['hotel_cents']];
+        }
+        foreach ($chosen['experiences'] ?? [] as $exp) {
+            if ((int) ($exp['est_cents'] ?? 0) > 0 && filled($exp['name'] ?? null)) {
+                $funds[] = ['title' => (string) $exp['name'], 'blurb' => (string) ($exp['blurb'] ?? ''), 'goal_cents' => (int) $exp['est_cents']];
+            }
+        }
+
+        if ($funds === []) {
+            return back();
+        }
+
+        $sort = (int) RegistryFund::forWedding($wedding->id)->max('sort_order');
+
+        DB::transaction(function () use ($funds, $wedding, &$sort) {
+            foreach ($funds as $f) {
+                RegistryFund::create([
+                    'wedding_id' => $wedding->id,
+                    'title' => Str::limit($f['title'], 160, ''),
+                    'blurb' => $f['blurb'] !== '' ? $f['blurb'] : null,
+                    'type' => 'honeymoon',
+                    'goal_cents' => $f['goal_cents'],
+                    'raised_cents' => 0,
+                    'sort_order' => ++$sort,
+                    'is_active' => true,
+                ]);
+            }
+        });
+
+        $plan->update(['registry_added' => true]);
+
+        return back()->with('status', 'honeymoon-registry-added');
     }
 
     // ── AI ───────────────────────────────────────────────────────────────────
@@ -203,6 +282,19 @@ class HoneymoonController extends Controller
                                             'spend_dollars' => ['type' => 'number', 'description' => 'Suggested spend that day, CAD.'],
                                         ],
                                         'required' => ['title', 'plan', 'spend_dollars'],
+                                    ],
+                                ],
+                                'experiences' => [
+                                    'type' => 'array',
+                                    'description' => '3-6 specific bookable experiences/activities for this trip.',
+                                    'items' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'name' => ['type' => 'string', 'description' => 'A specific experience, e.g. "Sunset catamaran cruise".'],
+                                            'blurb' => ['type' => 'string', 'description' => 'One short line on why it’s special.'],
+                                            'est_dollars' => ['type' => 'number', 'description' => 'Estimated cost for two, CAD.'],
+                                        ],
+                                        'required' => ['name', 'est_dollars'],
                                     ],
                                 ],
                             ],
@@ -298,6 +390,17 @@ class HoneymoonController extends Controller
                     ->values()
                     ->all();
 
+                $experiences = collect($p['experiences'] ?? [])
+                    ->take(8)
+                    ->map(fn ($e) => [
+                        'name' => (string) ($e['name'] ?? ''),
+                        'blurb' => (string) ($e['blurb'] ?? ''),
+                        'est_cents' => $this->cents($e['est_dollars'] ?? 0),
+                    ])
+                    ->filter(fn ($e) => $e['name'] !== '')
+                    ->values()
+                    ->all();
+
                 return [
                     'tier' => $p['tier'],
                     'destination' => (string) ($p['destination'] ?? ''),
@@ -311,6 +414,7 @@ class HoneymoonController extends Controller
                     'food_cents' => $food,
                     'total_cents' => $flight + $hotel + $activities + $food,
                     'days' => $days,
+                    'experiences' => $experiences,
                 ];
             })
             ->filter(fn ($p) => $p !== null && $p['destination'] !== '')

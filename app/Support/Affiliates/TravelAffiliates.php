@@ -23,6 +23,26 @@ class TravelAffiliates
     /** The flight-search partner shown in the disclosure line. */
     public const FLIGHTS_PARTNER = 'Aviasales';
 
+    /** The experiences partner shown in the disclosure line. */
+    public const EXPERIENCES_PARTNER = 'GetYourGuide';
+
+    /**
+     * A GetYourGuide search deep link for an experience at a destination, with
+     * our partner id when configured. Always returns a usable search URL.
+     */
+    public function experienceUrl(string $name, ?string $destination = null): string
+    {
+        $query = trim($name.' '.($destination ?? ''));
+
+        $params = ['q' => $query];
+
+        if (filled(config('affiliates.getyourguide.partner_id'))) {
+            $params['partner_id'] = config('affiliates.getyourguide.partner_id');
+        }
+
+        return rtrim((string) config('affiliates.getyourguide.search_base'), '?').'?'.http_build_query($params);
+    }
+
     public function isConfigured(): bool
     {
         return filled(config('affiliates.stay22.id'));

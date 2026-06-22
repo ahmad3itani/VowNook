@@ -24,6 +24,7 @@ class HoneymoonPlan extends Model
         'preferences',
         'packages',
         'chosen_tier',
+        'registry_added',
     ];
 
     protected function casts(): array
@@ -34,6 +35,7 @@ class HoneymoonPlan extends Model
             'budget_items' => 'array',
             'preferences' => 'array',
             'packages' => 'array',
+            'registry_added' => 'boolean',
         ];
     }
 

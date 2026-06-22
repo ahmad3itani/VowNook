@@ -32,6 +32,16 @@ return [
     ],
 
     /*
+    | GetYourGuide — experiences/activities affiliate. We deep-link to a search
+    | for each AI-suggested experience; the partner id (optional) tracks
+    | commission. Without it, links still work as a plain search.
+    */
+    'getyourguide' => [
+        'partner_id' => env('GETYOURGUIDE_PARTNER_ID'),
+        'search_base' => env('GETYOURGUIDE_SEARCH_BASE', 'https://www.getyourguide.com/s/'),
+    ],
+
+    /*
     | Travelpayouts (Aviasales) — flight-search affiliate. The "marker" is the
     | partner id appended to the search link; commission is tracked against it.
     | Inert until the marker is set. Guests are sent to a flight search to the

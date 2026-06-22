@@ -43,7 +43,7 @@ class HoneymoonTest extends TestCase
             'content' => [['type' => 'tool_use', 'name' => 'propose_honeymoons', 'input' => [
                 'packages' => [
                     ['tier' => 'essential', 'destination' => 'Riviera Maya', 'airport' => 'CUN', 'why' => 'Most beach for your budget.', 'hotel_name' => 'Resort A', 'flight_estimate_dollars' => 640, 'hotel_estimate_dollars' => 3120, 'activities_estimate_dollars' => 800, 'food_estimate_dollars' => 900, 'days' => [['title' => 'Arrive', 'plan' => 'Settle in.', 'spend_dollars' => 120]]],
-                    ['tier' => 'signature', 'destination' => 'Maui, Hawaii', 'airport' => 'ogg', 'why' => 'Your vibe exactly.', 'hotel_name' => 'Ocean Suite', 'flight_estimate_dollars' => 980, 'hotel_estimate_dollars' => 4560, 'activities_estimate_dollars' => 1200, 'food_estimate_dollars' => 1100, 'days' => [['title' => 'Road to Hana', 'plan' => 'Scenic drive.', 'spend_dollars' => 190]]],
+                    ['tier' => 'signature', 'destination' => 'Maui, Hawaii', 'airport' => 'ogg', 'why' => 'Your vibe exactly.', 'hotel_name' => 'Ocean Suite', 'flight_estimate_dollars' => 980, 'hotel_estimate_dollars' => 4560, 'activities_estimate_dollars' => 1200, 'food_estimate_dollars' => 1100, 'days' => [['title' => 'Road to Hana', 'plan' => 'Scenic drive.', 'spend_dollars' => 190]], 'experiences' => [['name' => 'Sunset catamaran cruise', 'blurb' => 'Champagne at sea.', 'est_dollars' => 180]]],
                     ['tier' => 'dream', 'destination' => 'Bora Bora', 'airport' => 'BOB', 'why' => 'The splurge.', 'hotel_name' => 'Overwater Villa', 'flight_estimate_dollars' => 1840, 'hotel_estimate_dollars' => 7900, 'activities_estimate_dollars' => 2000, 'food_estimate_dollars' => 1500, 'days' => [['title' => 'Lagoon', 'plan' => 'Snorkel.', 'spend_dollars' => 260]]],
                 ],
             ]]],
@@ -86,6 +86,34 @@ class HoneymoonTest extends TestCase
         $this->assertSame('essential', $plan->packages[0]['tier']);
         $this->assertSame('OGG', $plan->packages[1]['airport']); // normalised to uppercase
         $this->assertSame((640 + 3120 + 800 + 900) * 100, $plan->packages[0]['total_cents']);
+        $this->assertSame('Sunset catamaran cruise', $plan->packages[1]['experiences'][0]['name']);
+        $this->assertSame(18000, $plan->packages[1]['experiences'][0]['est_cents']);
+    }
+
+    public function test_add_to_registry_creates_funds_from_the_chosen_package(): void
+    {
+        [$user, $wedding] = $this->premiumCouple();
+        HoneymoonPlan::create([
+            'wedding_id' => $wedding->id,
+            'chosen_tier' => 'signature',
+            'packages' => [[
+                'tier' => 'signature', 'destination' => 'Maui', 'airport' => 'OGG', 'origin_airport' => 'YYZ',
+                'why' => 'Yes', 'hotel_name' => 'Ocean Suite', 'flight_cents' => 98000, 'hotel_cents' => 456000,
+                'activities_cents' => 0, 'food_cents' => 0, 'total_cents' => 554000, 'days' => [],
+                'experiences' => [['name' => 'Catamaran cruise', 'blurb' => 'Sunset.', 'est_cents' => 18000]],
+            ]],
+        ]);
+
+        $this->actingAs($user)->post('/honeymoon/registry')->assertRedirect();
+
+        $this->assertDatabaseHas('registry_funds', ['wedding_id' => $wedding->id, 'title' => 'Flights to Maui', 'type' => 'honeymoon', 'goal_cents' => 98000]);
+        $this->assertDatabaseHas('registry_funds', ['wedding_id' => $wedding->id, 'title' => 'Ocean Suite', 'goal_cents' => 456000]);
+        $this->assertDatabaseHas('registry_funds', ['wedding_id' => $wedding->id, 'title' => 'Catamaran cruise', 'goal_cents' => 18000]);
+        $this->assertDatabaseHas('honeymoon_plans', ['wedding_id' => $wedding->id, 'registry_added' => true]);
+
+        // Idempotent — a second add does not duplicate.
+        $this->actingAs($user)->post('/honeymoon/registry')->assertRedirect();
+        $this->assertDatabaseCount('registry_funds', 3);
     }
 
     public function test_generate_degrades_when_not_configured(): void
@@ -113,6 +141,7 @@ class HoneymoonTest extends TestCase
                 'tier' => 'signature', 'destination' => 'Maui', 'airport' => 'OGG', 'why' => 'Yes',
                 'hotel_name' => 'Suite', 'flight_cents' => 98000, 'hotel_cents' => 456000,
                 'activities_cents' => 120000, 'food_cents' => 110000, 'total_cents' => 784000, 'days' => [],
+                'experiences' => [['name' => 'Lava tour', 'blurb' => 'Wow.', 'est_cents' => 22000]],
             ]],
         ]);
 
@@ -128,6 +157,8 @@ class HoneymoonTest extends TestCase
                 ->where('chosen_tier', 'signature')
                 ->whereType('stays_url', 'string')
                 ->whereType('flights_url', 'string')
+                ->where('experiences.0.name', 'Lava tour')
+                ->where('experiences.0.url', fn ($u) => str_contains((string) $u, 'getyourguide.com'))
             );
     }
 
