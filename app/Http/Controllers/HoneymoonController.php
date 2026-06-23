@@ -144,7 +144,7 @@ class HoneymoonController extends Controller
     }
 
     /** Lock in one of the three tiers; copies its details onto the plan for booking. */
-    public function choose(Request $request): RedirectResponse
+    public function choose(Request $request, AiService $ai): RedirectResponse
     {
         $wedding = $this->current->get();
         abort_unless($wedding !== null, 403, 'No active wedding.');
@@ -154,10 +154,26 @@ class HoneymoonController extends Controller
         $plan = HoneymoonPlan::forWedding($wedding->id)->first();
         abort_unless($plan !== null, 404);
 
-        $pkg = collect($plan->packages ?? [])->firstWhere('tier', $data['tier']);
-        abort_unless($pkg !== null, 404);
+        $packages = $plan->packages ?? [];
+        $index = collect($packages)->search(fn ($p) => is_array($p) && ($p['tier'] ?? null) === $data['tier']);
+        abort_unless($index !== false, 404);
+
+        $pkg = $packages[$index];
+
+        // Day-by-day is generated here — for the one destination they picked —
+        // rather than for all three packages at craft time, so each AI call
+        // stays small and fast (and never times out). Cached on the package.
+        if (empty($pkg['days']) && $request->user()->canUseAi() && $ai->isConfigured()) {
+            $days = $this->craftItinerary($ai, $pkg, $plan->preferences ?? []);
+
+            if ($days !== []) {
+                $pkg['days'] = $days;
+                $packages[$index] = $pkg;
+            }
+        }
 
         $plan->update([
+            'packages' => $packages,
             'chosen_tier' => $data['tier'],
             'destination' => $pkg['destination'] ?? null,
             'airport' => $pkg['airport'] ?? null,
@@ -271,22 +287,9 @@ class HoneymoonController extends Controller
                                 'hotel_estimate_dollars' => ['type' => 'number', 'description' => 'The whole stay, CAD.'],
                                 'activities_estimate_dollars' => ['type' => 'number', 'description' => 'Activities/experiences for the trip, CAD.'],
                                 'food_estimate_dollars' => ['type' => 'number', 'description' => 'Food & dining for the trip, CAD.'],
-                                'days' => [
-                                    'type' => 'array',
-                                    'description' => 'A day-by-day plan, one entry per day.',
-                                    'items' => [
-                                        'type' => 'object',
-                                        'properties' => [
-                                            'title' => ['type' => 'string', 'description' => 'Short day title, e.g. "Arrival & sunset dinner".'],
-                                            'plan' => ['type' => 'string', 'description' => 'One sentence on the day’s plan.'],
-                                            'spend_dollars' => ['type' => 'number', 'description' => 'Suggested spend that day, CAD.'],
-                                        ],
-                                        'required' => ['title', 'plan', 'spend_dollars'],
-                                    ],
-                                ],
                                 'experiences' => [
                                     'type' => 'array',
-                                    'description' => '3-6 specific bookable experiences/activities for this trip.',
+                                    'description' => '3-4 specific bookable experiences/activities for this trip.',
                                     'items' => [
                                         'type' => 'object',
                                         'properties' => [
@@ -298,7 +301,7 @@ class HoneymoonController extends Controller
                                     ],
                                 ],
                             ],
-                            'required' => ['tier', 'destination', 'airport', 'why', 'hotel_name', 'flight_estimate_dollars', 'hotel_estimate_dollars', 'days'],
+                            'required' => ['tier', 'destination', 'airport', 'why', 'hotel_name', 'flight_estimate_dollars', 'hotel_estimate_dollars'],
                         ],
                     ],
                 ],
@@ -306,9 +309,12 @@ class HoneymoonController extends Controller
             ],
         ];
 
-        $result = $ai->generateStructured($this->conciergeSystem(), $this->context($wedding, $data), $tool);
+        // A focused call (no day-by-day here — that's generated for the chosen
+        // package only) so it stays well under the request timeout. Allow extra
+        // headroom since it returns three packages.
+        $result = $ai->generateStructured($this->conciergeSystem(), $this->context($wedding, $data), $tool, 45);
 
-        return $this->normalizePackages($result['packages'] ?? []);
+        return $this->normalizePackages($result['packages'] ?? [], $this->nights($data) ?? 7);
     }
 
     private function conciergeSystem(): string
@@ -318,7 +324,7 @@ class HoneymoonController extends Controller
             .'and the best fit for their vibe), and "dream" (an aspirational stretch). For each: a specific real '
             .'destination with its nearest airport IATA code, a warm short "why this one", a specific real hotel or '
             .'resort, realistic Canadian-dollar estimates (flights for two, the whole hotel stay, activities, food), '
-            .'and a day-by-day plan — one line and a suggested daily spend per day, for the full number of nights. '
+            .'and 3-4 bookable experiences. Do NOT write a day-by-day plan here. '
             .'Be concrete and tasteful: real places, real-ish prices, genuinely different tiers.';
     }
 
@@ -366,10 +372,10 @@ class HoneymoonController extends Controller
      * @param  array<int, mixed>  $raw
      * @return array<int, array<string,mixed>>
      */
-    private function normalizePackages(array $raw): array
+    private function normalizePackages(array $raw, int $nights): array
     {
         return collect($raw)
-            ->map(function ($p) {
+            ->map(function ($p) use ($nights) {
                 if (! is_array($p) || ! in_array($p['tier'] ?? null, self::TIERS, true)) {
                     return null;
                 }
@@ -378,17 +384,6 @@ class HoneymoonController extends Controller
                 $hotel = $this->cents($p['hotel_estimate_dollars'] ?? 0);
                 $activities = $this->cents($p['activities_estimate_dollars'] ?? 0);
                 $food = $this->cents($p['food_estimate_dollars'] ?? 0);
-
-                $days = collect($p['days'] ?? [])
-                    ->take(30)
-                    ->map(fn ($d) => [
-                        'title' => (string) ($d['title'] ?? ''),
-                        'plan' => (string) ($d['plan'] ?? ''),
-                        'spend_cents' => $this->cents($d['spend_dollars'] ?? 0),
-                    ])
-                    ->filter(fn ($d) => $d['title'] !== '')
-                    ->values()
-                    ->all();
 
                 $experiences = collect($p['experiences'] ?? [])
                     ->take(8)
@@ -413,13 +408,82 @@ class HoneymoonController extends Controller
                     'activities_cents' => $activities,
                     'food_cents' => $food,
                     'total_cents' => $flight + $hotel + $activities + $food,
-                    'days' => $days,
+                    'nights' => $nights,
+                    'days' => [],   // generated for the chosen package only (see choose()).
                     'experiences' => $experiences,
                 ];
             })
             ->filter(fn ($p) => $p !== null && $p['destination'] !== '')
             ->unique('tier')
             ->sortBy(fn ($p) => array_search($p['tier'], self::TIERS, true))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * A day-by-day plan for the chosen package's destination, generated on
+     * demand at choose() time. Kept small (one destination) so it returns
+     * quickly; degrades to [] on any AI failure.
+     *
+     * @param  array<string,mixed>  $pkg
+     * @param  array<string,mixed>  $preferences
+     * @return array<int, array{title:string, plan:string, spend_cents:int}>
+     */
+    private function craftItinerary(AiService $ai, array $pkg, array $preferences): array
+    {
+        $nights = max(1, min((int) ($pkg['nights'] ?? 7), 21));
+
+        $tool = [
+            'name' => 'honeymoon_itinerary',
+            'description' => 'Return a day-by-day plan for one honeymoon.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'days' => [
+                        'type' => 'array',
+                        'description' => "A day-by-day plan: exactly one entry for each of the {$nights} nights.",
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'title' => ['type' => 'string', 'description' => 'Short day title, e.g. "Arrival & sunset dinner".'],
+                                'plan' => ['type' => 'string', 'description' => 'One sentence on the day’s plan.'],
+                                'spend_dollars' => ['type' => 'number', 'description' => 'Suggested spend that day, CAD.'],
+                            ],
+                            'required' => ['title', 'plan', 'spend_dollars'],
+                        ],
+                    ],
+                ],
+                'required' => ['days'],
+            ],
+        ];
+
+        $system = 'You are an elite honeymoon concierge. Write a warm, concrete day-by-day plan — '
+            .'one short line and a suggested daily spend (CAD) for each day.';
+
+        $prompt = "Plan a {$nights}-night honeymoon in ".($pkg['destination'] ?? 'the destination')
+            .', staying at '.($pkg['hotel_name'] ?? 'a lovely hotel').'.';
+
+        if (filled($pkg['why'] ?? null)) {
+            $prompt .= ' The vibe: '.$pkg['why'];
+        }
+        if (filled($preferences['interests'] ?? null)) {
+            $prompt .= ' They love: '.trim((string) $preferences['interests']).'.';
+        }
+
+        try {
+            $result = $ai->generateStructured($system, $prompt, $tool, 30);
+        } catch (AiException) {
+            return []; // The chosen view still works without a day-by-day.
+        }
+
+        return collect($result['days'] ?? [])
+            ->take(30)
+            ->map(fn ($d) => [
+                'title' => (string) ($d['title'] ?? ''),
+                'plan' => (string) ($d['plan'] ?? ''),
+                'spend_cents' => $this->cents($d['spend_dollars'] ?? 0),
+            ])
+            ->filter(fn ($d) => $d['title'] !== '')
             ->values()
             ->all();
     }

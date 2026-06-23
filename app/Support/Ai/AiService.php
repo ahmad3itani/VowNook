@@ -101,15 +101,15 @@ class AiService
      *
      * @throws AiException
      */
-    public function generateStructured(string $system, string $userPrompt, array $tool): array
+    public function generateStructured(string $system, string $userPrompt, array $tool, ?int $timeout = null): array
     {
         if (! $this->isConfigured()) {
             throw new AiException('AI assistance is not configured.');
         }
 
         return $this->provider() === 'openrouter'
-            ? $this->viaOpenRouter($system, $userPrompt, $tool)
-            : $this->viaAnthropic($system, $userPrompt, $tool);
+            ? $this->viaOpenRouter($system, $userPrompt, $tool, $timeout)
+            : $this->viaAnthropic($system, $userPrompt, $tool, $timeout);
     }
 
     /**
@@ -349,7 +349,7 @@ class AiService
      *
      * @throws AiException
      */
-    protected function viaAnthropic(string $system, string $userPrompt, array $tool): array
+    protected function viaAnthropic(string $system, string $userPrompt, array $tool, ?int $timeout = null): array
     {
         $response = $this->post(
             config('ai.anthropic.base_url'),
@@ -367,6 +367,7 @@ class AiService
                 'tool_choice' => ['type' => 'tool', 'name' => $tool['name']],
                 'messages' => [['role' => 'user', 'content' => $userPrompt]],
             ],
+            $timeout,
         );
 
         foreach ($response['content'] ?? [] as $block) {
@@ -386,7 +387,7 @@ class AiService
      *
      * @throws AiException
      */
-    protected function viaOpenRouter(string $system, string $userPrompt, array $tool): array
+    protected function viaOpenRouter(string $system, string $userPrompt, array $tool, ?int $timeout = null): array
     {
         $response = $this->post(
             config('ai.openrouter.base_url'),
@@ -415,6 +416,7 @@ class AiService
                 ]],
                 'tool_choice' => ['type' => 'function', 'function' => ['name' => $tool['name']]],
             ],
+            $timeout,
         );
 
         $call = $response['choices'][0]['message']['tool_calls'][0] ?? null;
@@ -443,11 +445,11 @@ class AiService
      *
      * @throws AiException
      */
-    protected function post(string $baseUrl, string $endpoint, array $headers, array $payload): array
+    protected function post(string $baseUrl, string $endpoint, array $headers, array $payload, ?int $timeout = null): array
     {
         try {
             $response = Http::withHeaders($headers)
-                ->timeout((int) config('ai.timeout'))
+                ->timeout($timeout ?? (int) config('ai.timeout'))
                 ->baseUrl(rtrim((string) $baseUrl, '/'))
                 ->post($endpoint, $payload);
         } catch (ConnectionException $e) {

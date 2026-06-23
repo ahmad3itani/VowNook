@@ -8,7 +8,7 @@ import {
     RotateCcw,
     Sparkles,
 } from 'lucide-react';
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ type Pkg = {
     activities_cents: number;
     food_cents: number;
     total_cents: number;
+    nights: number;
     days: Day[];
 };
 
@@ -111,6 +112,8 @@ export default function HoneymoonIndex({
         interests: preferences.interests ?? '',
     });
 
+    const [choosing, setChoosing] = useState<Tier | null>(null);
+
     const chosen = chosen_tier
         ? (packages.find((p) => p.tier === chosen_tier) ?? null)
         : null;
@@ -127,6 +130,7 @@ export default function HoneymoonIndex({
     }
 
     function choose(tier: Tier) {
+        setChoosing(tier);
         router.put(
             '/honeymoon/choose',
             { tier },
@@ -136,6 +140,7 @@ export default function HoneymoonIndex({
                     toast.success(
                         'Locked in — book your flight & hotel below.',
                     ),
+                onFinish: () => setChoosing(null),
             },
         );
     }
@@ -185,6 +190,8 @@ export default function HoneymoonIndex({
                                     key={p.tier}
                                     pkg={p}
                                     chosen={chosen_tier === p.tier}
+                                    choosing={choosing === p.tier}
+                                    disabled={choosing !== null}
                                     onChoose={() => choose(p.tier)}
                                 />
                             ))}
@@ -341,15 +348,19 @@ function Brief({
 function PackageCard({
     pkg,
     chosen,
+    choosing,
+    disabled,
     onChoose,
 }: {
     pkg: Pkg;
     chosen: boolean;
+    choosing: boolean;
+    disabled: boolean;
     onChoose: () => void;
 }) {
     const meta = TIER_META[pkg.tier];
-    const perDay =
-        pkg.days.length > 0 ? Math.round(pkg.total_cents / pkg.days.length) : 0;
+    const nights = pkg.nights > 0 ? pkg.nights : 0;
+    const perNight = nights > 0 ? Math.round(pkg.total_cents / nights) : 0;
 
     return (
         <Card
@@ -392,10 +403,10 @@ function PackageCard({
                             </span>
                         </span>
                     </p>
-                    {pkg.days.length > 0 && (
+                    {nights > 0 && (
                         <p className="flex items-center gap-2 text-muted-foreground">
                             <CalendarDays className="size-3.5 shrink-0 text-[#775a19]" />
-                            {pkg.days.length}-day plan · ~{money(perDay)}/day
+                            {nights}-night trip · ~{money(perNight)}/night
                         </p>
                     )}
                 </div>
@@ -409,6 +420,7 @@ function PackageCard({
 
                 <Button
                     onClick={onChoose}
+                    disabled={disabled}
                     variant={chosen ? 'outline' : 'default'}
                     className={
                         chosen
@@ -416,7 +428,11 @@ function PackageCard({
                             : 'bg-[#775a19] hover:bg-[#634a14]'
                     }
                 >
-                    {chosen ? (
+                    {choosing ? (
+                        <>
+                            <Spinner /> Planning your days…
+                        </>
+                    ) : chosen ? (
                         <>
                             <Check className="size-4" /> Chosen
                         </>

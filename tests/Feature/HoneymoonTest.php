@@ -39,12 +39,27 @@ class HoneymoonTest extends TestCase
 
     private function fakePackages(): void
     {
+        // Lean packages — the craft call no longer returns a day-by-day (that is
+        // generated for the chosen package only, in choose()).
         Http::fake(['api.anthropic.com/*' => Http::response([
             'content' => [['type' => 'tool_use', 'name' => 'propose_honeymoons', 'input' => [
                 'packages' => [
-                    ['tier' => 'essential', 'destination' => 'Riviera Maya', 'airport' => 'CUN', 'why' => 'Most beach for your budget.', 'hotel_name' => 'Resort A', 'flight_estimate_dollars' => 640, 'hotel_estimate_dollars' => 3120, 'activities_estimate_dollars' => 800, 'food_estimate_dollars' => 900, 'days' => [['title' => 'Arrive', 'plan' => 'Settle in.', 'spend_dollars' => 120]]],
-                    ['tier' => 'signature', 'destination' => 'Maui, Hawaii', 'airport' => 'ogg', 'why' => 'Your vibe exactly.', 'hotel_name' => 'Ocean Suite', 'flight_estimate_dollars' => 980, 'hotel_estimate_dollars' => 4560, 'activities_estimate_dollars' => 1200, 'food_estimate_dollars' => 1100, 'days' => [['title' => 'Road to Hana', 'plan' => 'Scenic drive.', 'spend_dollars' => 190]], 'experiences' => [['name' => 'Sunset catamaran cruise', 'blurb' => 'Champagne at sea.', 'est_dollars' => 180]]],
-                    ['tier' => 'dream', 'destination' => 'Bora Bora', 'airport' => 'BOB', 'why' => 'The splurge.', 'hotel_name' => 'Overwater Villa', 'flight_estimate_dollars' => 1840, 'hotel_estimate_dollars' => 7900, 'activities_estimate_dollars' => 2000, 'food_estimate_dollars' => 1500, 'days' => [['title' => 'Lagoon', 'plan' => 'Snorkel.', 'spend_dollars' => 260]]],
+                    ['tier' => 'essential', 'destination' => 'Riviera Maya', 'airport' => 'CUN', 'why' => 'Most beach for your budget.', 'hotel_name' => 'Resort A', 'flight_estimate_dollars' => 640, 'hotel_estimate_dollars' => 3120, 'activities_estimate_dollars' => 800, 'food_estimate_dollars' => 900],
+                    ['tier' => 'signature', 'destination' => 'Maui, Hawaii', 'airport' => 'ogg', 'why' => 'Your vibe exactly.', 'hotel_name' => 'Ocean Suite', 'flight_estimate_dollars' => 980, 'hotel_estimate_dollars' => 4560, 'activities_estimate_dollars' => 1200, 'food_estimate_dollars' => 1100, 'experiences' => [['name' => 'Sunset catamaran cruise', 'blurb' => 'Champagne at sea.', 'est_dollars' => 180]]],
+                    ['tier' => 'dream', 'destination' => 'Bora Bora', 'airport' => 'BOB', 'why' => 'The splurge.', 'hotel_name' => 'Overwater Villa', 'flight_estimate_dollars' => 1840, 'hotel_estimate_dollars' => 7900, 'activities_estimate_dollars' => 2000, 'food_estimate_dollars' => 1500],
+                ],
+            ]]],
+            'stop_reason' => 'tool_use',
+        ])]);
+    }
+
+    private function fakeItinerary(): void
+    {
+        Http::fake(['api.anthropic.com/*' => Http::response([
+            'content' => [['type' => 'tool_use', 'name' => 'honeymoon_itinerary', 'input' => [
+                'days' => [
+                    ['title' => 'Arrival & sunset dinner', 'plan' => 'Settle in and watch the sunset.', 'spend_dollars' => 120],
+                    ['title' => 'Road to Hana', 'plan' => 'Scenic drive with waterfalls.', 'spend_dollars' => 190],
                 ],
             ]]],
             'stop_reason' => 'tool_use',
@@ -88,6 +103,35 @@ class HoneymoonTest extends TestCase
         $this->assertSame((640 + 3120 + 800 + 900) * 100, $plan->packages[0]['total_cents']);
         $this->assertSame('Sunset catamaran cruise', $plan->packages[1]['experiences'][0]['name']);
         $this->assertSame(18000, $plan->packages[1]['experiences'][0]['est_cents']);
+        // Lean craft: nights computed from the dates (Oct 1 → Oct 9), no day-by-day yet.
+        $this->assertSame(8, $plan->packages[0]['nights']);
+        $this->assertSame([], $plan->packages[1]['days']);
+    }
+
+    public function test_choose_generates_a_day_by_day_with_ai(): void
+    {
+        [$user, $wedding] = $this->premiumCouple();
+        $this->enableAi();
+        $this->fakeItinerary();
+
+        HoneymoonPlan::create([
+            'wedding_id' => $wedding->id,
+            'start_date' => '2026-10-01', 'end_date' => '2026-10-09',
+            'preferences' => ['interests' => 'snorkelling'],
+            'packages' => [[
+                'tier' => 'signature', 'destination' => 'Maui', 'airport' => 'OGG', 'why' => 'Yes',
+                'hotel_name' => 'Suite', 'flight_cents' => 98000, 'hotel_cents' => 456000,
+                'activities_cents' => 0, 'food_cents' => 0, 'total_cents' => 554000,
+                'nights' => 8, 'days' => [],
+            ]],
+        ]);
+
+        $this->actingAs($user)->put('/honeymoon/choose', ['tier' => 'signature'])->assertRedirect();
+
+        $plan = HoneymoonPlan::forWedding($wedding->id)->first();
+        $this->assertCount(2, $plan->packages[0]['days']);
+        $this->assertSame('Arrival & sunset dinner', $plan->packages[0]['days'][0]['title']);
+        $this->assertSame(12000, $plan->packages[0]['days'][0]['spend_cents']);
     }
 
     public function test_add_to_registry_creates_funds_from_the_chosen_package(): void
