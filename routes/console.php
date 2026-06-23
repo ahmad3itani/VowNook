@@ -23,3 +23,7 @@ Schedule::command('admin:daily-digest')->dailyAt('08:00');
 // topic queue. No-ops until BLOG_AUTOPILOT_ENABLED=true, so a slow, steady
 // cadence (one per week) keeps it clear of scaled-content penalties.
 Schedule::command('blog:autopilot')->weeklyOn(2, '09:00'); // Tuesdays
+
+// Local SEO: fills programmatic Ontario pages (hubs + gated city pages) with
+// unique stored guide copy + FAQs. No-ops until LOCAL_SEO_AUTOFILL_ENABLED=true.
+Schedule::command('seo:generate-local')->weeklyOn(4, '09:00'); // Thursdays

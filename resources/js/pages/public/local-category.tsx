@@ -7,12 +7,16 @@ const fraunces = "font-['Fraunces']";
 type CityLink = { slug: string; name: string; count: number; url: string };
 type CatLink = { noun: string; url: string };
 
+type Faq = { question: string; answer: string };
+
 type Props = {
     category: { slug: string; noun: string; label: string };
     vendors: VendorCardData[];
     cities: CityLink[];
     total: number;
     other_categories: CatLink[];
+    intro_html: string | null;
+    faqs: Faq[];
 };
 
 function PublicNav() {
@@ -33,7 +37,7 @@ function PublicNav() {
     );
 }
 
-export default function LocalCategory({ category, vendors, cities, total, other_categories }: Props) {
+export default function LocalCategory({ category, vendors, cities, total, other_categories, intro_html, faqs }: Props) {
     return (
         <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613]">
             <Head title={`${category.noun} in Ontario`} />
@@ -57,6 +61,16 @@ export default function LocalCategory({ category, vendors, cities, total, other_
                     </p>
                 </div>
             </section>
+
+            {/* Local guide (AI-written, stored) */}
+            {intro_html && (
+                <section className="px-5 pb-12 md:px-12">
+                    <div
+                        className="mx-auto max-w-[760px] space-y-4 text-[15px] leading-relaxed text-[#52493d] [&_a]:text-[#8a651c] [&_a]:underline"
+                        dangerouslySetInnerHTML={{ __html: intro_html }}
+                    />
+                </section>
+            )}
 
             {/* Cities */}
             <section className="px-5 pb-12 md:px-12">
@@ -111,6 +125,23 @@ export default function LocalCategory({ category, vendors, cities, total, other_
                     </div>
                 </div>
             </section>
+
+            {/* FAQ */}
+            {faqs.length > 0 && (
+                <section className="px-5 pb-16 md:px-12">
+                    <div className="mx-auto max-w-[760px]">
+                        <h2 className={`${fraunces} mb-6 text-2xl font-light`}>Frequently asked questions</h2>
+                        <div className="divide-y divide-[#191613]/10">
+                            {faqs.map((f, i) => (
+                                <div key={i} className="py-4">
+                                    <h3 className="text-[15px] font-medium text-[#191613]">{f.question}</h3>
+                                    <p className="mt-2 text-[15px] leading-relaxed text-[#52493d]">{f.answer}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             <section className="bg-[#191613] px-5 py-16 text-center text-[#faf6ef] md:py-20">
                 <h2 className={`${fraunces} text-3xl font-light sm:text-4xl`}>Plan it all in one place</h2>

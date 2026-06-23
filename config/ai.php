@@ -70,4 +70,22 @@ return [
         'min_words' => max(300, (int) env('BLOG_AUTOPILOT_MIN_WORDS', 500)),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Local-SEO autofill
+    |--------------------------------------------------------------------------
+    |
+    | A scheduled command (`seo:generate-local`) writes unique local-guide copy
+    | + FAQs for the programmatic Ontario pages (category hubs + city pages that
+    | clear the vendor gate), stored once so listing pages stop being thin. OFF
+    | by default; generated content is stable, not regenerated per request.
+    |
+    */
+
+    'local_seo' => [
+        'enabled' => (bool) env('LOCAL_SEO_AUTOFILL_ENABLED', false),
+        // Pages to fill per scheduled run (keep small to stay under timeouts).
+        'per_run' => max(1, (int) env('LOCAL_SEO_PER_RUN', 5)),
+    ],
+
 ];
