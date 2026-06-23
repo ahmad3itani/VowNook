@@ -9,6 +9,7 @@ use App\Models\WeddingWebsite;
 use App\Support\MarketplaceCatalog;
 use App\Support\OntarioCities;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 
 /**
  * Plain XML sitemap for the public surface: home, the marketplace, the
@@ -27,45 +28,62 @@ class SitemapController extends Controller
     {
         $today = now()->toAtomString();
 
+        // Published articles drive the blog index's freshness, so fetch them first.
+        $posts = BlogPost::query()
+            ->published()
+            ->orderByDesc('published_at')
+            ->get(['slug', 'updated_at', 'cover_image_path']);
+
         $urls = [
             ['loc' => url('/'), 'changefreq' => 'weekly', 'lastmod' => $today],
             ['loc' => route('public.marketplace'), 'changefreq' => 'daily', 'lastmod' => $today],
+            // Static marketing page — no meaningful lastmod (changes only on deploy).
             ['loc' => url('/how-it-works'), 'changefreq' => 'monthly'],
-            ['loc' => route('blog.index'), 'changefreq' => 'weekly'],
+            ['loc' => route('blog.index'), 'changefreq' => 'weekly', 'lastmod' => $posts->max('updated_at')?->toAtomString()],
         ];
 
         // Published blog articles (cover image attached for Google Images).
-        BlogPost::query()
-            ->published()
-            ->orderByDesc('published_at')
-            ->get(['slug', 'updated_at', 'cover_image_path'])
-            ->each(function (BlogPost $post) use (&$urls) {
-                $urls[] = [
-                    'loc' => route('blog.show', $post->slug),
-                    'lastmod' => $post->updated_at?->toAtomString(),
-                    'changefreq' => 'monthly',
-                    'images' => array_filter([$post->coverUrl()]),
-                ];
-            });
+        $posts->each(function (BlogPost $post) use (&$urls) {
+            $urls[] = [
+                'loc' => route('blog.show', $post->slug),
+                'lastmod' => $post->updated_at?->toAtomString(),
+                'changefreq' => 'monthly',
+                'images' => array_filter([$post->coverUrl()]),
+            ];
+        });
+
+        // Freshness for the listing pages: the most recent published-vendor update
+        // per category (one grouped query). A category hub is "fresh" when a
+        // vendor in it changes.
+        $categoryFreshness = VendorProfile::published()
+            ->selectRaw('category, MAX(updated_at) as max_updated')
+            ->groupBy('category')
+            ->pluck('max_updated', 'category');
 
         // Programmatic local-SEO pages: every category hub, plus city pages that
         // clear the vendor-count quality gate (we never list noindex'd thin pages).
         foreach (VendorCategory::seoCases() as $category) {
+            $catUpdated = $categoryFreshness[$category->value] ?? null;
+
             $urls[] = [
                 'loc' => route('local.category', $category->seoSlug()),
                 'changefreq' => 'weekly',
+                'lastmod' => $catUpdated ? Carbon::parse($catUpdated)->toAtomString() : null,
             ];
 
             foreach (OntarioCities::all() as $citySlug => $city) {
-                $count = $this->catalog->browse([
+                // Reuse the same query for the count and the city page's freshness
+                // (most recently updated vendor in this category + city).
+                $results = $this->catalog->browse([
                     'category' => $category->value,
                     'city' => $city['name'],
-                ])->count();
+                ]);
 
-                if ($count >= self::CITY_INDEX_THRESHOLD) {
+                if ($results->count() >= self::CITY_INDEX_THRESHOLD) {
                     $urls[] = [
                         'loc' => route('local.city-category', [$category->seoSlug(), $citySlug]),
                         'changefreq' => 'weekly',
+                        'lastmod' => $results->max('updated_at')?->toAtomString(),
                     ];
                 }
             }
@@ -124,7 +142,7 @@ class SitemapController extends Controller
             $xml .= '    <changefreq>'.$url['changefreq']."</changefreq>\n";
 
             foreach ($url['images'] ?? [] as $image) {
-                $xml .= "    <image:image><image:loc>".e($image)."</image:loc></image:image>\n";
+                $xml .= '    <image:image><image:loc>'.e($image)."</image:loc></image:image>\n";
             }
 
             $xml .= "  </url>\n";
