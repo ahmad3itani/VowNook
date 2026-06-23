@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { ErrorBoundary, reloadForStaleAssets } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -38,15 +39,24 @@ createInertiaApp({
     strictMode: true,
     withApp(app) {
         return (
-            <TooltipProvider delayDuration={0}>
-                {app}
-                <Toaster />
-            </TooltipProvider>
+            <ErrorBoundary>
+                <TooltipProvider delayDuration={0}>
+                    {app}
+                    <Toaster />
+                </TooltipProvider>
+            </ErrorBoundary>
         );
     },
     progress: {
         color: '#4B5563',
     },
+});
+
+// A page chunk that 404s after a deploy (the browser has stale HTML/assets)
+// would otherwise leave a blank page mid-navigation — recover with one reload.
+window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    reloadForStaleAssets();
 });
 
 // This will set light / dark mode on load...
