@@ -32,6 +32,54 @@ class BlogPostSeeder extends Seeder
     {
         return [
             [
+                'slug' => 'how-to-plan-a-wedding-for-free-ontario',
+                'title' => 'How to Plan Your Wedding for Free in Ontario (2026)',
+                'cover_image_path' => 'images/blog/timeline.webp',
+                'cover_alt' => 'A wedding planning checklist, budget notes and fresh flowers laid out on a bright desk',
+                'category' => BlogCategory::PlanningTips->value,
+                'excerpt' => 'You can plan an entire Ontario wedding — checklist, budget, seating, website and registry — without paying for planning tools. Here\'s the free-first way to do it.',
+                'meta_description' => 'How to plan your wedding for free in Ontario: the free tools that replace pricey planning apps — checklist, budget, seating chart, wedding website and registry — plus trusted vendors.',
+                'body' => <<<'MD'
+You don't need to pay for a wedding-planning app. In 2026 you can plan an entire Ontario wedding — guest list, budget, seating chart, a wedding website and a gift registry — without spending a dollar on planning tools. The trick is knowing which pieces to set up, and in what order.
+
+Here's the free-first approach that actually works.
+
+## Begin with three numbers
+
+Before any tool, lock in your **budget**, a rough **guest count**, and a **season**. Every other decision flows from these three — and getting them down on paper prevents the most expensive mistakes. If you're not sure what's realistic, our breakdown of [what a wedding really costs in Ontario](/blog/how-much-does-a-wedding-cost-in-ontario) is a good place to start.
+
+## Keep everything in one free workspace
+
+Planning feels chaotic because it lives in ten places — a notes app, three spreadsheets, your inbox. Put it in one **free** workspace instead: a checklist that knows your wedding date, a budget that tracks real quotes against your cap, and a guest list with RSVPs. You can set all of this up for free in our [planning workspace](/dashboard) — no trial, no card.
+
+## Build your seating chart without the pricey tools
+
+Seating tools are notorious for hiding the good part behind a paywall. You can skip that: arrange tables, drag guests into seats, count meal choices for the caterer and export a print-ready chart — free. Do it once your RSVPs are mostly in, about 2–3 weeks out.
+
+## Give guests a free wedding website + registry
+
+A wedding website answers the same questions a hundred times so you don't have to — date, venue, dress code, travel, RSVP. Pair it with a **registry** (cash funds, a honeymoon fund or gift items) and your guests have everything in one link. Both are free, on your own `name.vownook.com` address.
+
+## Find vendors with reviews you can actually trust
+
+The one place "free" usually breaks down is vendors — and the bigger problem is reviews you can't believe. Look for a marketplace where **every review is tied to a real booking**, so the five-stars mean something. Browse [Ontario wedding vendors](/marketplace), compare real quotes side by side, and keep them all in your workspace instead of buried in email.
+
+## Is free really enough to plan a whole wedding?
+
+For the planning itself, yes. The tools above cover the parts couples usually pay an app for — organization, budget, seating, a website and a registry. The only thing you pay for is the wedding itself: your vendors. And even there it's free to use — vendors pay a small fee only when they're booked, which is why couples never hit a paywall.
+
+## Your free-first plan, in order
+
+1. Set budget, guest count and season.
+2. Open your free workspace — checklist, budget, guest list.
+3. Build your wedding website and registry; share the link.
+4. Shortlist and quote vendors; compare side by side.
+5. Finalize the seating chart as RSVPs land.
+
+Planning a wedding is a big job. Paying to plan it shouldn't be part of it. Start free in your [planning workspace](/dashboard), and book the rest with [vendors you can trust](/marketplace).
+MD,
+            ],
+            [
                 'slug' => 'how-much-does-a-wedding-cost-in-ontario',
                 'title' => 'How Much Does a Wedding Cost in Ontario? (2026 Real Numbers)',
                 'cover_image_path' => 'images/blog/cost.webp',
