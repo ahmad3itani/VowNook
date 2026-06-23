@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\BlogCategory;
 use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
+use App\Support\Ai\AiService;
 use App\Support\ImageOptimizer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -32,7 +35,31 @@ class BlogController extends Controller
                 'published_label' => $p->published_at?->format('M j, Y'),
             ]);
 
-        return Inertia::render('admin/blog-index', ['posts' => $posts]);
+        return Inertia::render('admin/blog-index', [
+            'posts' => $posts,
+            'autopilot' => [
+                'ai_ready' => app(AiService::class)->isConfigured(),
+                'enabled' => (bool) config('ai.blog_autopilot.enabled'),
+            ],
+        ]);
+    }
+
+    /**
+     * Write + publish one article from the autopilot queue on demand. Deferred
+     * to after the response so the LLM call never blocks the request or trips
+     * the platform's HTTP gateway timeout — the post appears on the next refresh.
+     */
+    public function autopilot(AiService $ai): RedirectResponse
+    {
+        if (! $ai->isConfigured()) {
+            return back()->with('status', 'autopilot-unconfigured');
+        }
+
+        dispatch(function () {
+            Artisan::call('blog:autopilot', ['--force' => true, '--limit' => 1]);
+        })->afterResponse();
+
+        return back()->with('status', 'autopilot-started');
     }
 
     public function create(): Response
@@ -117,7 +144,7 @@ class BlogController extends Controller
      * Upload an in-article image and return its public URL (the editor inserts
      * it as markdown). Post-independent so it works while drafting a new post.
      */
-    public function uploadImage(Request $request): \Illuminate\Http\JsonResponse
+    public function uploadImage(Request $request): JsonResponse
     {
         $request->validate(['image' => ['required', 'image', 'max:8192']]);
 

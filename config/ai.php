@@ -49,4 +49,25 @@ return [
     // the platform killing the request and returning a hard 502/504 HTML page.
     'timeout' => (int) env('AI_TIMEOUT', 22),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Blog autopilot
+    |--------------------------------------------------------------------------
+    |
+    | A scheduled command (`blog:autopilot`) writes and PUBLISHES SEO articles
+    | from a curated Ontario topic queue. OFF by default — set the env flag once
+    | you're happy to let it run. A deliberately slow cadence + topic de-dupe +
+    | a quality/length gate keep it well clear of Google's "scaled content
+    | abuse" policy (a firehose of thin AI posts gets sites demoted).
+    |
+    */
+
+    'blog_autopilot' => [
+        'enabled' => (bool) env('BLOG_AUTOPILOT_ENABLED', false),
+        // Articles to publish per scheduled run (keep small — slow & steady).
+        'per_run' => max(1, (int) env('BLOG_AUTOPILOT_PER_RUN', 1)),
+        // Reject anything thinner than this many words (never publish thin content).
+        'min_words' => max(300, (int) env('BLOG_AUTOPILOT_MIN_WORDS', 500)),
+    ],
+
 ];

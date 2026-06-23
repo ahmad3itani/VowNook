@@ -716,6 +716,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('blog/{post}', [AdminBlogController::class, 'update'])->name('blog.update');
         Route::post('blog/{post}/cover', [AdminBlogController::class, 'uploadCover'])->name('blog.cover');
         Route::post('blog/image', [AdminBlogController::class, 'uploadImage'])->name('blog.image');
+        Route::post('blog/autopilot', [AdminBlogController::class, 'autopilot'])->middleware('throttle:6,1')->name('blog.autopilot');
         Route::delete('blog/{post}', [AdminBlogController::class, 'destroy'])->name('blog.destroy');
 
         Route::get('settings', [SettingsController::class, 'index'])->name('settings');

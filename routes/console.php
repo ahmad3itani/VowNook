@@ -18,3 +18,8 @@ Schedule::command('weddings:weekly-digest')->weeklyOn(1, '14:30'); // Mondays
 Schedule::command('plans:expire-comps')->dailyAt('02:00');
 Schedule::command('weddings:post-wedding')->dailyAt('16:00');
 Schedule::command('admin:daily-digest')->dailyAt('08:00');
+
+// Content engine: writes + publishes one SEO article from the curated Ontario
+// topic queue. No-ops until BLOG_AUTOPILOT_ENABLED=true, so a slow, steady
+// cadence (one per week) keeps it clear of scaled-content penalties.
+Schedule::command('blog:autopilot')->weeklyOn(2, '09:00'); // Tuesdays
