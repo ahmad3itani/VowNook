@@ -3,12 +3,16 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
+use App\Models\VendorMedia;
 use App\Models\VendorProfile;
 use App\Models\VendorService;
 use App\Support\OntarioCities;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Seeds the marketplace with realistic but ENTIRELY FICTIONAL sample vendors so
@@ -37,6 +41,10 @@ class SeedDemoVendors extends Command
         $count = 0;
 
         foreach ($this->blueprint() as $category => $cat) {
+            // A small pool of wedding-themed stock images per category, fetched
+            // once into storage and shared across that category's demo vendors.
+            $images = $this->fetchCategoryImages($category);
+
             foreach ($cat['vendors'] as $i => [$name, $citySlug, $price]) {
                 $city = OntarioCities::get($citySlug);
                 if ($city === null) {
@@ -45,6 +53,7 @@ class SeedDemoVendors extends Command
 
                 $slug = Str::slug($name);
                 $email = $slug.self::DEMO_DOMAIN;
+                $cover = $images !== [] ? $images[$i % count($images)] : null;
 
                 $user = User::updateOrCreate(
                     ['email' => $email],
@@ -65,6 +74,7 @@ class SeedDemoVendors extends Command
                         'service_area' => $city['name'].' & area',
                         'base_price_cents' => $price,
                         'price_unit' => $cat['unit'],
+                        'cover_path' => $cover,
                         'status' => 'published',
                         'is_accepting_bookings' => true,
                         'agreement_accepted_at' => now(),
@@ -75,7 +85,21 @@ class SeedDemoVendors extends Command
                     ],
                 );
 
-                // Rebuild this profile's services each run (idempotent).
+                // Rebuild this profile's gallery + services each run (idempotent).
+                VendorMedia::where('vendor_profile_id', $profile->id)->delete();
+                if ($cover !== null) {
+                    VendorMedia::create([
+                        'vendor_profile_id' => $profile->id,
+                        'path' => $cover,
+                        'original_name' => $slug.'.jpg',
+                        'mime' => 'image/jpeg',
+                        'size' => Storage::size($cover),
+                        'caption' => $cat['tagline'],
+                        'alt_text' => $name.' — '.$cat['tagline'],
+                        'sort_order' => 0,
+                    ]);
+                }
+
                 VendorService::where('vendor_profile_id', $profile->id)->delete();
                 foreach ($cat['services'] as $s => [$sName, $priceType, $sPrice]) {
                     VendorService::create([
@@ -106,11 +130,13 @@ class SeedDemoVendors extends Command
 
         DB::transaction(function () use ($users) {
             foreach ($users as $user) {
-                // Services cascade via the vendor_profile_id FK.
+                // Services + media cascade via the vendor_profile_id FK.
                 VendorProfile::where('user_id', $user->id)->get()->each->delete();
                 $user->delete();
             }
         });
+
+        Storage::deleteDirectory('demo-vendors');
 
         $this->info("Purged {$users->count()} demo vendors.");
 
@@ -120,6 +146,61 @@ class SeedDemoVendors extends Command
     private function describe(string $blurb, string $city): string
     {
         return $blurb.' Proudly serving couples across '.$city.' and the surrounding area.';
+    }
+
+    /** Wedding-themed image search keywords per category. */
+    private const KEYWORDS = [
+        'venue' => 'wedding,venue',
+        'catering' => 'wedding,catering',
+        'photography' => 'wedding,couple',
+        'videography' => 'wedding,celebration',
+        'florist' => 'wedding,flowers',
+        'music' => 'wedding,party',
+        'bakery' => 'wedding,cake',
+        'officiant' => 'wedding,ceremony',
+        'transportation' => 'wedding,car',
+        'attire' => 'wedding,dress',
+        'beauty' => 'bride,makeup',
+        'planner' => 'wedding,decor',
+        'other' => 'wedding',
+    ];
+
+    /**
+     * Fetch a small pool of wedding-themed stock images for a category into the
+     * storage disk (cached, so re-runs don't re-download). Degrades gracefully:
+     * any failure just means fewer/no images, never a failed seed.
+     *
+     * @return list<string> stored paths
+     */
+    private function fetchCategoryImages(string $category): array
+    {
+        $keywords = self::KEYWORDS[$category] ?? 'wedding';
+        $paths = [];
+
+        for ($n = 1; $n <= 3; $n++) {
+            $path = "demo-vendors/{$category}-{$n}.jpg";
+
+            if (Storage::exists($path)) {
+                $paths[] = $path;
+
+                continue;
+            }
+
+            try {
+                $res = Http::timeout(15)->get("https://loremflickr.com/800/600/{$keywords}", ['lock' => $n]);
+
+                if ($res->successful()
+                    && str_starts_with((string) $res->header('Content-Type'), 'image/')
+                    && strlen($res->body()) > 2000) {
+                    Storage::put($path, $res->body());
+                    $paths[] = $path;
+                }
+            } catch (Throwable) {
+                // Skip — the vendor simply renders without an image.
+            }
+        }
+
+        return $paths;
     }
 
     /**
