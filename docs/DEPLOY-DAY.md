@@ -12,9 +12,12 @@ opens the FOUNDING50 beta — with Stripe in **test mode** and the AI autopilots
 - [ ] Wait for the deploy to go green
 
 ## 2. Seed the launch data (run in the Laravel Cloud console — deploys do NOT run seeders)
-- [ ] `php artisan db:seed --class=BlogPostSeeder` — publishes the "Plan a wedding for free" article
-- [ ] `php artisan db:seed --class=FoundingPromoSeeder` — activates the **FOUNDING50** code
-- [ ] `php artisan marketplace:demo` — 77 demo vendors + images across every category
+> Note: `db:seed` needs `--force` in production (it skips the "APPLICATION IN PRODUCTION"
+> confirmation prompt, which the non-interactive Cloud runner can't answer). These
+> seeders only ADD data — they never wipe anything.
+- [ ] `php artisan db:seed --class=BlogPostSeeder --force` — publishes the "Plan a wedding for free" article
+- [ ] `php artisan db:seed --class=FoundingPromoSeeder --force` — activates the **FOUNDING50** code
+- [ ] `php artisan marketplace:demo` — 77 demo vendors + images (custom command, no prompt)
 
 ## 3. Confirm environment (Laravel Cloud → Environment)
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_ENCRYPT=true`
