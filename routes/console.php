@@ -19,10 +19,11 @@ Schedule::command('plans:expire-comps')->dailyAt('02:00');
 Schedule::command('weddings:post-wedding')->dailyAt('16:00');
 Schedule::command('admin:daily-digest')->dailyAt('08:00');
 
-// Content engine: writes + publishes one SEO article from the curated Ontario
-// topic queue. No-ops until BLOG_AUTOPILOT_ENABLED=true, so a slow, steady
-// cadence (one per week) keeps it clear of scaled-content penalties.
-Schedule::command('blog:autopilot')->weeklyOn(2, '09:00'); // Tuesdays
+// Content engine: writes + publishes SEO articles from the curated Ontario topic
+// queue (clustered, internally linked, pillars first). No-ops until
+// BLOG_AUTOPILOT_ENABLED=true. Weekdays × per_run (default 1) ≈ 5/week, so the
+// ~100-post plan drips out over ~4-5 months — steady, never a dump.
+Schedule::command('blog:autopilot')->weekdays()->at('09:00');
 
 // Local SEO: fills programmatic Ontario pages (hubs + gated city pages) with
 // unique stored guide copy + FAQs. No-ops until LOCAL_SEO_AUTOFILL_ENABLED=true.

@@ -140,6 +140,23 @@ class BlogAutopilotTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_topic_slugs_are_unique(): void
+    {
+        $slugs = array_column(BlogTopics::all(), 'slug');
+
+        $this->assertSame(count($slugs), count(array_unique($slugs)), 'BlogTopics has a duplicate slug.');
+        $this->assertGreaterThanOrEqual(80, count($slugs), 'The topic queue should hold the full ~100-post plan.');
+    }
+
+    public function test_every_topic_has_a_known_cluster(): void
+    {
+        $clusters = array_keys(BlogTopics::clusters());
+
+        foreach (BlogTopics::all() as $topic) {
+            $this->assertContains($topic['cluster'], $clusters, "Topic {$topic['slug']} has an unknown cluster.");
+        }
+    }
+
     public function test_admin_can_reach_the_autopilot_route(): void
     {
         $admin = User::factory()->create(['is_admin' => true, 'account_type' => 'couple']);

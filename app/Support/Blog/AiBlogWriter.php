@@ -15,10 +15,11 @@ class AiBlogWriter
     public function __construct(protected AiService $ai) {}
 
     /**
-     * @param  array{slug:string, title:string, category:string, brief:string}  $topic
+     * @param  array{slug:string, title:string, category:string, brief:string, cluster?:string}  $topic
+     * @param  list<array{title:string, url:string}>  $related  Already-published cluster posts to link to (hub & spoke internal linking).
      * @return array{title:string, excerpt:?string, body:string, meta_description:?string}|null Null when generation fails or the draft is too thin.
      */
-    public function write(array $topic): ?array
+    public function write(array $topic, array $related = []): ?array
     {
         $tool = [
             'name' => 'write_article',
@@ -36,6 +37,16 @@ class AiBlogWriter
         ];
 
         $prompt = "Write the article.\nWorking title: {$topic['title']}\nWhat to cover: {$topic['brief']}";
+
+        if ($related !== []) {
+            $links = collect($related)
+                ->take(5)
+                ->map(fn ($r) => "- [{$r['title']}]({$r['url']})")
+                ->implode("\n");
+            $prompt .= "\n\nWhere it genuinely helps the reader, link to 2-3 of these related "
+                .'VowNook articles using markdown links — only the most relevant, placed naturally '
+                ."in the body (never a list at the end):\n{$links}";
+        }
 
         try {
             $result = $this->ai->generateStructured($this->system(), $prompt, $tool, 45);

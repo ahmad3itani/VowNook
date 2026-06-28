@@ -53,7 +53,7 @@ class RunBlogAutopilot extends Command
         $published = 0;
 
         foreach ($queue as $topic) {
-            $article = $writer->write($topic);
+            $article = $writer->write($topic, $this->relatedLinksFor($topic));
 
             if ($article === null) {
                 $this->warn("Skipped (generation failed or too thin): {$topic['slug']}");
@@ -81,5 +81,39 @@ class RunBlogAutopilot extends Command
         $this->info("Blog autopilot finished — {$published} article(s) published.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Already-published posts in the same cluster (the pillar + siblings) for the
+     * writer to link to. Only published slugs are returned, so internal links
+     * never 404 while the cluster is still filling in.
+     *
+     * @param  array<string,mixed>  $topic
+     * @return list<array{title:string, url:string}>
+     */
+    private function relatedLinksFor(array $topic): array
+    {
+        $cluster = $topic['cluster'] ?? null;
+
+        if ($cluster === null) {
+            return [];
+        }
+
+        $pillar = BlogTopics::clusters()[$cluster]['pillar'] ?? null;
+
+        $candidates = collect(BlogTopics::all())
+            ->where('cluster', $cluster)
+            ->pluck('slug')
+            ->push($pillar)
+            ->filter()
+            ->reject(fn ($slug) => $slug === $topic['slug'])
+            ->unique();
+
+        return BlogPost::published()
+            ->whereIn('slug', $candidates)
+            ->limit(5)
+            ->get(['slug', 'title'])
+            ->map(fn (BlogPost $p) => ['title' => $p->title, 'url' => '/blog/'.$p->slug])
+            ->all();
     }
 }
