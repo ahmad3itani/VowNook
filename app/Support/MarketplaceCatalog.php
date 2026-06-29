@@ -63,6 +63,20 @@ class MarketplaceCatalog
             ->get();
     }
 
+    /**
+     * Whether a vendor serves a city — mirrors the `browse()` city filter
+     * (city OR service_area contains the name) so callers can count per-city in
+     * PHP from one already-loaded collection instead of a query per city. This
+     * is what keeps the category-hub and sitemap fast as the city list grows.
+     */
+    public function cityMatches(VendorProfile $p, string $city): bool
+    {
+        $needle = mb_strtolower($city);
+
+        return str_contains(mb_strtolower((string) $p->city), $needle)
+            || str_contains(mb_strtolower((string) $p->service_area), $needle);
+    }
+
     /** Find a single published profile by slug (404 if not published). */
     public function findPublished(string $slug): VendorProfile
     {
@@ -79,25 +93,25 @@ class MarketplaceCatalog
         $thumb = $p->media->first();
 
         return [
-            'id'                  => $p->id,
-            'slug'                => $p->slug,
-            'business_name'       => $p->business_name,
-            'category'            => $p->category?->value,
-            'category_label'      => $p->category?->label(),
-            'tagline'             => $p->tagline,
-            'city'                => $p->city,
-            'region'              => $p->region,
-            'base_price_cents'    => $p->base_price_cents,
-            'price_unit'          => $p->price_unit,
-            'rating_avg'          => (float) $p->rating_avg,
-            'rating_count'        => $p->rating_count,
-            'response_hours'      => $this->responseHours($p),
-            'services_count'      => $p->services_count,
+            'id' => $p->id,
+            'slug' => $p->slug,
+            'business_name' => $p->business_name,
+            'category' => $p->category?->value,
+            'category_label' => $p->category?->label(),
+            'tagline' => $p->tagline,
+            'city' => $p->city,
+            'region' => $p->region,
+            'base_price_cents' => $p->base_price_cents,
+            'price_unit' => $p->price_unit,
+            'rating_avg' => (float) $p->rating_avg,
+            'rating_count' => $p->rating_count,
+            'response_hours' => $this->responseHours($p),
+            'services_count' => $p->services_count,
             'is_accepting_bookings' => $p->is_accepting_bookings,
-            'is_founding'         => (bool) $p->is_founding,
-            'is_featured'         => $p->featured_until !== null && $p->featured_until->isFuture(),
-            'is_verified'         => $p->verified_at !== null,
-            'thumb_url'           => $thumb ? route('public.vendor.media', [$p->slug, $thumb->id]) : null,
+            'is_founding' => (bool) $p->is_founding,
+            'is_featured' => $p->featured_until !== null && $p->featured_until->isFuture(),
+            'is_verified' => $p->verified_at !== null,
+            'thumb_url' => $thumb ? route('public.vendor.media', [$p->slug, $thumb->id]) : null,
         ];
     }
 
@@ -105,64 +119,64 @@ class MarketplaceCatalog
     public function profileData(VendorProfile $p): array
     {
         return [
-            'id'                  => $p->id,
-            'slug'                => $p->slug,
-            'business_name'       => $p->business_name,
-            'category'            => $p->category?->value,
-            'category_label'      => $p->category?->label(),
-            'tagline'             => $p->tagline,
-            'description'         => $p->description,
-            'city'                => $p->city,
-            'region'              => $p->region,
-            'country'             => $p->country,
-            'service_area'        => $p->service_area,
-            'base_price_cents'    => $p->base_price_cents,
-            'price_unit'          => $p->price_unit,
-            'website'             => $p->website,
-            'video_url'           => $p->video_url,
-            'brochure_url'        => $p->brochure_path && Storage::exists($p->brochure_path)
+            'id' => $p->id,
+            'slug' => $p->slug,
+            'business_name' => $p->business_name,
+            'category' => $p->category?->value,
+            'category_label' => $p->category?->label(),
+            'tagline' => $p->tagline,
+            'description' => $p->description,
+            'city' => $p->city,
+            'region' => $p->region,
+            'country' => $p->country,
+            'service_area' => $p->service_area,
+            'base_price_cents' => $p->base_price_cents,
+            'price_unit' => $p->price_unit,
+            'website' => $p->website,
+            'video_url' => $p->video_url,
+            'brochure_url' => $p->brochure_path && Storage::exists($p->brochure_path)
                 ? route('public.vendor.brochure', $p->slug)
                 : null,
-            'phone'               => $p->phone,
-            'email'               => $p->email,
-            'socials'             => $p->socials ?? [],
-            'rating_avg'          => (float) $p->rating_avg,
-            'rating_count'        => $p->rating_count,
-            'response_hours'      => $this->responseHours($p),
+            'phone' => $p->phone,
+            'email' => $p->email,
+            'socials' => $p->socials ?? [],
+            'rating_avg' => (float) $p->rating_avg,
+            'rating_count' => $p->rating_count,
+            'response_hours' => $this->responseHours($p),
             'is_accepting_bookings' => $p->is_accepting_bookings,
-            'is_verified'         => $p->verified_at !== null,
-            'logo_url'            => $p->logo_path && Storage::exists($p->logo_path)
+            'is_verified' => $p->verified_at !== null,
+            'logo_url' => $p->logo_path && Storage::exists($p->logo_path)
                 ? route('public.vendor.logo', $p->slug)
                 : null,
-            'cover_url'           => $p->cover_path && Storage::exists($p->cover_path)
+            'cover_url' => $p->cover_path && Storage::exists($p->cover_path)
                 ? route('public.vendor.cover', $p->slug)
                 : null,
-            'media'               => $p->media->sortBy('sort_order')->map(fn (VendorMedia $m) => [
-                'id'      => $m->id,
-                'url'     => route('public.vendor.media', [$p->slug, $m->id]),
+            'media' => $p->media->sortBy('sort_order')->map(fn (VendorMedia $m) => [
+                'id' => $m->id,
+                'url' => route('public.vendor.media', [$p->slug, $m->id]),
                 'caption' => $m->caption,
-                'alt'     => $m->alt_text ?: $m->caption ?: $p->business_name,
+                'alt' => $m->alt_text ?: $m->caption ?: $p->business_name,
             ])->values()->all(),
-            'services'            => $p->services->map(fn ($s) => [
-                'id'          => $s->id,
-                'name'        => $s->name,
+            'services' => $p->services->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
                 'description' => $s->description,
                 'price_cents' => $s->price_cents,
-                'price_unit'  => $s->price_unit,
-                'price_type'  => $s->price_type,
+                'price_unit' => $s->price_unit,
+                'price_type' => $s->price_type,
             ])->all(),
-            'reviews'             => $p->reviews()
+            'reviews' => $p->reviews()
                 ->with('coupleUser')
                 ->latest()
                 ->limit(10)
                 ->get()
                 ->map(fn (Review $r) => [
-                    'id'              => $r->id,
-                    'rating'          => $r->rating,
-                    'body'            => $r->body,
+                    'id' => $r->id,
+                    'rating' => $r->rating,
+                    'body' => $r->body,
                     'vendor_response' => $r->vendor_response,
-                    'author'          => $r->authorDisplayName(),
-                    'created_at'      => $r->created_at?->toDateString(),
+                    'author' => $r->authorDisplayName(),
+                    'created_at' => $r->created_at?->toDateString(),
                 ])->all(),
         ];
     }
@@ -180,7 +194,7 @@ class MarketplaceCatalog
     public function serviceOptions(VendorProfile $p): array
     {
         return $p->services->map(fn ($s) => [
-            'id'   => $s->id,
+            'id' => $s->id,
             'name' => $s->name,
         ])->all();
     }
@@ -190,9 +204,9 @@ class MarketplaceCatalog
     {
         $ld = [
             '@context' => 'https://schema.org',
-            '@type'    => 'LocalBusiness',
-            'name'     => $p->business_name,
-            'url'      => url("/marketplace/{$p->slug}"),
+            '@type' => 'LocalBusiness',
+            'name' => $p->business_name,
+            'url' => url("/marketplace/{$p->slug}"),
         ];
 
         if ($p->tagline) {
@@ -201,10 +215,10 @@ class MarketplaceCatalog
 
         if ($p->city || $p->region) {
             $ld['address'] = [
-                '@type'           => 'PostalAddress',
+                '@type' => 'PostalAddress',
                 'addressLocality' => $p->city,
-                'addressRegion'   => $p->region,
-                'addressCountry'  => $p->country ?? 'CA',
+                'addressRegion' => $p->region,
+                'addressCountry' => $p->country ?? 'CA',
             ];
         }
 
@@ -241,7 +255,7 @@ class MarketplaceCatalog
 
         if ($p->rating_count > 0) {
             $ld['aggregateRating'] = [
-                '@type'       => 'AggregateRating',
+                '@type' => 'AggregateRating',
                 'ratingValue' => (float) $p->rating_avg,
                 'reviewCount' => $p->rating_count,
             ];

@@ -99,13 +99,17 @@ class GenerateLocalContent extends Command
                 $queue->push(['category' => $cat, 'city_slug' => null, 'city_name' => null]);
             }
 
+            // Load this category's vendors once, then count per city in PHP
+            // (one query per category, not one per city).
+            $catVendors = $catalog->browse(['category' => $cat->value]);
+
             // City pages only once they clear the vendor gate.
             foreach (OntarioCities::all() as $slug => $data) {
                 if (in_array($cat->value.'|'.$slug, $existing, true)) {
                     continue;
                 }
 
-                $count = $catalog->browse(['category' => $cat->value, 'city' => $data['name']])->count();
+                $count = $catVendors->filter(fn ($p) => $catalog->cityMatches($p, $data['name']))->count();
 
                 if ($count >= self::INDEX_THRESHOLD) {
                     $queue->push(['category' => $cat, 'city_slug' => $slug, 'city_name' => $data['name']]);

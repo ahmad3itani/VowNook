@@ -37,15 +37,14 @@ class PublicLocalController extends Controller
         $noun = $cat->seoNoun();
         $content = LocalContent::forPage($cat->value, null);
 
-        // Per-city vendor counts for the internal-linking grid.
-        $cities = collect(OntarioCities::all())->map(function (array $data, string $slug) use ($cat) {
-            return [
-                'slug' => $slug,
-                'name' => $data['name'],
-                'count' => $this->catalog->browse(['category' => $cat->value, 'city' => $data['name']])->count(),
-                'url' => route('local.city-category', [$cat->seoSlug(), $slug]),
-            ];
-        })->values();
+        // Per-city vendor counts for the internal-linking grid — counted in PHP
+        // from the already-loaded category vendors (one query, not one per city).
+        $cities = collect(OntarioCities::all())->map(fn (array $data, string $slug) => [
+            'slug' => $slug,
+            'name' => $data['name'],
+            'count' => $vendors->filter(fn ($p) => $this->catalog->cityMatches($p, $data['name']))->count(),
+            'url' => route('local.city-category', [$cat->seoSlug(), $slug]),
+        ])->values();
 
         $schemas = [
             $this->collectionSchema("{$noun} in Ontario", $vendors),

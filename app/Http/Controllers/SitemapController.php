@@ -62,8 +62,11 @@ class SitemapController extends Controller
 
         // Programmatic local-SEO pages: every category hub, plus city pages that
         // clear the vendor-count quality gate (we never list noindex'd thin pages).
+        // Vendors are loaded once per category and counted per city in PHP — so
+        // this stays one query per category even with dozens of cities.
         foreach (VendorCategory::seoCases() as $category) {
             $catUpdated = $categoryFreshness[$category->value] ?? null;
+            $catVendors = $this->catalog->browse(['category' => $category->value]);
 
             $urls[] = [
                 'loc' => route('local.category', $category->seoSlug()),
@@ -72,18 +75,13 @@ class SitemapController extends Controller
             ];
 
             foreach (OntarioCities::all() as $citySlug => $city) {
-                // Reuse the same query for the count and the city page's freshness
-                // (most recently updated vendor in this category + city).
-                $results = $this->catalog->browse([
-                    'category' => $category->value,
-                    'city' => $city['name'],
-                ]);
+                $cityVendors = $catVendors->filter(fn ($p) => $this->catalog->cityMatches($p, $city['name']));
 
-                if ($results->count() >= self::CITY_INDEX_THRESHOLD) {
+                if ($cityVendors->count() >= self::CITY_INDEX_THRESHOLD) {
                     $urls[] = [
                         'loc' => route('local.city-category', [$category->seoSlug(), $citySlug]),
                         'changefreq' => 'weekly',
-                        'lastmod' => $results->max('updated_at')?->toAtomString(),
+                        'lastmod' => $cityVendors->max('updated_at')?->toAtomString(),
                     ];
                 }
             }
