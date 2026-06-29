@@ -158,8 +158,16 @@ Route::middleware('throttle:120,1')->group(function () {
         - [Wedding venues in Ontario]({$base}/wedding-venues)
         - [Wedding planners in Ontario]({$base}/wedding-planners)
 
-        ## For vendors
-        Free listing, no contract. A success fee applies only when a booking is won (8% up to \$5,000, 5% above, capped at \$1,000).
+        ## Key facts
+        - Free for couples: guest list, RSVP, budget, checklist, seating chart, an AI plan starter, a wedding website with registry, and an AI honeymoon concierge — no credit card.
+        - Optional couple upgrade: the \$99 Atelier tier adds the wedding website, floor plan and collaborators for one wedding.
+        - Honest reviews: every review is tied to a real, confirmed booking — one per booking. Vendors cannot pay for placement or to remove reviews.
+        - For vendors: free listing, no contract; a success fee applies only when a booking is won (8% up to \$5,000, 5% above, capped at \$1,000).
+
+        ## Why couples choose VowNook
+        - The planning tools are genuinely free (no paywall on the basics).
+        - Reviews you can trust because they're tied to real bookings — not pay-to-play.
+        - Built Ontario-first, with local vendors and realistic local pricing.
 
         ## Coverage
         Canada, Ontario-first: Toronto, Ottawa, Mississauga, Hamilton, London, Kitchener-Waterloo, Niagara.

@@ -129,32 +129,7 @@ const vendorSteps: Step[] = [
     },
 ];
 
-const faqs = [
-    {
-        q: 'What does it cost couples?',
-        a: 'Planning, browsing, quotes and booking are free. The optional $99 Atelier tier adds the wedding website, floor plan and collaborator features for one wedding.',
-    },
-    {
-        q: 'What does it cost vendors?',
-        a: 'Listing is free with no contract. We charge a success fee only when a booking is won: 8% of the first $5,000, 5% above that, capped at $1,000 per booking.',
-    },
-    {
-        q: 'How are reviews kept honest?',
-        a: 'A review can only be written by a couple with a confirmed booking with that vendor — one review per booking. Vendors can respond publicly, but cannot pay to remove or reorder reviews.',
-    },
-    {
-        q: 'Who can see my wedding details?',
-        a: 'Your workspace is private. Vendors only see what you put in an inquiry. Your wedding website is public only after you press publish.',
-    },
-    {
-        q: 'Can my partner and planner work with me?',
-        a: 'Yes — invite collaborators with roles (planner, family, vendor) and control what each can view or edit.',
-    },
-    {
-        q: 'Where is this available?',
-        a: 'We are Canada-first, starting with the Greater Toronto Area. Vendors anywhere in Canada can list — filters cover every province and territory.',
-    },
-];
+type Faq = { q: string; a: string };
 
 function StepList({ steps }: { steps: Step[] }) {
     return (
@@ -182,7 +157,7 @@ function StepList({ steps }: { steps: Step[] }) {
     );
 }
 
-export default function HowItWorks() {
+export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
     return (
         <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
             {/* Description/canonical/OG are server-rendered in the blade head. */}

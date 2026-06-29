@@ -26,10 +26,16 @@ class PublicPageController extends Controller
 
     public function howItWorks(): Response
     {
-        return Inertia::render('public/how-it-works')->withViewData(['seo' => Seo::make(
+        $faqs = Seo::brandFaqs();
+
+        return Inertia::render('public/how-it-works', [
+            'faqs' => $faqs,
+        ])->withViewData(['seo' => Seo::make(
             title: 'How It Works',
             description: 'How VowNook works for couples (plan, browse vendors, compare quotes and book — free) and for vendors (free listing, real inquiries, pay only when booked).',
             canonical: route('how-it-works'),
+            // FAQPage schema mirrors the visible FAQ below — AI assistants lift it.
+            schemas: [Seo::faqSchema($faqs)],
         )]);
     }
 
