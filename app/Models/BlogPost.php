@@ -62,8 +62,9 @@ class BlogPost extends Model
         }
 
         // Committed marketing/blog imagery under public/images/ serves directly.
+        // Absolute so it's valid in the image sitemap, Open Graph and JSON-LD.
         if (str_starts_with($this->cover_image_path, 'images/')) {
-            return '/'.$this->cover_image_path;
+            return url('/'.$this->cover_image_path);
         }
 
         if (! Storage::exists($this->cover_image_path)) {
