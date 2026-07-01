@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { formatMoney } from '@/lib/format';
 import {
     ArrowRight,
@@ -9,9 +10,11 @@ import {
     MessageSquare,
     PackageOpen,
     Store,
+    TrendingUp,
     Wallet,
 } from 'lucide-react';
 import Heading from '@/components/heading';
+import { Stagger, StaggerItem } from '@/components/motion/reveal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,9 +43,13 @@ type Payouts = {
     details_submitted: boolean;
 };
 
+type CompletenessItem = { key: string; label: string; done: boolean; href: string };
+type Completeness = { pct: number; items: CompletenessItem[] };
+
 type PageProps = {
     profile: Profile | null;
     stats: Stats;
+    completeness: Completeness | null;
     payouts: Payouts;
 };
 
@@ -53,7 +60,7 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'dest
     suspended: 'destructive',
 };
 
-export default function VendorDashboard({ profile, stats, payouts }: PageProps) {
+export default function VendorDashboard({ profile, stats, completeness, payouts }: PageProps) {
     return (
         <>
             <Head title="Vendor Dashboard" />
@@ -96,44 +103,63 @@ export default function VendorDashboard({ profile, stats, payouts }: PageProps) 
                 )}
 
                 {/* Quick stats */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard label="Services listed" value={String(stats.services)} icon={<PackageOpen className="size-4" />} />
-                    <StatCard label="Open inquiries" value={String(stats.inquiries)} icon={<MessageSquare className="size-4" />} />
-                    <StatCard label="Bookings" value={String(stats.bookings)} icon={<CalendarRange className="size-4" />} />
-                    <StatCard label="Earnings" value={formatMoney(stats.earnings * 100)} icon={<Wallet className="size-4" />} accent="text-[#775a19]" />
-                </div>
+                <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StaggerItem><StatCard label="Services listed" value={String(stats.services)} icon={<PackageOpen className="size-4" />} /></StaggerItem>
+                    <StaggerItem><StatCard label="Open inquiries" value={String(stats.inquiries)} icon={<MessageSquare className="size-4" />} /></StaggerItem>
+                    <StaggerItem><StatCard label="Bookings" value={String(stats.bookings)} icon={<CalendarRange className="size-4" />} /></StaggerItem>
+                    <StaggerItem><StatCard label="Earnings" value={formatMoney(stats.earnings * 100)} icon={<Wallet className="size-4" />} accent="text-[#775a19]" /></StaggerItem>
+                </Stagger>
+
+                {/* Profile strength — complete listings win more inquiries */}
+                {completeness && <ProfileStrength completeness={completeness} />}
 
                 {/* Payouts — Stripe Connect onboarding */}
                 {profile && payouts.configured && <PayoutsCard payouts={payouts} />}
-
-                {/* Setup checklist (Phase 0 shell) */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Getting started</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <SetupRow
-                            done={!!profile}
-                            label="Create your vendor account"
-                        />
-                        <SetupRow
-                            done={false}
-                            label="Complete your business profile (logo, description, location)"
-                            href="/vendor/profile"
-                        />
-                        <SetupRow
-                            done={false}
-                            label="Add at least one service or package"
-                            href="/vendor/services"
-                        />
-                        <SetupRow
-                            done={false}
-                            label="Submit your listing for review"
-                        />
-                    </CardContent>
-                </Card>
             </div>
         </>
+    );
+}
+
+/** The marketplace-standard completeness meter: what's missing, and why it matters. */
+function ProfileStrength({ completeness }: { completeness: Completeness }) {
+    const strength = completeness.pct >= 90 ? 'Excellent' : completeness.pct >= 65 ? 'Strong' : completeness.pct >= 40 ? 'Getting there' : 'Just started';
+    const todo = completeness.items.filter((i) => !i.done);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2 text-base">
+                    <span className="flex items-center gap-2">
+                        <TrendingUp className="size-4 text-[#775a19]" /> Profile strength
+                    </span>
+                    <span className="font-serif text-2xl font-light text-[#775a19]">{completeness.pct}%</span>
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <motion.div
+                            className="h-full rounded-full bg-gradient-to-r from-[#c5a059] to-[#8a651c]"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${completeness.pct}%` }}
+                            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                        />
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{strength}.</span>{' '}
+                        {todo.length > 0
+                            ? 'Complete profiles get shown more and win more inquiries — finish the steps below.'
+                            : 'Your listing is fully set up — keep your availability and photos fresh.'}
+                    </p>
+                </div>
+
+                <div className="grid gap-1 sm:grid-cols-2">
+                    {completeness.items.map((item) => (
+                        <SetupRow key={item.key} done={item.done} label={item.label} href={item.href} />
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 

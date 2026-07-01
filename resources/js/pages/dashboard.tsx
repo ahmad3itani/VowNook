@@ -1,15 +1,20 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { animate, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { formatMoney } from '@/lib/format';
 import InputError from '@/components/input-error';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     AlertTriangle,
     Armchair,
+    ArrowRight,
     Briefcase,
     CalendarClock,
     CalendarHeart,
+    Check,
     CheckCircle2,
     Circle,
     Clock,
@@ -26,8 +31,10 @@ import { dashboard } from '@/routes';
 type OverdueTask = { id: number; title: string; priority: string; days_overdue: number };
 type UpcomingTask = { id: number; title: string; priority: string; due_date: string };
 type UnbookedVendor = { id: number; name: string; category: string; status: string };
+type Milestone = { key: string; label: string; done: boolean; href: string };
 
 type DashboardProps = {
+    milestones?: Milestone[];
     summary: {
         name: string;
         event_date: string | null;
@@ -91,15 +98,66 @@ function Bar({ value, total, danger }: { value: number; total: number; danger?: 
     );
 }
 
-function QuickStat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+/** Animated count-up so the hero numbers feel alive on load. */
+function CountUp({ value, duration = 1.2 }: { value: number; duration?: number }) {
+    const [display, setDisplay] = useState(0);
+
+    useEffect(() => {
+        const controls = animate(0, value, {
+            duration,
+            ease: [0.22, 1, 0.36, 1],
+            onUpdate: (v) => setDisplay(Math.round(v)),
+        });
+        return () => controls.stop();
+    }, [value, duration]);
+
+    return <>{display}</>;
+}
+
+/** The planning-progress ring: an animated gold arc with the % in the centre. */
+function ProgressRing({ pct }: { pct: number }) {
+    const R = 52;
+    const C = 2 * Math.PI * R;
+
     return (
-        <div className="flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-card to-secondary/40 p-8 text-center shadow-atelier">
-            <span className="mb-3 text-[11px] tracking-[0.25em] text-muted-foreground uppercase">{label}</span>
-            <p className="font-serif text-5xl leading-none font-light text-foreground">{value}</p>
-            <span className="mt-4 h-px w-10 bg-gradient-to-r from-transparent via-[#8a651c] to-transparent" />
-            {sub && <p className="mt-3 text-xs text-muted-foreground">{sub}</p>}
+        <div className="relative size-36 shrink-0">
+            <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+                <circle cx="60" cy="60" r={R} fill="none" stroke="#191613" strokeOpacity="0.08" strokeWidth="7" />
+                <motion.circle
+                    cx="60"
+                    cy="60"
+                    r={R}
+                    fill="none"
+                    stroke="url(#ring-gold)"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    strokeDasharray={C}
+                    initial={{ strokeDashoffset: C }}
+                    animate={{ strokeDashoffset: C - (C * pct) / 100 }}
+                    transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+                />
+                <defs>
+                    <linearGradient id="ring-gold" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#c5a059" />
+                        <stop offset="100%" stopColor="#8a651c" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-serif text-3xl font-light text-[#8a651c]">
+                    <CountUp value={pct} />%
+                </span>
+                <span className="text-[9px] tracking-[0.22em] text-muted-foreground uppercase">planned</span>
+            </div>
         </div>
     );
+}
+
+function timeGreeting(): string {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
 }
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -162,7 +220,9 @@ function formatDate(dateStr: string) {
     });
 }
 
-export default function Dashboard({ summary, guests, budget, tasks, counts, attention, quotes }: DashboardProps) {
+export default function Dashboard({ milestones = [], summary, guests, budget, tasks, counts, attention, quotes }: DashboardProps) {
+    const { auth } = usePage().props;
+    const firstName = ((auth?.user?.name as string | undefined) ?? '').split(' ')[0];
     if (!summary || !guests || !budget || !tasks || !counts || !attention) {
         return (
             <>
@@ -183,6 +243,10 @@ export default function Dashboard({ summary, guests, budget, tasks, counts, atte
 
     const offersAwaiting = quotes?.offers_awaiting ?? 0;
 
+    const doneCount = milestones.filter((m) => m.done).length;
+    const progressPct = milestones.length > 0 ? Math.round((doneCount / milestones.length) * 100) : 0;
+    const nextStep = milestones.find((m) => !m.done) ?? null;
+
     const hasAttention =
         attention.overdue_tasks.length > 0 ||
         attention.unbooked_vendors.length > 0 ||
@@ -195,27 +259,86 @@ export default function Dashboard({ summary, guests, budget, tasks, counts, atte
             <Head title="Dashboard" />
             <div className="flex flex-col gap-6 p-4">
 
-                {/* Header */}
-                <div>
-                    <p className="text-[11px] tracking-[0.25em] text-[#8a651c] uppercase">Welcome back</p>
-                    <h1 className="mt-1.5 font-serif text-4xl leading-tight font-light tracking-tight">{summary.name}</h1>
-                    <div className="mt-3 rule-gold" />
-                </div>
+                {/* Hero — greeting, countdown, planning progress */}
+                <Reveal y={16}>
+                    <div className="relative overflow-hidden rounded-2xl border border-[#8a651c]/20 bg-gradient-to-br from-[#fdf8ee] via-white to-[#f6eedd] p-6 shadow-atelier md:p-8">
+                        {days !== null && days > 0 && (
+                            <span
+                                aria-hidden
+                                className="pointer-events-none absolute -right-2 -bottom-12 hidden font-serif text-[11rem] leading-none font-light text-[#8a651c]/[0.07] select-none lg:block"
+                            >
+                                {days}
+                            </span>
+                        )}
 
-                {/* Quick stats */}
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <QuickStat
-                        label="Days to go"
-                        value={days === null ? '—' : days > 0 ? String(days) : days === 0 ? 'Today' : `${Math.abs(days)}d ago`}
-                        sub={summary.event_date ? new Date(summary.event_date + 'T00:00:00').toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined}
-                    />
-                    <QuickStat label="RSVPs received" value={`${rsvpPct}%`} sub={`${replied} of ${guests.total} guests replied`} />
-                    <QuickStat label="Budget paid" value={formatMoney(budget.paid * 100)} sub={`of ${formatMoney(budget.estimated * 100)} estimated`} />
-                </div>
+                        <div className="relative flex flex-wrap items-center justify-between gap-8">
+                            <div className="min-w-0 max-w-2xl">
+                                <p className="text-[11px] tracking-[0.25em] text-[#8a651c] uppercase">
+                                    {timeGreeting()}
+                                    {firstName ? `, ${firstName}` : ''}
+                                </p>
+                                <h1 className="mt-1.5 font-serif text-4xl leading-tight font-light tracking-tight">{summary.name}</h1>
+
+                                <p className="mt-3 text-sm text-muted-foreground">
+                                    {days === null ? (
+                                        'Set your wedding date to start the countdown.'
+                                    ) : days > 0 ? (
+                                        <>
+                                            <span className="font-serif text-2xl text-[#8a651c]">
+                                                <CountUp value={days} />
+                                            </span>{' '}
+                                            days to go
+                                            {summary.event_date && (
+                                                <> · {new Date(summary.event_date + 'T00:00:00').toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</>
+                                            )}
+                                        </>
+                                    ) : days === 0 ? (
+                                        'Today is the day. Enjoy every minute.'
+                                    ) : (
+                                        `Married ${Math.abs(days)} days ago.`
+                                    )}
+                                    <span className="mx-2 text-border">|</span>
+                                    {rsvpPct}% RSVP’d · {formatMoney(budget.paid * 100)} paid
+                                </p>
+
+                                {nextStep && (
+                                    <Link
+                                        href={nextStep.href}
+                                        className="mt-5 inline-flex items-center gap-2 bg-[#191613] px-5 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                                    >
+                                        Next step: {nextStep.label}
+                                        <ArrowRight className="size-3.5" />
+                                    </Link>
+                                )}
+
+                                {milestones.length > 0 && (
+                                    <div className="mt-5 flex flex-wrap gap-1.5">
+                                        {milestones.map((m) => (
+                                            <Link
+                                                key={m.key}
+                                                href={m.href}
+                                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${
+                                                    m.done
+                                                        ? 'border-[#8a651c]/30 bg-[#8a651c]/10 text-[#8a651c]'
+                                                        : 'border-border bg-white/60 text-muted-foreground hover:border-[#8a651c]/40 hover:text-[#8a651c]'
+                                                }`}
+                                            >
+                                                {m.done ? <Check className="size-3" /> : <Circle className="size-2" />}
+                                                {m.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {milestones.length > 0 && <ProgressRing pct={progressPct} />}
+                        </div>
+                    </div>
+                </Reveal>
 
                 {/* Module cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard title="Guests" icon={Users} href="/guests">
+                <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StaggerItem><StatCard title="Guests" icon={Users} href="/guests">
                         <div className="font-serif text-3xl">{guests.total}</div>
                         <p className="text-xs text-muted-foreground">
                             {guests.attending} attending · {guests.pending} awaiting reply
@@ -223,9 +346,9 @@ export default function Dashboard({ summary, guests, budget, tasks, counts, atte
                         <div className="mt-3">
                             <Bar value={replied} total={guests.total} />
                         </div>
-                    </StatCard>
+                    </StatCard></StaggerItem>
 
-                    <StatCard title="Budget" icon={Wallet} href="/budget">
+                    <StaggerItem><StatCard title="Budget" icon={Wallet} href="/budget">
                         <div className="font-serif text-3xl">{formatMoney(budget.estimated * 100)}</div>
                         <p className="text-xs text-muted-foreground">
                             {formatMoney(budget.paid * 100)} paid of {formatMoney(budget.actual * 100)} actual
@@ -233,9 +356,9 @@ export default function Dashboard({ summary, guests, budget, tasks, counts, atte
                         <div className="mt-3">
                             <Bar value={budget.paid} total={budget.actual} />
                         </div>
-                    </StatCard>
+                    </StatCard></StaggerItem>
 
-                    <StatCard title="Tasks" icon={ListChecks} href="/checklist">
+                    <StaggerItem><StatCard title="Tasks" icon={ListChecks} href="/checklist">
                         <div className="font-serif text-3xl">
                             {tasks.completed}
                             <span className="text-base text-muted-foreground">/{tasks.total}</span>
@@ -246,9 +369,9 @@ export default function Dashboard({ summary, guests, budget, tasks, counts, atte
                         <div className="mt-3">
                             <Bar value={tasks.completed} total={tasks.total} danger={tasks.overdue > 0} />
                         </div>
-                    </StatCard>
+                    </StatCard></StaggerItem>
 
-                    <StatCard title="Seating" icon={Armchair} href="/seating">
+                    <StaggerItem><StatCard title="Seating" icon={Armchair} href="/seating">
                         <div className="font-serif text-3xl">{counts.seated}</div>
                         <p className="text-xs text-muted-foreground">
                             seated across {counts.tables} {counts.tables === 1 ? 'table' : 'tables'}
@@ -256,8 +379,8 @@ export default function Dashboard({ summary, guests, budget, tasks, counts, atte
                         <div className="mt-3">
                             <Bar value={counts.seated} total={guests.attending || guests.total} />
                         </div>
-                    </StatCard>
-                </div>
+                    </StatCard></StaggerItem>
+                </Stagger>
 
                 {/* Needs Attention + Upcoming */}
                 <div className="grid gap-4 lg:grid-cols-3">

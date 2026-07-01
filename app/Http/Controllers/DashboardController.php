@@ -13,6 +13,7 @@ use App\Models\SeatingTable;
 use App\Models\Task;
 use App\Models\TimelineEvent;
 use App\Models\Vendor;
+use App\Models\WeddingWebsite;
 use App\Support\CurrentWedding;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
@@ -122,7 +123,25 @@ class DashboardController extends Controller
 
         $offersAwaiting = $openInquiries->where('status', InquiryStatus::Offered);
 
+        // The planning journey, in order — drives the hero progress ring and the
+        // "next step" nudge. Each milestone is derived from data already loaded
+        // (plus two cheap exists/value queries).
+        $websitePublished = (bool) WeddingWebsite::where('wedding_id', $weddingId)->value('is_published');
+        $vendorBooked = Vendor::query()->forWedding($weddingId)
+            ->where('status', VendorStatus::Booked->value)
+            ->exists();
+
+        $milestones = [
+            ['key' => 'guests', 'label' => 'Add your guest list', 'done' => $guests->isNotEmpty(), 'href' => '/guests'],
+            ['key' => 'budget', 'label' => 'Start your budget', 'done' => $budget->isNotEmpty(), 'href' => '/budget'],
+            ['key' => 'checklist', 'label' => 'Build your checklist', 'done' => $allTasks->isNotEmpty(), 'href' => '/checklist'],
+            ['key' => 'website', 'label' => 'Publish your website', 'done' => $websitePublished, 'href' => '/website'],
+            ['key' => 'vendor', 'label' => 'Book your first vendor', 'done' => $vendorBooked, 'href' => '/vendors/marketplace'],
+            ['key' => 'seating', 'label' => 'Seat your guests', 'done' => $guests->whereNotNull('table_id')->isNotEmpty(), 'href' => '/seating'],
+        ];
+
         return Inertia::render('dashboard', [
+            'milestones' => $milestones,
             'summary' => [
                 'name' => $wedding->name,
                 'event_date' => $eventDate?->toDateString(),
