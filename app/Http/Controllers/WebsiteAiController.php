@@ -64,6 +64,7 @@ class WebsiteAiController extends Controller
                     'required' => ['content'],
                 ],
             ],
+            model: $ai->modelFor('structured'),
         );
 
         return ['content' => (string) ($result['content'] ?? '')];
@@ -96,6 +97,7 @@ class WebsiteAiController extends Controller
                     'required' => ['items'],
                 ],
             ],
+            model: $ai->modelFor('structured'),
         );
 
         return ['items' => array_values((array) ($result['items'] ?? []))];
@@ -129,6 +131,7 @@ class WebsiteAiController extends Controller
                     'required' => ['items'],
                 ],
             ],
+            model: $ai->modelFor('structured'),
         );
 
         return ['items' => array_values((array) ($result['items'] ?? []))];

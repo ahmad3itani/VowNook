@@ -54,7 +54,7 @@ class SupportAssistantController extends Controller
         ];
 
         try {
-            $result = $ai->generateStructured($this->systemPrompt(), $data['question'], $tool);
+            $result = $ai->generateStructured($this->systemPrompt(), $data['question'], $tool, model: $ai->modelFor('chat'));
         } catch (AiException $e) {
             return response()->json([
                 'available' => true,

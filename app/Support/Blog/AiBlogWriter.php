@@ -49,7 +49,7 @@ class AiBlogWriter
         }
 
         try {
-            $result = $this->ai->generateStructured($this->system(), $prompt, $tool, 45);
+            $result = $this->ai->generateStructured($this->system(), $prompt, $tool, 45, $this->ai->modelFor('content'));
         } catch (AiException) {
             return null;
         }

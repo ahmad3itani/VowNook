@@ -312,7 +312,7 @@ class HoneymoonController extends Controller
         // A focused call (no day-by-day here — that's generated for the chosen
         // package only) so it stays well under the request timeout. Allow extra
         // headroom since it returns three packages.
-        $result = $ai->generateStructured($this->conciergeSystem(), $this->context($wedding, $data), $tool, 45);
+        $result = $ai->generateStructured($this->conciergeSystem(), $this->context($wedding, $data), $tool, 45, $ai->modelFor('structured'));
 
         return $this->normalizePackages($result['packages'] ?? [], $this->nights($data) ?? 7);
     }
@@ -471,7 +471,7 @@ class HoneymoonController extends Controller
         }
 
         try {
-            $result = $ai->generateStructured($system, $prompt, $tool, 30);
+            $result = $ai->generateStructured($system, $prompt, $tool, 30, $ai->modelFor('structured'));
         } catch (AiException) {
             return []; // The chosen view still works without a day-by-day.
         }

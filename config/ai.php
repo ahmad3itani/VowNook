@@ -40,6 +40,32 @@ return [
     // Balanced model for structured generation/extraction at consumer volume.
     'model' => env('AI_MODEL', 'claude-sonnet-4-6'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Per-purpose model tiers
+    |--------------------------------------------------------------------------
+    |
+    | Different features deserve different models. Chat is high-frequency and
+    | latency-sensitive (keep it cheap + snappy); structured generators are the
+    | paid-tier "wow" features (worth a mid model); published content (blog +
+    | local SEO pages) is the public face at tiny volume (worth the best model).
+    |
+    | Values must match the ACTIVE provider's naming: OpenRouter slugs like
+    | "anthropic/claude-sonnet-5" when on OpenRouter, Anthropic IDs like
+    | "claude-sonnet-4-6" on the direct API. Null falls back to the provider's
+    | default model above — so nothing changes until you opt in.
+    |
+    */
+
+    'models' => [
+        // Support bot + AI-planner chat (streamed). High volume — cheap + fast.
+        'chat' => env('AI_MODEL_CHAT'),
+        // Plan starter, honeymoon concierge, website AI-fill (paid features).
+        'structured' => env('AI_MODEL_STRUCTURED'),
+        // Blog autopilot + local-SEO guides (published, low volume).
+        'content' => env('AI_MODEL_CONTENT'),
+    ],
+
     // Hard ceiling per response. Generous enough for ~30 tool-emitted items.
     'max_tokens' => (int) env('AI_MAX_TOKENS', 8000),
 

@@ -101,15 +101,27 @@ class AiService
      *
      * @throws AiException
      */
-    public function generateStructured(string $system, string $userPrompt, array $tool, ?int $timeout = null): array
+    public function generateStructured(string $system, string $userPrompt, array $tool, ?int $timeout = null, ?string $model = null): array
     {
         if (! $this->isConfigured()) {
             throw new AiException('AI assistance is not configured.');
         }
 
         return $this->provider() === 'openrouter'
-            ? $this->viaOpenRouter($system, $userPrompt, $tool, $timeout)
-            : $this->viaAnthropic($system, $userPrompt, $tool, $timeout);
+            ? $this->viaOpenRouter($system, $userPrompt, $tool, $timeout, $model)
+            : $this->viaAnthropic($system, $userPrompt, $tool, $timeout, $model);
+    }
+
+    /**
+     * The configured model for a feature tier ('chat' | 'structured' |
+     * 'content'), or null to use the provider's default. Callers pass this as
+     * the $model override so each feature runs on the right cost/quality tier.
+     */
+    public function modelFor(string $purpose): ?string
+    {
+        $model = config("ai.models.{$purpose}");
+
+        return is_string($model) && $model !== '' ? $model : null;
     }
 
     /**
@@ -121,15 +133,15 @@ class AiService
      *
      * @throws AiException
      */
-    public function chat(string $system, array $messages): string
+    public function chat(string $system, array $messages, ?string $model = null): string
     {
         if (! $this->isConfigured()) {
             throw new AiException('AI assistance is not configured.');
         }
 
         return $this->provider() === 'openrouter'
-            ? $this->chatViaOpenRouter($system, $messages)
-            : $this->chatViaAnthropic($system, $messages);
+            ? $this->chatViaOpenRouter($system, $messages, $model)
+            : $this->chatViaAnthropic($system, $messages, $model);
     }
 
     /**
@@ -137,7 +149,7 @@ class AiService
      *
      * @throws AiException
      */
-    protected function chatViaAnthropic(string $system, array $messages): string
+    protected function chatViaAnthropic(string $system, array $messages, ?string $model = null): string
     {
         $response = $this->post(
             config('ai.anthropic.base_url'),
@@ -148,7 +160,7 @@ class AiService
                 'content-type' => 'application/json',
             ],
             [
-                'model' => config('ai.model'),
+                'model' => $model ?? config('ai.model'),
                 'max_tokens' => (int) config('ai.max_tokens'),
                 'system' => $system,
                 'messages' => $messages,
@@ -170,7 +182,7 @@ class AiService
      *
      * @throws AiException
      */
-    protected function chatViaOpenRouter(string $system, array $messages): string
+    protected function chatViaOpenRouter(string $system, array $messages, ?string $model = null): string
     {
         $response = $this->post(
             config('ai.openrouter.base_url'),
@@ -182,7 +194,7 @@ class AiService
                 'x-title' => (string) config('app.name'),
             ],
             [
-                'model' => config('ai.openrouter.model'),
+                'model' => $model ?? config('ai.openrouter.model'),
                 'max_tokens' => (int) config('ai.max_tokens'),
                 'messages' => array_merge(
                     [['role' => 'system', 'content' => $system]],
@@ -218,7 +230,7 @@ class AiService
      *
      * @throws AiException
      */
-    public function streamChat(string $system, array $messages, callable $onDelta): string
+    public function streamChat(string $system, array $messages, callable $onDelta, ?string $model = null): string
     {
         if (! $this->isConfigured()) {
             throw new AiException('AI assistance is not configured.');
@@ -245,13 +257,13 @@ class AiService
 
         $payload = $openRouter
             ? [
-                'model' => config('ai.openrouter.model'),
+                'model' => $model ?? config('ai.openrouter.model'),
                 'max_tokens' => (int) config('ai.max_tokens'),
                 'stream' => true,
                 'messages' => array_merge([['role' => 'system', 'content' => $system]], $messages),
             ]
             : [
-                'model' => config('ai.model'),
+                'model' => $model ?? config('ai.model'),
                 'max_tokens' => (int) config('ai.max_tokens'),
                 'stream' => true,
                 'system' => $system,
@@ -349,7 +361,7 @@ class AiService
      *
      * @throws AiException
      */
-    protected function viaAnthropic(string $system, string $userPrompt, array $tool, ?int $timeout = null): array
+    protected function viaAnthropic(string $system, string $userPrompt, array $tool, ?int $timeout = null, ?string $model = null): array
     {
         $response = $this->post(
             config('ai.anthropic.base_url'),
@@ -360,7 +372,7 @@ class AiService
                 'content-type' => 'application/json',
             ],
             [
-                'model' => config('ai.model'),
+                'model' => $model ?? config('ai.model'),
                 'max_tokens' => (int) config('ai.max_tokens'),
                 'system' => $system,
                 'tools' => [$tool],
@@ -387,7 +399,7 @@ class AiService
      *
      * @throws AiException
      */
-    protected function viaOpenRouter(string $system, string $userPrompt, array $tool, ?int $timeout = null): array
+    protected function viaOpenRouter(string $system, string $userPrompt, array $tool, ?int $timeout = null, ?string $model = null): array
     {
         $response = $this->post(
             config('ai.openrouter.base_url'),
@@ -400,7 +412,7 @@ class AiService
                 'x-title' => (string) config('app.name'),
             ],
             [
-                'model' => config('ai.openrouter.model'),
+                'model' => $model ?? config('ai.openrouter.model'),
                 'max_tokens' => (int) config('ai.max_tokens'),
                 'messages' => [
                     ['role' => 'system', 'content' => $system],

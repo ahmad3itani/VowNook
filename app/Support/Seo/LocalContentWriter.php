@@ -54,7 +54,7 @@ class LocalContentWriter
         ]);
 
         try {
-            $result = $this->ai->generateStructured($system, "Write the guide for: {$categoryNoun} in {$place}.", $tool, 30);
+            $result = $this->ai->generateStructured($system, "Write the guide for: {$categoryNoun} in {$place}.", $tool, 30, $this->ai->modelFor('content'));
         } catch (AiException) {
             return null;
         }

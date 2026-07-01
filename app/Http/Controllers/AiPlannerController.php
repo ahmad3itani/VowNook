@@ -122,7 +122,7 @@ class AiPlannerController extends Controller
         $history = $this->chatHistory($wedding, $text);
 
         try {
-            $reply = $this->ai->chat($this->chatSystemPrompt($wedding), $history);
+            $reply = $this->ai->chat($this->chatSystemPrompt($wedding), $history, $this->ai->modelFor('chat'));
         } catch (AiException $e) {
             return response()->json(['available' => true, 'ok' => false, 'reply' => $e->getMessage()]);
         } catch (Throwable $e) {
@@ -174,7 +174,7 @@ class AiPlannerController extends Controller
 
         return response()->stream(function () use ($wedding, $text, $history, $system) {
             try {
-                $full = $this->ai->streamChat($system, $history, fn (string $delta) => $this->sse(['delta' => $delta]));
+                $full = $this->ai->streamChat($system, $history, fn (string $delta) => $this->sse(['delta' => $delta]), $this->ai->modelFor('chat'));
             } catch (AiException $e) {
                 $this->sse(['error' => $e->getMessage()]);
 
@@ -381,7 +381,7 @@ class AiPlannerController extends Controller
             .'comprehensive planning checklist. Use realistic Canadian timelines and vendor types. '
             .'Be specific and actionable. Avoid duplicates. Return 20-35 tasks.';
 
-        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->checklistTool());
+        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->checklistTool(), model: $this->ai->modelFor('structured'));
 
         return $this->normalizeChecklist($result['tasks'] ?? []);
     }
@@ -398,7 +398,7 @@ class AiPlannerController extends Controller
             .'suggests — do not invent unrelated ones. Pick a sensible category, priority and months-before '
             .'for each.';
 
-        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->checklistTool());
+        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->checklistTool(), model: $this->ai->modelFor('structured'));
 
         return $this->normalizeChecklist($result['tasks'] ?? []);
     }
@@ -508,7 +508,7 @@ class AiPlannerController extends Controller
                 : 'Estimate sensible absolute amounts for a typical Ontario wedding.')
             .' Return 12-24 line items.';
 
-        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->budgetTool());
+        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->budgetTool(), model: $this->ai->modelFor('structured'));
 
         return $this->normalizeBudget($result['items'] ?? []);
     }
@@ -519,7 +519,7 @@ class AiPlannerController extends Controller
         $system = 'From the planner message below, extract ONLY the budget line items or costs it actually '
             .'mentions, grouped under sensible categories, in Canadian dollars. Do not invent unrelated items.';
 
-        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->budgetTool());
+        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->budgetTool(), model: $this->ai->modelFor('structured'));
 
         return $this->normalizeBudget($result['items'] ?? []);
     }
@@ -623,7 +623,7 @@ class AiPlannerController extends Controller
             .'wedding-day run-of-show from getting-ready through the send-off, with sensible times and '
             .'durations. Use 24-hour times. Return 10-18 events in chronological order.';
 
-        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->timelineTool());
+        $result = $this->ai->generateStructured($system, $this->context($wedding, $data), $this->timelineTool(), model: $this->ai->modelFor('structured'));
 
         return $this->normalizeTimeline($result['events'] ?? []);
     }
@@ -634,7 +634,7 @@ class AiPlannerController extends Controller
         $system = 'From the planner message below, extract ONLY the day-of events or moments it actually '
             .'mentions, in chronological order with sensible 24-hour times. Do not invent unrelated events.';
 
-        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->timelineTool());
+        $result = $this->ai->generateStructured($system, "Planner message:\n\n{$text}", $this->timelineTool(), model: $this->ai->modelFor('structured'));
 
         return $this->normalizeTimeline($result['events'] ?? []);
     }
