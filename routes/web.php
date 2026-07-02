@@ -64,6 +64,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SaveTheDateController;
 use App\Http\Controllers\SeatingController;
 use App\Http\Controllers\SeatingElementController;
+use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubdomainSiteController;
@@ -111,6 +112,15 @@ Route::get('invitations/{token}', [InvitationController::class, 'show'])->name('
 Route::middleware('throttle:120,1')->group(function () {
     // XML sitemap for search engines.
     Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
+
+    // VowNook Shop — static storefront (public/shop) + Stripe checkout + the
+    // signed download link the delivery email carries. The checkout POST is
+    // CSRF-exempt (static page, no token) and throttled hard.
+    Route::get('shop', [ShopController::class, 'index'])->name('shop');
+    Route::post('api/shop/checkout', [ShopController::class, 'checkout'])
+        ->middleware('throttle:10,1')->name('shop.checkout');
+    Route::get('shop/download/{order}', [ShopController::class, 'download'])
+        ->middleware('signed')->name('shop.download');
 
     // robots.txt — dynamic so the Sitemap URL is correct on any domain.
     Route::get('robots.txt', function () {

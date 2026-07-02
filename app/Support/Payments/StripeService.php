@@ -5,11 +5,14 @@ namespace App\Support\Payments;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
+use App\Mail\ShopOrderDelivery;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\ShopOrder;
 use App\Models\User;
 use App\Models\VendorProfile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Event;
 use Stripe\StripeClient;
 use Stripe\Webhook;
@@ -148,6 +151,39 @@ class StripeService
         return $this->client()->checkout->sessions->create($params)->url;
     }
 
+    // ── Shop (digital stationery) ────────────────────────────────────────────
+
+    /**
+     * Hosted Checkout for a VowNook Shop order. Saves the session id on the
+     * pending order (the webhook resolves it via metadata.shop_order_id) and
+     * returns the URL to redirect the buyer to.
+     */
+    public function shopCheckout(ShopOrder $order, string $successUrl, string $cancelUrl): string
+    {
+        $session = $this->client()->checkout->sessions->create([
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'billing_address_collection' => 'auto',
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => $order->currency,
+                    'unit_amount' => $order->amount_cents,
+                    'product_data' => ['name' => 'VowNook · '.$order->product_name],
+                ],
+            ]],
+            'metadata' => [
+                'shop_order_id' => $order->id,
+                'product_name' => $order->product_name,
+            ],
+        ]);
+
+        $order->update(['stripe_session_id' => $session->id]);
+
+        return $session->url;
+    }
+
     // ── Checkout (marketplace bookings) ──────────────────────────────────────
 
     /** The amount (cents) due for a given payment stage on a booking. */
@@ -272,6 +308,14 @@ class StripeService
 
     protected function onCheckoutCompleted($session): void
     {
+        // Shop orders carry a shop_order_id in metadata.
+        $shopOrderId = $session->metadata->shop_order_id ?? null;
+        if ($shopOrderId !== null) {
+            $this->onShopOrderPaid($session, (int) $shopOrderId);
+
+            return;
+        }
+
         // SaaS plan purchases carry a plan_tier in metadata; bookings don't.
         $tier = $session->metadata->plan_tier ?? null;
         if ($tier !== null) {
@@ -310,6 +354,39 @@ class StripeService
             ->sum('amount_cents');
 
         $booking->vendor?->update(['paid_cents' => $paid]);
+    }
+
+    /**
+     * A paid shop order: mark it fulfilled and email the buyer their signed
+     * download link. Idempotent (Stripe retries webhooks), and the mail send is
+     * wrapped so a mailer hiccup never 500s the webhook into a retry loop.
+     */
+    protected function onShopOrderPaid($session, int $orderId): void
+    {
+        $order = ShopOrder::find($orderId);
+
+        if ($order === null || $order->isFulfilled()) {
+            return;
+        }
+
+        $order->update([
+            'status' => 'fulfilled',
+            'email' => $session->customer_details->email ?? $order->email,
+            'amount_cents' => $session->amount_total ?? $order->amount_cents,
+            'fulfilled_at' => now(),
+        ]);
+
+        if (blank($order->email)) {
+            Log::warning('Shop order fulfilled without a buyer email', ['shop_order_id' => $order->id]);
+
+            return;
+        }
+
+        try {
+            Mail::to($order->email)->send(new ShopOrderDelivery($order));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** A completed plan Checkout (one-time Atelier or the first HQ invoice). */

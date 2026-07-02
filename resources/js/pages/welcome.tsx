@@ -196,6 +196,9 @@ export default function Welcome() {
                         <Link href="/marketplace" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             Marketplace
                         </Link>
+                        <a href="/shop" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            Shop
+                        </a>
                         <a href="#vendors" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             For vendors
                         </a>
@@ -242,6 +245,7 @@ export default function Welcome() {
                         <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For couples</a>
                         <a href="#suite" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">The suite</a>
                         <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Marketplace</Link>
+                        <a href="/shop" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Shop</a>
                         <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For vendors</a>
                         <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Pricing</a>
                         {!authed && (

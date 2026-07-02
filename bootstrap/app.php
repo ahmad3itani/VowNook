@@ -26,7 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         // Stripe signs webhooks itself; CSRF doesn't apply to server-to-server POSTs.
-        $middleware->validateCsrfTokens(except: ['stripe/webhook']);
+        // The shop checkout is POSTed by a static page (no session/token) — it
+        // creates nothing sensitive (a pending order + a Stripe redirect) and is
+        // hard-throttled on the route.
+        $middleware->validateCsrfTokens(except: ['stripe/webhook', 'api/shop/checkout']);
 
         $middleware->web(append: [
             HandleAppearance::class,

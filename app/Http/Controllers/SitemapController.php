@@ -37,8 +37,9 @@ class SitemapController extends Controller
         $urls = [
             ['loc' => url('/'), 'changefreq' => 'weekly', 'lastmod' => $today],
             ['loc' => route('public.marketplace'), 'changefreq' => 'daily', 'lastmod' => $today],
-            // Static marketing page — no meaningful lastmod (changes only on deploy).
+            // Static marketing pages — no meaningful lastmod (change only on deploy).
             ['loc' => url('/how-it-works'), 'changefreq' => 'monthly'],
+            ['loc' => url('/shop'), 'changefreq' => 'weekly'],
             ['loc' => route('blog.index'), 'changefreq' => 'weekly', 'lastmod' => $posts->max('updated_at')?->toAtomString()],
         ];
 
