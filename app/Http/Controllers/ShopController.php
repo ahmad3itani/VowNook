@@ -27,6 +27,26 @@ class ShopController extends Controller
         return response()->file(public_path('shop/index.html'));
     }
 
+    /** Serve a static product page for its clean /shop/p/{slug} URL. */
+    public function product(string $slug): BinaryFileResponse
+    {
+        $known = collect(config('shop.products'))->pluck('slug')->all();
+        abort_unless(in_array($slug, $known, true), 404);
+
+        return response()->file(public_path("shop/p/{$slug}.html"));
+    }
+
+    /**
+     * Confirm a purchase for the personaliser (signed link in the delivery
+     * email) so it can export clean, watermark-free files.
+     */
+    public function unlocked(ShopOrder $order): JsonResponse
+    {
+        abort_unless($order->isFulfilled(), 403);
+
+        return response()->json(['ok' => true, 'product' => $order->product_key]);
+    }
+
     /** Create a pending order + hosted Checkout session; returns {url}. */
     public function checkout(Request $request): JsonResponse
     {

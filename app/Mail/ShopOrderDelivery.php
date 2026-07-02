@@ -40,7 +40,13 @@ class ShopOrderDelivery extends Mailable
                     now()->addDays($days),
                     ['order' => $this->order->id],
                 ),
-                'personalizerUrl' => url('/shop/customize.html'),
+                // Carries a long-lived signed unlock so the personaliser
+                // exports clean, watermark-free files for this buyer.
+                'personalizerUrl' => url('/shop/customize.html').'?unlock='.urlencode(URL::temporarySignedRoute(
+                    'shop.unlocked',
+                    now()->addYear(),
+                    ['order' => $this->order->id],
+                )),
                 'linkDays' => $days,
             ],
         );

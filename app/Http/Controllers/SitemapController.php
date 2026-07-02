@@ -40,6 +40,10 @@ class SitemapController extends Controller
             // Static marketing pages — no meaningful lastmod (change only on deploy).
             ['loc' => url('/how-it-works'), 'changefreq' => 'monthly'],
             ['loc' => url('/shop'), 'changefreq' => 'weekly'],
+            // Shop product pages (static, clean URLs served by ShopController@product).
+            ...collect(config('shop.products'))->pluck('slug')->map(
+                fn (string $slug) => ['loc' => url("/shop/p/{$slug}"), 'changefreq' => 'monthly'],
+            )->all(),
             ['loc' => route('blog.index'), 'changefreq' => 'weekly', 'lastmod' => $posts->max('updated_at')?->toAtomString()],
         ];
 

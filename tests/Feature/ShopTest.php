@@ -138,6 +138,54 @@ class ShopTest extends TestCase
         $this->get($url)->assertOk();
     }
 
+    public function test_product_pages_serve_at_their_clean_urls(): void
+    {
+        $response = $this->get('/shop/p/invitation-suite');
+        $response->assertOk();
+
+        $html = file_get_contents($response->baseResponse->getFile()->getPathname());
+        $this->assertStringContainsString('The Invitation Suite', $html);
+        $this->assertStringContainsString('"@type":"Product"', $html);
+        // Buy buttons are wired by the shared product-page script.
+        $this->assertStringContainsString('/shop/assets/pdp.js', $html);
+
+        $this->get('/shop/p/not-a-product')->assertNotFound();
+    }
+
+    public function test_the_sitemap_lists_the_product_pages(): void
+    {
+        $this->get('/sitemap.xml')
+            ->assertOk()
+            ->assertSee(url('/shop/p/invitation-suite'), false)
+            ->assertSee(url('/shop/p/complete-collection'), false);
+    }
+
+    public function test_the_personaliser_unlock_requires_a_signature_and_a_fulfilled_order(): void
+    {
+        $fulfilled = $this->pendingOrder(['status' => 'fulfilled', 'fulfilled_at' => now()]);
+        $pending = $this->pendingOrder();
+
+        $url = URL::temporarySignedRoute('shop.unlocked', now()->addYear(), ['order' => $fulfilled->id]);
+        $this->getJson($url)->assertOk()->assertJson(['ok' => true]);
+
+        // Unsigned — blocked outright.
+        $this->getJson("/api/shop/unlocked/{$fulfilled->id}")->assertStatus(403);
+
+        // Signed but never paid — blocked.
+        $url = URL::temporarySignedRoute('shop.unlocked', now()->addYear(), ['order' => $pending->id]);
+        $this->getJson($url)->assertStatus(403);
+    }
+
+    public function test_the_delivery_email_carries_a_signed_personaliser_unlock(): void
+    {
+        $order = $this->pendingOrder(['status' => 'fulfilled', 'fulfilled_at' => now(), 'email' => 'bride@example.com']);
+
+        $html = (new \App\Mail\ShopOrderDelivery($order))->render();
+
+        $this->assertStringContainsString('customize.html?unlock=', $html);
+        $this->assertStringContainsString('signature', $html);
+    }
+
     public function test_the_download_rejects_unsigned_and_unfulfilled_requests(): void
     {
         Storage::fake();

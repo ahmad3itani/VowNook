@@ -117,10 +117,14 @@ Route::middleware('throttle:120,1')->group(function () {
     // signed download link the delivery email carries. The checkout POST is
     // CSRF-exempt (static page, no token) and throttled hard.
     Route::get('shop', [ShopController::class, 'index'])->name('shop');
+    Route::get('shop/p/{slug}', [ShopController::class, 'product'])
+        ->where('slug', '[a-z0-9-]+')->name('shop.product');
     Route::post('api/shop/checkout', [ShopController::class, 'checkout'])
         ->middleware('throttle:10,1')->name('shop.checkout');
     Route::get('shop/download/{order}', [ShopController::class, 'download'])
         ->middleware('signed')->name('shop.download');
+    Route::get('api/shop/unlocked/{order}', [ShopController::class, 'unlocked'])
+        ->middleware('signed')->name('shop.unlocked');
 
     // robots.txt — dynamic so the Sitemap URL is correct on any domain.
     Route::get('robots.txt', function () {

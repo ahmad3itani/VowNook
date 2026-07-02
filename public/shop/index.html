@@ -128,7 +128,8 @@ header.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.88);bac
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
 .card{display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
 .card:hover{transform:translateY(-5px);box-shadow:var(--shadow-sm)}
-.card .ph{aspect-ratio:4/5;overflow:hidden}
+.card .ph{aspect-ratio:4/5;overflow:hidden;display:block}
+.card-body h3 a:hover{color:var(--gold)}
 .card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .card:hover .ph img{transform:scale(1.05)}
 .card .ribbon{position:absolute;top:12px;left:12px;z-index:2;background:#fff;border:1px solid var(--line);color:var(--gold);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:100px}
@@ -332,63 +333,68 @@ footer{background:var(--warm);border-top:1px solid var(--line);padding:60px 0 38
     <div class="grid">
 
       <article class="card rv">
-        <div class="ph"><span class="ribbon">Available now</span><img src="/shop/assets/card-portrait.jpg" alt="The Invitation Suite" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></div>
+        <a href="/shop/p/invitation-suite" class="ph"><span class="ribbon">Bestseller</span><img src="/shop/assets/card-portrait.jpg" alt="The Invitation Suite" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></a>
         <div class="card-body">
           <div class="cat">Invitations</div>
-          <h3>The Invitation Suite</h3>
+          <h3><a href="/shop/p/invitation-suite">The Invitation Suite</a></h3>
           <p>Ten designs · save-the-date, invitation, details &amp; RSVP.</p>
-          <a href="/shop/customize.html" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">Personalise &amp; preview →</a>
-          <div class="card-foot"><span class="price">$32 <small>CAD</small></span><button class="add buy" data-name="The Invitation Suite" data-price="$32 CAD" data-img="37524690">Add to cart</button></div>
+          <a href="/shop/p/invitation-suite" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">See it with your names →</a>
+          <div class="card-foot"><span class="price">$32 <small>CAD</small></span><button class="add buy" data-name="The Invitation Suite" data-price="$32 CAD">Buy now</button></div>
         </div>
       </article>
 
       <article class="card rv">
-        <div class="ph"><img src="/shop/assets/day-of.jpg" alt="Day-of printables — wedding menu card" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></div>
+        <a href="/shop/p/day-of-printables" class="ph"><img src="/shop/assets/day-of.jpg" alt="Day-of printables — wedding menu card" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></a>
         <div class="card-body">
           <div class="cat">On the day</div>
-          <h3>Day-Of Printables</h3>
+          <h3><a href="/shop/p/day-of-printables">Day-Of Printables</a></h3>
           <p>Menus, place cards, escort cards &amp; table numbers.</p>
-          <div class="card-foot"><span class="price">$24 <small>CAD</small></span><button class="add buy" data-name="Day-Of Printables" data-price="$24 CAD">Add to cart</button></div>
+          <a href="/shop/p/day-of-printables" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">See it with your menu →</a>
+          <div class="card-foot"><span class="price">$24 <small>CAD</small></span><button class="add buy" data-name="Day-Of Printables" data-price="$24 CAD">Buy now</button></div>
         </div>
       </article>
 
       <article class="card rv">
-        <div class="ph"><img src="/shop/assets/signage.jpg" alt="Wedding welcome sign" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></div>
+        <a href="/shop/p/signage-bundle" class="ph"><img src="/shop/assets/signage.jpg" alt="Wedding welcome sign" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></a>
         <div class="card-body">
           <div class="cat">Signage</div>
-          <h3>Signage Bundle</h3>
+          <h3><a href="/shop/p/signage-bundle">Signage Bundle</a></h3>
           <p>Welcome sign, bar menu, seating chart &amp; order of the day.</p>
-          <div class="card-foot"><span class="price">$19 <small>CAD</small></span><button class="add buy" data-name="Signage Bundle" data-price="$19 CAD">Add to cart</button></div>
+          <a href="/shop/p/signage-bundle" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">See it with your names →</a>
+          <div class="card-foot"><span class="price">$19 <small>CAD</small></span><button class="add buy" data-name="Signage Bundle" data-price="$19 CAD">Buy now</button></div>
         </div>
       </article>
 
       <article class="card rv">
-        <div class="ph"><img src="/shop/assets/vow.jpg" alt="Wedding vow book" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></div>
+        <a href="/shop/p/vow-book-set" class="ph"><img src="/shop/assets/vow.jpg" alt="Wedding vow book" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></a>
         <div class="card-body">
           <div class="cat">Keepsake</div>
-          <h3>The Vow Book Set</h3>
+          <h3><a href="/shop/p/vow-book-set">The Vow Book Set</a></h3>
           <p>Two printable booklets to write your vows in and keep.</p>
-          <div class="card-foot"><span class="price">$16 <small>CAD</small></span><button class="add buy" data-name="The Vow Book Set" data-price="$16 CAD">Add to cart</button></div>
+          <a href="/shop/p/vow-book-set" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">See your cover →</a>
+          <div class="card-foot"><span class="price">$16 <small>CAD</small></span><button class="add buy" data-name="The Vow Book Set" data-price="$16 CAD">Buy now</button></div>
         </div>
       </article>
 
       <article class="card rv">
-        <div class="ph"><img src="/shop/assets/thankyou.jpg" alt="Thank-you card" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></div>
+        <a href="/shop/p/thank-you-favours" class="ph"><img src="/shop/assets/thankyou.jpg" alt="Thank-you card" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></a>
         <div class="card-body">
           <div class="cat">After the day</div>
-          <h3>Thank-You &amp; Favours</h3>
+          <h3><a href="/shop/p/thank-you-favours">Thank-You &amp; Favours</a></h3>
           <p>Thank-you cards, gift tags &amp; favour labels.</p>
-          <div class="card-foot"><span class="price">$14 <small>CAD</small></span><button class="add buy" data-name="Thank-You and Favours" data-price="$14 CAD">Add to cart</button></div>
+          <a href="/shop/p/thank-you-favours" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">See it with your names →</a>
+          <div class="card-foot"><span class="price">$14 <small>CAD</small></span><button class="add buy" data-name="Thank-You and Favours" data-price="$14 CAD">Buy now</button></div>
         </div>
       </article>
 
       <article class="card rv">
-        <div class="ph"><span class="ribbon">Save $46</span><img src="/shop/assets/bundle.jpg" alt="The complete stationery collection" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></div>
+        <a href="/shop/p/complete-collection" class="ph"><span class="ribbon">Save $46</span><img src="/shop/assets/bundle.jpg" alt="The complete stationery collection" loading="lazy" onerror="this.closest('.ph').classList.add('fallback');this.remove()" /></a>
         <div class="card-body">
           <div class="cat">Best value</div>
-          <h3>The Complete Collection</h3>
+          <h3><a href="/shop/p/complete-collection">The Complete Collection</a></h3>
           <p>All five sets, designed to match — your whole day, sorted.</p>
-          <div class="card-foot"><span class="price">$59 <small>CAD</small></span><button class="add buy" data-name="The Complete Stationery Collection" data-price="$59 CAD" style="background:var(--gold)">Add</button></div>
+          <a href="/shop/p/complete-collection" style="display:inline-block;font-size:.82rem;color:var(--gold);margin:-8px 0 14px">See the maths →</a>
+          <div class="card-foot"><span class="price">$59 <small>CAD</small></span><button class="add buy" data-name="The Complete Stationery Collection" data-price="$59 CAD" style="background:var(--gold)">Buy</button></div>
         </div>
       </article>
 
