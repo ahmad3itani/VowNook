@@ -297,14 +297,14 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                     ) : (
                                         `Married ${Math.abs(days)} days ago.`
                                     )}
-                                    <span className="mx-2 text-border">|</span>
-                                    {rsvpPct}% RSVP’d · {formatMoney(budget.paid * 100)} paid
+                                    <span className="mx-2 hidden text-border sm:inline">|</span>
+                                    <span className="block sm:inline">{rsvpPct}% RSVP’d · {formatMoney(budget.paid * 100)} paid</span>
                                 </p>
 
                                 {nextStep && (
                                     <Link
                                         href={nextStep.href}
-                                        className="mt-5 inline-flex items-center gap-2 bg-[#191613] px-5 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                                        className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-[#191613] px-5 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] sm:w-auto"
                                     >
                                         Next step: {nextStep.label}
                                         <ArrowRight className="size-3.5" />
@@ -331,7 +331,11 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                 )}
                             </div>
 
-                            {milestones.length > 0 && <ProgressRing pct={progressPct} />}
+                            {milestones.length > 0 && (
+                                <div className="mx-auto md:mx-0">
+                                    <ProgressRing pct={progressPct} />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </Reveal>
