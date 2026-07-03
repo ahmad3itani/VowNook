@@ -41,8 +41,11 @@ class WebsiteController extends Controller
             'website' => $this->serialize($wedding, $website),
             'public_url' => route('public.website', $wedding),
             'can_publish' => $this->canPublish($wedding, $request->user()),
+            // Null until APP_ROOT_DOMAIN is set (wildcard DNS live) — the
+            // editor hides the whole claim section so nobody claims a dead link.
             'subdomain_base' => config('app.root_domain'),
-            'subdomain_enabled' => $wedding->owner?->canUseFeature('subdomain') ?? false,
+            'subdomain_enabled' => config('app.root_domain') !== null
+                && ($wedding->owner?->canUseFeature('subdomain') ?? false),
             // AI-fill is a paid perk (and needs a configured key). Free couples
             // still get the full editor — they just write the copy themselves.
             'ai_enabled' => app(AiService::class)->isConfigured()

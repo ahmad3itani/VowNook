@@ -60,12 +60,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | The bare domain used for couples' free wedding-site subdomains, i.e.
-    | name.vownook.com. A wildcard *.vownook.com DNS record (+ the wildcard
-    | domain attached in hosting) must point here for subdomains to resolve.
+    | name.vownook.com. Deliberately NO default: leave APP_ROOT_DOMAIN unset
+    | until the wildcard *.vownook.com DNS record exists AND the wildcard
+    | domain is attached in hosting — otherwise couples claim addresses that
+    | don't resolve. Setting it lights up the claim UI + the resolver route.
     |
     */
 
-    'root_domain' => env('APP_ROOT_DOMAIN', 'vownook.com'),
+    'root_domain' => env('APP_ROOT_DOMAIN'),
 
     /*
     |--------------------------------------------------------------------------

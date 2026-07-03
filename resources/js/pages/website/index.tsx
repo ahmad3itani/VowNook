@@ -123,7 +123,7 @@ type PageProps = {
     website: Website;
     public_url: string;
     can_publish: boolean;
-    subdomain_base: string;
+    subdomain_base: string | null;
     subdomain_enabled: boolean;
     ai_enabled: boolean;
     party_sides: string[];
@@ -792,7 +792,9 @@ export default function WebsiteIndex({
                     </CardContent>
                 </Card>
 
-                {/* Your web address (free subdomain) */}
+                {/* Your web address (free subdomain) — hidden entirely until the
+                    wildcard DNS exists (subdomain_base is null before then). */}
+                {subdomain_base !== null && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -911,6 +913,7 @@ export default function WebsiteIndex({
                         )}
                     </CardContent>
                 </Card>
+                )}
 
                 {/* Template picker */}
                 <Card>

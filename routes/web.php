@@ -94,10 +94,13 @@ use Illuminate\Support\Facades\Route;
 
 // Free personal web address — {name}.vownook.com resolves a couple's published
 // wedding site. Registered first so a matching host wins over the apex `/`.
-Route::domain('{subdomain}.'.config('app.root_domain'))->middleware('throttle:120,1')->group(function () {
-    Route::get('/', [SubdomainSiteController::class, 'show'])
-        ->where('subdomain', '[a-z0-9-]+')->name('subdomain.website');
-});
+// Only exists once APP_ROOT_DOMAIN is set (i.e. the wildcard DNS is live).
+if (config('app.root_domain') !== null) {
+    Route::domain('{subdomain}.'.config('app.root_domain'))->middleware('throttle:120,1')->group(function () {
+        Route::get('/', [SubdomainSiteController::class, 'show'])
+            ->where('subdomain', '[a-z0-9-]+')->name('subdomain.website');
+    });
+}
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
 
