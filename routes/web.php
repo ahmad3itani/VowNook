@@ -125,6 +125,8 @@ Route::middleware('throttle:120,1')->group(function () {
         ->middleware('signed')->name('shop.download');
     Route::get('api/shop/unlocked/{order}', [ShopController::class, 'unlocked'])
         ->middleware('signed')->name('shop.unlocked');
+    Route::post('api/shop/newsletter', [ShopController::class, 'newsletter'])
+        ->middleware('throttle:5,1')->name('shop.newsletter');
 
     // robots.txt — dynamic so the Sitemap URL is correct on any domain.
     Route::get('robots.txt', function () {
@@ -168,6 +170,7 @@ Route::middleware('throttle:120,1')->group(function () {
         - [Marketplace]({$base}/marketplace): browse and compare Ontario wedding vendors by category and city.
         - [Blog]({$base}/blog): practical Ontario wedding-planning advice — budgets, timelines, venues, and choosing vendors.
         - [How it works]({$base}/how-it-works): step-by-step for couples and for vendors.
+        - [Pricing]({$base}/pricing): free for couples; \$99 one-time Atelier; \$499/yr Planner HQ; vendors list free and pay a capped success fee when booked.
         - [Wedding photographers in Ontario]({$base}/wedding-photographers)
         - [Wedding venues in Ontario]({$base}/wedding-venues)
         - [Wedding planners in Ontario]({$base}/wedding-planners)
@@ -192,6 +195,7 @@ Route::middleware('throttle:120,1')->group(function () {
 
     // How the platform works — for couples and vendors.
     Route::get('how-it-works', [PublicPageController::class, 'howItWorks'])->name('how-it-works');
+    Route::get('pricing', [PublicPageController::class, 'pricing'])->name('pricing');
 
     // Public blog (SEO). Specific segments precede the {slug} article route.
     Route::get('blog', [PublicBlogController::class, 'index'])->name('blog.index');

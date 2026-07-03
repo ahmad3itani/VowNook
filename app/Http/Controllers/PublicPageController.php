@@ -39,6 +39,25 @@ class PublicPageController extends Controller
         )]);
     }
 
+    public function pricing(): Response
+    {
+        $faqs = [
+            ['q' => 'Is Atelier really a one-time payment?', 'a' => 'Yes. Atelier is $99 once, per wedding — not a subscription. It covers you from today until (and after) your wedding day, with every feature and future upgrade included.'],
+            ['q' => 'Do couples pay anything to book vendors?', 'a' => 'No. Browsing, requesting quotes, comparing offers and booking are all free for couples. Vendors pay a small success fee only when a booking actually happens.'],
+            ['q' => 'What happens if I outgrow the free plan?', 'a' => 'Nothing is ever deleted. If you reach a free limit — like 25 guests — you can upgrade to Atelier in one click, or keep planning within the free limits. Your data is always safe and always yours.'],
+            ['q' => 'What does a vendor listing cost?', 'a' => 'Nothing — no subscription, no contract. Vendors pay only a success fee when a couple books: 8% on the first $5,000 of a booking, 5% above that, capped at $1,000 per booking.'],
+        ];
+
+        return Inertia::render('public/pricing', [
+            'faqs' => $faqs,
+        ])->withViewData(['seo' => Seo::make(
+            title: 'Pricing — Free Planning, One-Time Atelier Upgrade',
+            description: 'VowNook pricing, honestly: couples plan free (Atelier is $99 once, not a subscription), planners get HQ at $499/yr, and vendors list free and pay only a capped success fee when booked.',
+            canonical: route('pricing'),
+            schemas: [Seo::faqSchema($faqs)],
+        )]);
+    }
+
     public function terms(): Response
     {
         return Inertia::render('public/terms')->withViewData(['seo' => Seo::make(

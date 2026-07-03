@@ -186,6 +186,21 @@ class ShopTest extends TestCase
         $this->assertStringContainsString('signature', $html);
     }
 
+    public function test_the_newsletter_opt_in_stores_the_lead_and_sends_the_cheat_sheet(): void
+    {
+        Mail::fake();
+
+        $this->postJson('/api/shop/newsletter', ['email' => 'Bride@Example.com'])
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertDatabaseHas('shop_leads', ['email' => 'bride@example.com', 'source' => 'shop']);
+        Mail::assertSent(\App\Mail\ShopBudgetCheatSheet::class, fn ($mail) => $mail->hasTo('Bride@Example.com'));
+
+        $this->postJson('/api/shop/newsletter', ['email' => 'not-an-email'])
+            ->assertStatus(422);
+    }
+
     public function test_the_download_rejects_unsigned_and_unfulfilled_requests(): void
     {
         Storage::fake();

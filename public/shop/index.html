@@ -484,10 +484,10 @@ footer{background:var(--warm);border-top:1px solid var(--line);padding:60px 0 38
         <h2>A little gift to start</h2>
         <p>Pop in your email and we'll send our free wedding budget cheat sheet — plus the link to plan your whole wedding free on VowNook.</p>
       </div>
-      <form onsubmit="event.preventDefault();this.querySelector('input').value='';this.querySelector('.done').style.display='block'">
+      <form id="newsForm">
         <input type="email" required placeholder="you@email.com" aria-label="Email address" />
         <button class="btn btn-gold" type="submit">Send it</button>
-        <span class="done">Thank you — check your inbox.</span>
+        <span class="done">On its way — check your inbox (and spam, just in case).</span>
       </form>
     </div>
   </div>
@@ -531,7 +531,7 @@ footer{background:var(--warm);border-top:1px solid var(--line);padding:60px 0 38
     <div class="foot-bottom">
       <span>© 2026 VowNook. All rights reserved.</span>
       <div class="pay">
-        <span class="chip">Secure checkout</span><span class="chip">Visa</span><span class="chip">Mastercard</span><span class="chip">Amex</span><span class="chip">PayPal</span><span class="chip">Apple Pay</span>
+        <span class="chip">Secure Stripe checkout</span><span class="chip">Visa</span><span class="chip">Mastercard</span><span class="chip">Amex</span><span class="chip">Apple Pay</span><span class="chip">Google Pay</span>
       </div>
     </div>
   </div>
@@ -577,6 +577,20 @@ document.querySelectorAll('.buy').forEach(b=>b.addEventListener('click',async e=
     window.location.href=d.url;
   }catch(err){ b.disabled=false; b.textContent=orig; alert(err.message); }
 }));
+
+// budget cheat sheet opt-in — a real send, not a placeholder
+const newsForm=document.getElementById('newsForm');
+newsForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const input=newsForm.querySelector('input'),btn=newsForm.querySelector('button'),done=newsForm.querySelector('.done');
+  btn.disabled=true;const orig=btn.textContent;btn.textContent='Sending…';
+  try{
+    const r=await fetch('/api/shop/newsletter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:input.value})});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||'Something went wrong — please try again.');
+    input.value='';done.style.display='block';btn.textContent=orig;btn.disabled=false;
+  }catch(err){btn.disabled=false;btn.textContent=orig;alert(err.message);}
+});
 
 // sticky cart bar after hero
 const cartbar=document.getElementById('cartbar'),hero=document.querySelector('.hero');

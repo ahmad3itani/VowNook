@@ -26,7 +26,9 @@ use Throwable;
  */
 class SeedDemoVendors extends Command
 {
-    protected $signature = 'marketplace:demo {--purge : Remove all demo vendors instead of creating them}';
+    protected $signature = 'marketplace:demo
+        {--purge : Remove all demo vendors instead of creating them}
+        {--browse-only : Patch existing demo vendors to browse-only (no badges, not accepting bookings)}';
 
     protected $description = 'Create (or purge) fictional sample vendors across every category for beta demos.';
 
@@ -36,6 +38,10 @@ class SeedDemoVendors extends Command
     {
         if ($this->option('purge')) {
             return $this->purge();
+        }
+
+        if ($this->option('browse-only')) {
+            return $this->browseOnly();
         }
 
         $count = 0;
@@ -76,12 +82,13 @@ class SeedDemoVendors extends Command
                         'price_unit' => $cat['unit'],
                         'cover_path' => $cover,
                         'status' => 'published',
-                        'is_accepting_bookings' => true,
+                        // Browse-only: fictional vendors must never receive real
+                        // quote requests (dead inbox) or wear trust badges that
+                        // real vendors earn.
+                        'is_accepting_bookings' => false,
                         'agreement_accepted_at' => now(),
-                        // First in each category is a "founding" + verified demo
-                        // so the badges have something to render.
-                        'is_founding' => $i === 0,
-                        'verified_at' => $i < 2 ? now() : null,
+                        'is_founding' => false,
+                        'verified_at' => null,
                     ],
                 );
 
@@ -120,6 +127,26 @@ class SeedDemoVendors extends Command
 
         $this->info("Seeded {$count} demo vendors across ".count($this->blueprint()).' categories.');
         $this->line('Remove them anytime with: php artisan marketplace:demo --purge');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Patch already-seeded demo vendors in place: strip Founding/Verified
+     * badges (those are earned by real vendors) and stop accepting bookings so
+     * no couple ever sends a quote request into a dead demo mailbox.
+     */
+    private function browseOnly(): int
+    {
+        $userIds = User::where('email', 'like', '%'.self::DEMO_DOMAIN)->pluck('id');
+
+        $patched = VendorProfile::whereIn('user_id', $userIds)->update([
+            'is_accepting_bookings' => false,
+            'is_founding' => false,
+            'verified_at' => null,
+        ]);
+
+        $this->info("Patched {$patched} demo vendors to browse-only (no badges, not accepting bookings).");
 
         return self::SUCCESS;
     }

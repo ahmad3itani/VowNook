@@ -744,6 +744,7 @@ export default function Welcome() {
                     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-[#52493d]">
                         <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
                         <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
+                        <Link href="/pricing" className="hover:text-[#8a651c]">Pricing</Link>
                         <Link href="/blog" className="hover:text-[#8a651c]">Journal</Link>
                         <a href={DEMO} className="hover:text-[#8a651c]">Live demo</a>
                         <Link href="/terms" className="hover:text-[#8a651c]">Terms</Link>

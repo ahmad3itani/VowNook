@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ShopBudgetCheatSheet;
+use App\Models\ShopLead;
 use App\Models\ShopOrder;
 use App\Support\Payments\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -82,6 +85,31 @@ class ShopController extends Controller
         }
 
         return response()->json(['url' => $url]);
+    }
+
+    /**
+     * The storefront's budget-cheat-sheet opt-in: record the lead (express
+     * consent for exactly this send) and email the sheet. One-time send —
+     * this is not a mailing-list subscription.
+     */
+    public function newsletter(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['email' => ['required', 'email', 'max:190']]);
+
+        ShopLead::updateOrCreate(
+            ['email' => strtolower($validated['email'])],
+            ['source' => 'shop', 'consented_at' => now()],
+        );
+
+        try {
+            Mail::to($validated['email'])->send(new ShopBudgetCheatSheet);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json(['error' => 'We could not send the email right now — please try again in a minute.'], 500);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     /** Stream the purchased ZIP — signed URL only, fulfilled orders only. */

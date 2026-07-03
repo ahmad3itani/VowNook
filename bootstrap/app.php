@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // The shop checkout is POSTed by a static page (no session/token) — it
         // creates nothing sensitive (a pending order + a Stripe redirect) and is
         // hard-throttled on the route.
-        $middleware->validateCsrfTokens(except: ['stripe/webhook', 'api/shop/checkout']);
+        $middleware->validateCsrfTokens(except: ['stripe/webhook', 'api/shop/checkout', 'api/shop/newsletter']);
 
         $middleware->web(append: [
             HandleAppearance::class,
