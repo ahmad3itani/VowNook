@@ -26,4 +26,15 @@ class PublicPricingTest extends TestCase
             ->assertOk()
             ->assertSee(url('/pricing'), false);
     }
+
+    public function test_the_features_tour_renders_with_seo_and_is_in_the_sitemap(): void
+    {
+        $response = $this->get('/features');
+
+        $response->assertOk();
+        $response->assertSee('Features — Every Wedding Tool, One Calm Studio', false);
+        $response->assertSee(route('features'), false);
+
+        $this->get('/sitemap.xml')->assertSee(url('/features'), false);
+    }
 }

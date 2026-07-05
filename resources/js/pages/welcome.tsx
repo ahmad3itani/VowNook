@@ -156,6 +156,41 @@ const faqs = [
     },
 ];
 
+// Real screenshots of the product (captured from a seeded demo wedding) for
+// the homepage showcase — the full set lives on /features.
+const SHOWCASE = [
+    {
+        label: 'Dashboard',
+        img: '/images/tour/dashboard.webp',
+        alt: 'The VowNook dashboard with countdown, stats and a needs-attention list',
+        caption: 'Mission control: countdown, RSVP rate, budget health and everything needing attention — on one calm screen.',
+    },
+    {
+        label: 'Seating studio',
+        img: '/images/tour/seating.webp',
+        alt: 'The VowNook seating studio with a floor plan and live stats',
+        caption: 'Size your real room, place tables and the dance floor, and seat guests chair by chair with live capacity stats.',
+    },
+    {
+        label: 'Wedding website',
+        img: '/images/tour/wedding-site.webp',
+        alt: 'A published VowNook wedding website with a live countdown',
+        caption: 'The page your guests actually visit — tap-to-open invitation, your music, your story, and RSVP built in.',
+    },
+    {
+        label: 'Budget',
+        img: '/images/tour/budget.webp',
+        alt: 'The VowNook budget tracker with estimated versus actual spending',
+        caption: 'Estimated vs. actual per vendor, deposits and what is still owed — the drift never surprises you.',
+    },
+    {
+        label: 'Stationery',
+        img: '/images/tour/shop-personalizer.webp',
+        alt: 'The VowNook stationery personaliser with a live invitation preview',
+        caption: 'Type your names and watch your invitation suite draw itself — ten designs, print-ready, from $14.',
+    },
+];
+
 function Wordmark({ className = '' }: { className?: string }) {
     return (
         <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label="VowNook home">
@@ -169,6 +204,7 @@ export default function Welcome() {
     const { auth } = usePage().props;
     const authed = !!auth?.user;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [showcaseIdx, setShowcaseIdx] = useState(0);
 
     return (
         <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
@@ -199,6 +235,9 @@ export default function Welcome() {
                         <a href="/shop" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             Shop
                         </a>
+                        <Link href="/features" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                            Features
+                        </Link>
                         <a href="#vendors" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
                             For vendors
                         </a>
@@ -246,6 +285,7 @@ export default function Welcome() {
                         <a href="#suite" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">The suite</a>
                         <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Marketplace</Link>
                         <a href="/shop" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Shop</a>
+                        <Link href="/features" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Features</Link>
                         <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For vendors</a>
                         <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Pricing</a>
                         {!authed && (
@@ -474,6 +514,74 @@ export default function Welcome() {
                             Build your wedding suite
                             <ArrowRight className="size-4" />
                         </Link>
+                    </Reveal>
+                </div>
+            </section>
+
+            {/* ── Product showcase: real screenshots ─────────────────────── */}
+            <section className="border-t border-[#191613]/10 px-5 py-24 md:px-12 md:py-36">
+                <div className="mx-auto max-w-[1480px]">
+                    <Reveal className="mx-auto max-w-3xl text-center">
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Inside the studio</p>
+                        <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+                            Don't imagine it — <em className="text-[#8a651c]">look at it.</em>
+                        </h2>
+                        <p className="mt-6 text-[15px] leading-relaxed text-[#52493d]">
+                            Every screenshot below is the real product with a real wedding in it. Click
+                            through the tools your planning will actually live in.
+                        </p>
+                    </Reveal>
+
+                    <Reveal className="mt-12">
+                        <div className="flex flex-wrap justify-center gap-2.5">
+                            {SHOWCASE.map((s, i) => (
+                                <button
+                                    key={s.label}
+                                    type="button"
+                                    onClick={() => setShowcaseIdx(i)}
+                                    className={`rounded-full border px-4 py-2 text-[12px] tracking-wide transition-colors ${
+                                        i === showcaseIdx
+                                            ? 'border-[#191613] bg-[#191613] text-[#faf6ef]'
+                                            : 'border-[#191613]/15 bg-white/60 text-[#52493d] hover:border-[#191613]/40'
+                                    }`}
+                                >
+                                    {s.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="mx-auto mt-8 max-w-5xl">
+                            <div className="overflow-hidden rounded-xl border border-[#191613]/10 bg-white shadow-[0_50px_100px_-45px_rgba(25,22,19,0.5)]">
+                                <div className="flex items-center gap-2 border-b border-[#191613]/8 bg-[#f4efe6] px-4 py-2.5">
+                                    <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
+                                    <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
+                                    <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
+                                    <span className="mx-auto flex h-5 w-1/2 items-center justify-center rounded bg-white/70 text-[10px] tracking-wide text-[#8c8478]">
+                                        vownook.com
+                                    </span>
+                                </div>
+                                <img
+                                    key={SHOWCASE[showcaseIdx].img}
+                                    src={SHOWCASE[showcaseIdx].img}
+                                    alt={SHOWCASE[showcaseIdx].alt}
+                                    className="block w-full"
+                                    width={1440}
+                                    height={900}
+                                    loading="lazy"
+                                />
+                            </div>
+                            <p className="mt-5 text-center text-[14px] text-[#52493d]">
+                                {SHOWCASE[showcaseIdx].caption}
+                            </p>
+                            <p className="mt-6 text-center">
+                                <Link
+                                    href="/features"
+                                    className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] text-[#8a651c] uppercase hover:text-[#191613]"
+                                >
+                                    Take the full tour — every tool, explained <ArrowRight className="size-3.5" />
+                                </Link>
+                            </p>
+                        </div>
                     </Reveal>
                 </div>
             </section>
@@ -743,6 +851,7 @@ export default function Welcome() {
                     <Wordmark />
                     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-[#52493d]">
                         <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
+                        <Link href="/features" className="hover:text-[#8a651c]">Features</Link>
                         <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
                         <Link href="/pricing" className="hover:text-[#8a651c]">Pricing</Link>
                         <Link href="/blog" className="hover:text-[#8a651c]">Journal</Link>

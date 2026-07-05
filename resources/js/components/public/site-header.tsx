@@ -29,8 +29,8 @@ export function SiteHeader() {
                     <a href="/shop" className="text-muted-foreground transition-colors hover:text-foreground">
                         Shop
                     </a>
-                    <Link href="/how-it-works" className="text-muted-foreground transition-colors hover:text-foreground">
-                        How it works
+                    <Link href="/features" className="text-muted-foreground transition-colors hover:text-foreground">
+                        Features
                     </Link>
                     <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">
                         Pricing
@@ -75,8 +75,8 @@ export function SiteHeader() {
                     <a href="/shop" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
                         Shop
                     </a>
-                    <Link href="/how-it-works" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
-                        How it works
+                    <Link href="/features" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
+                        Features
                     </Link>
                     <Link href="/pricing" onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground">
                         Pricing

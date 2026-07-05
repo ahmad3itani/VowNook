@@ -39,6 +39,16 @@ class PublicPageController extends Controller
         )]);
     }
 
+    public function features(): Response
+    {
+        return Inertia::render('public/features')->withViewData(['seo' => Seo::make(
+            title: 'Features — Every Wedding Tool, One Calm Studio',
+            description: 'A guided tour of every VowNook tool with real screenshots: dashboard, guest list & RSVPs, budget, checklist, seating studio, wedding website, registry, vendor marketplace and the stationery studio.',
+            canonical: route('features'),
+            image: url('/images/tour/dashboard.webp'),
+        )]);
+    }
+
     public function pricing(): Response
     {
         $faqs = [
