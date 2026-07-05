@@ -1,8 +1,8 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { ErrorBoundary, reloadForStaleAssets } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { initializeTheme } from '@/hooks/use-appearance';
+import { initializeTheme, syncForcedLight } from '@/hooks/use-appearance';
 import AdminLayout from '@/layouts/admin-layout';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
@@ -61,3 +61,14 @@ window.addEventListener('vite:preloadError', (event) => {
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// Dark mode is a vendor/planner perk; couples, guests and the auth pages are
+// always light. The blade root sets the lock on full loads — this keeps it
+// correct across client-side navigations (e.g. the login → dashboard redirect).
+router.on('navigate', (event) => {
+    const user = (event.detail.page.props as {
+        auth?: { user?: { account_type?: string } | null };
+    }).auth?.user;
+
+    syncForcedLight(!user || !['vendor', 'planner'].includes(user.account_type ?? ''));
+});

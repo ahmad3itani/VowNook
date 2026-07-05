@@ -82,6 +82,28 @@ const mediaQuery = (): MediaQueryList | null => {
 
 const handleSystemThemeChange = (): void => applyTheme(currentAppearance);
 
+/**
+ * Re-sync the light-mode lock after client-side (Inertia) navigations. The
+ * blade root only sets window.__forceLight on full page loads, so a login
+ * redirect (anonymous → couple) would otherwise carry a stale flag and leave
+ * the dark class on <html> until the next hard refresh.
+ */
+export function syncForcedLight(forced: boolean): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    const w = window as unknown as { __forceLight?: boolean };
+
+    if (w.__forceLight === forced) {
+        return;
+    }
+
+    w.__forceLight = forced;
+    applyTheme(currentAppearance);
+    notify();
+}
+
 export function initializeTheme(): void {
     if (typeof window === 'undefined') {
         return;

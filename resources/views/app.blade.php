@@ -1,7 +1,7 @@
-{{-- Couples' wedding workspace is always light (dark is "bad luck" for weddings);
-     vendors and planners may use dark mode. --}}
+{{-- Dark mode is a vendor/planner workspace perk. Couples, signed-out visitors
+     and the auth pages are always light (dark is "bad luck" for weddings). --}}
 @php($__user = $page['props']['auth']['user'] ?? null)
-@php($__forceLight = $__user && (($__user['account_type'] ?? 'couple') === 'couple'))
+@php($__forceLight = ! in_array($__user['account_type'] ?? null, ['vendor', 'planner'], true))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => !$__forceLight && ($appearance ?? 'system') == 'dark'])>
     <head>
