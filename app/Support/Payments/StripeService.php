@@ -28,6 +28,14 @@ use Stripe\Webhook;
  */
 class StripeService
 {
+    /**
+     * Per-charge statement descriptor suffix so card statements read
+     * "{account prefix}* VOWNOOK" instead of the bare account descriptor —
+     * the Stripe account is shared with another business, so the account-wide
+     * descriptor can't simply be renamed.
+     */
+    private const DESCRIPTOR_SUFFIX = 'VOWNOOK';
+
     public function isConfigured(): bool
     {
         return filled(config('services.stripe.secret'));
@@ -128,6 +136,11 @@ class StripeService
             'customer' => $this->ensureCustomer($user),
             'success_url' => $successUrl,
             'cancel_url' => $cancelUrl,
+            // The Stripe account is shared with another business, so the
+            // recognisable name goes on per-charge suffixes, not account-wide.
+            ...($isSubscription ? [] : [
+                'payment_intent_data' => ['statement_descriptor_suffix' => self::DESCRIPTOR_SUFFIX],
+            ]),
             'line_items' => [[
                 'quantity' => 1,
                 'price_data' => array_filter([
@@ -165,6 +178,7 @@ class StripeService
             'success_url' => $successUrl,
             'cancel_url' => $cancelUrl,
             'billing_address_collection' => 'auto',
+            'payment_intent_data' => ['statement_descriptor_suffix' => self::DESCRIPTOR_SUFFIX],
             'line_items' => [[
                 'quantity' => 1,
                 'price_data' => [
@@ -263,6 +277,7 @@ class StripeService
             'payment_intent_data' => [
                 'application_fee_amount' => $this->feeFor($booking, $type),
                 'transfer_data' => ['destination' => $vendor->stripe_account_id],
+                'statement_descriptor_suffix' => self::DESCRIPTOR_SUFFIX,
             ],
             'metadata' => [
                 'booking_id' => $booking->id,
