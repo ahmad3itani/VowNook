@@ -14,13 +14,16 @@ scheduler, and SSL for you, so this is mostly clicks + pasting secrets.
 ---
 
 ## 1. Push the repo [you]
-This repo isn't on a Git remote yet. Create a GitHub repo and push `main`:
+The remote is live at `github.com/ahmad3itani/VowNook`. To ship work:
 ```bash
-git add -A && git commit -m "Launch-ready: VowNook"
-git remote add origin git@github.com:<you>/vownook.git
-git push -u origin main
+git status            # ⚠️ ALWAYS look first (see the warning below)
+git add <paths>       # stage explicitly
+git commit -m "..."
+git push origin main  # Laravel Cloud deploys on push
 ```
-(Say the word and I'll commit the working changes to a branch for you.)
+> ⚠️ **Never `git add -A` in this repo without reading `git status` first.** `facebook-kit/`
+> holds live Facebook/Instagram Graph API tokens (`token.txt`, `ig-token.txt`). The token
+> files are now gitignored (`/facebook-kit/*token*.txt`), but stage by path, not blindly.
 
 ## 2. Create the project [you]
 1. Sign up at **cloud.laravel.com** → create an **Organization**.
@@ -81,30 +84,47 @@ Without these, **no emails send and none of the lifecycle/marketing/post-wedding
 - **2FA** on your admin account (built in via Fortify).
 - **Stripe**: test-mode pass first (card 4242…), then live keys + register the webhook at
   `https://vownook.com/stripe/webhook`.
-- Optional: enable **SSR** (`INERTIA_SSR_ENABLED=true` + an SSR worker) for full-body crawlability.
+- **Enable SSR** (`INERTIA_SSR_ENABLED=true` + an SSR worker) — see §11. Without it, AI crawlers
+  see an empty page body.
+- **Seed the local SEO guides** (once per deploy that adds cities/categories):
+  `php artisan db:seed --class="Database\Seeders\LocalContentSeeder" --force` (idempotent, no API key).
 
-## 11. Optional: enable SSR (server-rendered page bodies)
+## 11. Enable SSR (server-rendered page bodies) ⚠️ RECOMMENDED
 
-The SEO `<head>` (titles, meta, canonical, JSON-LD) is already server-rendered, so Google
-indexes you fine without this. SSR additionally server-renders the **page body** so non-JS
-crawlers and AI assistants see full content. The code is SSR-ready (`pnpm build:ssr` builds
-`bootstrap/ssr/app.js`; `config/inertia.php` is env-gated). To turn it on in Laravel Cloud:
+The SEO `<head>` (titles, meta, canonical, JSON-LD) is server-rendered either way. SSR adds the
+**page body**, which matters more than it sounds: **AI crawlers (GPTBot, ClaudeBot,
+PerplexityBot) execute no JavaScript.** Without SSR they receive an empty `<div id="app"></div>`
+and can read nothing but your head schema — and `robots.txt` explicitly invites those bots, so
+leaving SSR off wastes the invitation.
 
-1. **Build command** → change `pnpm run build` to **`pnpm run build:ssr`** (builds the SSR bundle).
+> SSR was previously **broken, not merely off**: `app.tsx` is the shared client+SSR entry
+> (`@inertiajs/vite` swaps `createInertiaApp` for `createServer`), and its top-level client-only
+> code ran in Node, crashing the bundle on boot with `ReferenceError: window is not defined`.
+> Fixed in `a96c9e9` by guarding that block behind `typeof window !== 'undefined'`; verified
+> rendering locally end-to-end.
+
+To turn it on in Laravel Cloud:
+
+1. **Build command** → no change needed. `pnpm run build` already runs
+   `vite build && vite build --ssr` (`build` and `build:ssr` are identical in `package.json`),
+   so `bootstrap/ssr/app.js` is produced on every deploy.
 2. **Env vars** → add:
    ```
    INERTIA_SSR_ENABLED=true
    INERTIA_SSR_THROW=false
    ```
-   (`THROW=false` means if a page errors under SSR it silently falls back to client rendering —
-   safe.)
+   (`THROW=false` = a page that errors under SSR silently falls back to client rendering.)
 3. **SSR process** → add a Worker/daemon running **`php artisan inertia:start-ssr`** (a
-   long-running Node process; costs a bit of compute).
-4. **Deploy**, then `curl https://vownook.com` and confirm `<div id="app">` contains rendered
-   markup (not an empty div).
+   long-running Node process on port 13714).
+   ⚠️ It **refuses to start unless `INERTIA_SSR_ENABLED=true` is already set** — the flag gates
+   the command itself, not just per-request dispatch. Set the env var *first*, then start it.
+4. **Deploy**, then confirm the body actually renders for a non-JS crawler:
+   ```bash
+   curl -s -A "GPTBot" https://vownook.com/wedding-photographers/toronto | grep -c '<h1'
+   ```
+   Expect `≥ 1`. If it's `0`, `#app` is still empty — check the SSR worker is running.
 
-Trade-off: extra compute for the SSR process, modest SEO upside (Google renders JS anyway).
-Prioritize recruiting vendors over this.
+Trade-off: one extra long-running process. Worth it — this is the main GEO/AI-citation lever.
 
 ---
 
