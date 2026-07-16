@@ -21,6 +21,7 @@ class VendorAccountTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'account_type' => 'vendor',
+            'terms' => 'on',
         ]);
 
         $this->assertAuthenticated();
@@ -44,6 +45,7 @@ class VendorAccountTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'account_type' => 'couple',
+            'terms' => 'on',
         ]);
 
         $user = User::where('email', 'couple@example.com')->firstOrFail();
@@ -58,6 +60,7 @@ class VendorAccountTest extends TestCase
             'email' => 'default@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'terms' => 'on',
         ]);
 
         $user = User::where('email', 'default@example.com')->firstOrFail();

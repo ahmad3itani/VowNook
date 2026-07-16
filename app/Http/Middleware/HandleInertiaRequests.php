@@ -81,6 +81,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'support' => $support,
             'impersonation' => $impersonation,
+            // One-shot conversion event (flashed by App\Support\Conversions) for
+            // the client tracker to fire into GA4 + Meta Pixel. Null on most loads.
+            'conversion' => $request->session()->get('conversion'),
             'notifications' => $user ? [
                 'unread' => $user->unreadNotifications()->count(),
                 'items' => $user->notifications()->latest()->limit(8)->get()->map(fn ($n) => [

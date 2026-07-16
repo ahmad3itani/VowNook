@@ -38,6 +38,7 @@ class AdminNotificationsTest extends TestCase
             'email' => 'newcouple@example.com',
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
+            'terms' => 'on',
         ]);
 
         Notification::assertSentTo($admin, NewUserRegistered::class);

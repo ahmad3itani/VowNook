@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { DocSection, Dot, PublicPageShell } from '@/components/public/page-shell';
 
-const EFFECTIVE = 'June 12, 2026';
+const EFFECTIVE = 'July 11, 2026';
 
 export default function Privacy() {
     return (
@@ -35,9 +35,15 @@ export default function Privacy() {
                     <li><Dot />To provide the planning workspace, wedding websites, RSVP pages and the marketplace.</li>
                     <li><Dot />To deliver notifications you'd expect — new inquiries, offers, RSVPs, booking confirmations.</li>
                     <li><Dot />To moderate vendor listings and keep reviews tied to real bookings.</li>
+                    <li><Dot />To group couples with similar plans — by budget range, city and how soon the wedding is — so we can tailor planning tips, prioritise which vendors we recruit next, and (with your consent) show more relevant ads. This is based only on what you tell us about your wedding, never on sensitive characteristics like religion, ethnicity, sexual orientation or health.</li>
                     <li><Dot />To secure the service, prevent abuse and meet legal obligations.</li>
                 </ul>
-                <p>We do not sell personal information, and we do not use your data for third-party advertising.</p>
+                <p>
+                    We do not sell your personal information. With your consent, we use privacy-friendly
+                    analytics and advertising-measurement tools to understand how the site is used and how well
+                    our ads perform — you can decline these at any time (see "Cookies" below). We never use your
+                    wedding planning data or guest information for advertising.
+                </p>
             </DocSection>
 
             <DocSection n="03" title="What's public and what's private">
@@ -51,9 +57,12 @@ export default function Privacy() {
             <DocSection n="04" title="Who we share it with">
                 <p>
                     Only service providers needed to run the platform — hosting and database infrastructure,
-                    email delivery, and payment processing (when payments launch, handled by Stripe; card numbers
-                    never touch our servers). Each provider is bound to use the data only to provide their service.
-                    We disclose information to authorities only where the law requires it.
+                    email delivery, and payment processing (handled by Stripe; card numbers never touch our
+                    servers). If you accept cookies, a limited set of usage data is also shared with our analytics
+                    and advertising-measurement providers (Google Analytics, Microsoft Clarity and Meta) so we can
+                    improve the service and measure our ads; decline cookies and none of this is shared. Each
+                    provider is bound to use the data only to provide their service. We disclose information to
+                    authorities only where the law requires it.
                 </p>
             </DocSection>
 
@@ -86,9 +95,14 @@ export default function Privacy() {
 
             <DocSection n="08" title="Cookies & changes">
                 <p>
-                    We use only essential cookies — session and security. No advertising or cross-site tracking
-                    cookies. If this policy changes materially, we will notify account holders before the change
-                    takes effect.
+                    Essential cookies (session and security) are always on — the site can't work without them.
+                    With your consent, we also use optional analytics cookies (Google Analytics and Microsoft
+                    Clarity, to see how the site is used) and an advertising cookie (the Meta Pixel, to measure and
+                    improve our ads). These load only after you press "Accept" on our cookie banner and stay off if
+                    you press "Decline" — we apply Google Consent Mode and honour your choice in line with Canada's
+                    privacy and anti-spam rules. You can withdraw consent at any time by clearing VowNook's cookies
+                    in your browser, which brings the banner back. If this policy changes materially, we will
+                    notify account holders before the change takes effect.
                 </p>
             </DocSection>
         </PublicPageShell>

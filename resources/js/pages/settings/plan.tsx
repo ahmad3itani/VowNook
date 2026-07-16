@@ -27,6 +27,7 @@ type PageProps = {
     tiers: Tier[];
     comped_until: string | null;
     referral: { code: string; url: string; count: number; reward_days: number };
+    referral_discount_eligible: boolean;
 };
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -61,7 +62,15 @@ function featureLines(tier: Tier): string[] {
     return [...lines, ...flags];
 }
 
-export default function Plan({ current, account_type, stripe_enabled, tiers, comped_until, referral }: PageProps) {
+export default function Plan({
+    current,
+    account_type,
+    stripe_enabled,
+    tiers,
+    comped_until,
+    referral,
+    referral_discount_eligible,
+}: PageProps) {
     const promo = useForm({ code: '' });
     const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
@@ -174,6 +183,12 @@ export default function Plan({ current, account_type, stripe_enabled, tiers, com
                                     </span>
                                 </div>
 
+                                {tier.key === 'premium' && referral_discount_eligible && !isCurrent && (
+                                    <p className="mt-2 rounded-md bg-[#fed488]/15 px-2 py-1 text-xs text-[#775a19] dark:bg-[#fed488]/10 dark:text-[#c5a059]">
+                                        🎁 You were referred — $20 off applied automatically at checkout
+                                    </p>
+                                )}
+
                                 <ul className="mt-4 flex flex-col gap-2 text-sm">
                                     {featureLines(tier).map((f) => (
                                         <li
@@ -237,7 +252,8 @@ export default function Plan({ current, account_type, stripe_enabled, tiers, com
                     <p className="mt-1 text-sm text-muted-foreground">
                         When a couple you invite publishes their wedding website, we’ll add{' '}
                         {referral.reward_days} days of Premium to your account. You’ve referred{' '}
-                        <strong>{referral.count}</strong> so far.
+                        <strong>{referral.count}</strong> so far. New: whoever you invite also gets $20 off
+                        their own Atelier upgrade.
                     </p>
                     <div className="mt-3 flex max-w-md gap-2">
                         <Input readOnly value={referral.url} className="text-sm" />
@@ -252,6 +268,10 @@ export default function Plan({ current, account_type, stripe_enabled, tiers, com
                             Copy
                         </Button>
                     </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                        One discount per new couple. You and the person you refer must be different people.
+                        VowNook may change or end this program at any time.
+                    </p>
                 </div>
 
                 {stripe_enabled ? (

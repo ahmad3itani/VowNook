@@ -25,6 +25,8 @@ class Wedding extends Model
         'event_date',
         'timezone',
         'settings',
+        'total_budget_cents',
+        'city',
     ];
 
     protected function casts(): array
@@ -32,6 +34,7 @@ class Wedding extends Model
         return [
             'event_date' => 'date',
             'settings' => 'array',
+            'total_budget_cents' => 'integer',
         ];
     }
 

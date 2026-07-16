@@ -20,6 +20,11 @@ return [
     // Microsoft Clarity project ID (free heatmaps + session recordings).
     'clarity_id' => env('MS_CLARITY_ID'),
 
+    // Meta (Facebook/Instagram) Pixel ID — powers ad conversion tracking,
+    // retargeting and lookalike audiences. Consent-gated (CASL): the pixel
+    // loads with consent revoked and only grants after the visitor accepts.
+    'meta_pixel_id' => env('META_PIXEL_ID'),
+
     // Google Search Console "HTML tag" verification token.
     'google_site_verification' => env('GOOGLE_SITE_VERIFICATION'),
 

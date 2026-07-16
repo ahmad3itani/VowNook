@@ -29,4 +29,23 @@ class PlanTest extends TestCase
     {
         $this->get('/settings/plan')->assertRedirect('/login');
     }
+
+    public function test_plan_page_exposes_referral_discount_eligible_true_for_a_referred_unused_user(): void
+    {
+        $referrer = User::factory()->create();
+        $user = User::factory()->create(['referred_by' => $referrer->id, 'account_type' => 'couple']);
+
+        $this->actingAs($user)
+            ->get('/settings/plan')
+            ->assertInertia(fn ($page) => $page->where('referral_discount_eligible', true));
+    }
+
+    public function test_plan_page_exposes_referral_discount_eligible_false_for_a_non_referred_user(): void
+    {
+        $user = User::factory()->create(['referred_by' => null, 'account_type' => 'couple']);
+
+        $this->actingAs($user)
+            ->get('/settings/plan')
+            ->assertInertia(fn ($page) => $page->where('referral_discount_eligible', false));
+    }
 }

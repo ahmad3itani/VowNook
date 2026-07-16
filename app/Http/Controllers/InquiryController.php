@@ -17,6 +17,7 @@ use App\Models\Vendor;
 use App\Models\VendorProfile;
 use App\Notifications\NewInquiryReceived;
 use App\Notifications\OfferAccepted;
+use App\Support\Conversions;
 use App\Support\CurrentWedding;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,10 +61,13 @@ class InquiryController extends Controller
             'message'            => ['required', 'string', 'max:2000'],
         ]);
 
-        // Verify vendor is published and accepting bookings.
+        // Verify vendor is published and accepting bookings. Fictional "sample"
+        // listings are excluded even if their accepting flag is somehow set — no
+        // couple should ever message a dead demo mailbox.
         $vendor = VendorProfile::where('id', $data['vendor_profile_id'])
             ->where('status', VendorProfileStatus::Published->value)
             ->where('is_accepting_bookings', true)
+            ->whereDoesntHave('user', fn ($q) => $q->where('email', 'like', '%'.VendorProfile::DEMO_EMAIL_DOMAIN))
             ->firstOrFail();
 
         // A referenced service must belong to that same vendor — never another's.
@@ -90,6 +94,8 @@ class InquiryController extends Controller
         ]);
 
         $vendor->user?->notify(new NewInquiryReceived($inquiry));
+
+        Conversions::flash('generate_lead', 'Lead', ['content_category' => $vendor->category?->value]);
 
         return redirect()->route('quotes.show', $inquiry)
             ->with('status', 'inquiry-sent');
@@ -126,6 +132,20 @@ class InquiryController extends Controller
 
             $offer = $inquiry->offer;
             abort_if($offer === null || $offer->status !== OfferStatus::Sent, 422, 'Offer is no longer available.');
+
+            // Availability: a vendor can't be booked twice for the same date.
+            // Guarded here (inside the locked transaction) so two couples can't
+            // both accept offers for the same vendor on the same wedding day.
+            $eventDate = $inquiry->wedding?->event_date;
+            if ($eventDate !== null) {
+                $doubleBooked = Booking::where('vendor_profile_id', $inquiry->vendor_profile_id)
+                    ->where('inquiry_id', '!=', $inquiry->id)
+                    ->where('status', '!=', BookingStatus::Cancelled->value)
+                    ->whereHas('wedding', fn ($q) => $q->whereDate('event_date', $eventDate->toDateString()))
+                    ->exists();
+
+                abort_if($doubleBooked, 422, 'This vendor is already booked for your wedding date.');
+            }
 
             // 1. Transition statuses.
             $offer->update(['status' => OfferStatus::Accepted->value]);
@@ -177,6 +197,11 @@ class InquiryController extends Controller
                 \App\Models\User::where('is_admin', true)->get(),
                 new \App\Notifications\NewBookingPlaced($booking),
             );
+
+            Conversions::flash('begin_checkout', 'InitiateCheckout', [
+                'value' => $booking->total_cents / 100,
+                'currency' => 'CAD',
+            ]);
         }
 
         return redirect()->route('quotes.show', $inquiry)

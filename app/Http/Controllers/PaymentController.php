@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentType;
 use App\Models\Booking;
+use App\Support\Conversions;
 use App\Support\CurrentWedding;
 use App\Support\Payments\StripeService;
 use Illuminate\Http\RedirectResponse;
@@ -48,6 +49,13 @@ class PaymentController extends Controller
             return back()->with('status', 'payment-not-due');
         }
 
+        // Stash the exact amount so success() can fire an accurate Purchase
+        // conversion after the Stripe round-trip (success() doesn't know the type).
+        session()->put('vn_pending_purchase', [
+            'booking_id' => $booking->id,
+            'value' => $this->stripe->amountFor($booking, $paymentType) / 100,
+        ]);
+
         $url = $this->stripe->checkoutFor(
             $booking,
             $paymentType,
@@ -62,6 +70,16 @@ class PaymentController extends Controller
     public function success(Booking $booking): RedirectResponse
     {
         $this->authorizeTenant($booking);
+
+        // Fire a Purchase conversion with the amount stashed at checkout.
+        $pending = session()->pull('vn_pending_purchase');
+        if (is_array($pending) && ($pending['booking_id'] ?? null) === $booking->id) {
+            Conversions::flash('purchase', 'Purchase', [
+                'value' => $pending['value'] ?? 0,
+                'currency' => 'CAD',
+                'transaction_id' => 'booking_'.$booking->id,
+            ]);
+        }
 
         return redirect()
             ->route('quotes.show', $booking->inquiry_id)

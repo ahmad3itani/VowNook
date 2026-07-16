@@ -94,7 +94,8 @@ class MarketplaceInquiryFlowTest extends TestCase
                 'vendor_profile_id' => $vendor->id,
                 'message' => 'Are you free for our June wedding?',
             ])
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHas('conversion.ga', 'generate_lead');
 
         $inquiry = Inquiry::firstOrFail();
         $this->assertSame($wedding->id, $inquiry->wedding_id);
@@ -131,7 +132,8 @@ class MarketplaceInquiryFlowTest extends TestCase
 
         $this->actingAs($user)
             ->post("/vendors/quotes/{$inquiry->id}/accept")
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHas('conversion.ga', 'begin_checkout');
 
         // Booking created with the tiered platform fee (8% under the $5k threshold).
         $booking = Booking::firstOrFail();
@@ -147,6 +149,41 @@ class MarketplaceInquiryFlowTest extends TestCase
 
         $inquiry->refresh();
         $this->assertSame(InquiryStatus::Accepted, $inquiry->status);
+    }
+
+    public function test_a_vendor_cannot_be_double_booked_for_the_same_date(): void
+    {
+        $vendor = $this->publishedVendor();
+        $date = now()->addMonths(6)->toDateString();
+
+        $accept = function () use ($vendor) {
+            [$user, $wedding] = $this->ownerWithWedding();
+            $wedding->update(['event_date' => now()->addMonths(6)]);
+
+            $inquiry = Inquiry::create([
+                'wedding_id' => $wedding->id,
+                'couple_user_id' => $user->id,
+                'vendor_profile_id' => $vendor->id,
+                'message' => 'Quote please',
+                'status' => InquiryStatus::Offered->value,
+            ]);
+            Offer::create([
+                'inquiry_id' => $inquiry->id,
+                'total_cents' => 300000,
+                'deposit_cents' => 50000,
+                'status' => OfferStatus::Sent->value,
+            ]);
+
+            return $this->actingAs($user)->post("/vendors/quotes/{$inquiry->id}/accept");
+        };
+
+        // First couple books the vendor for the date.
+        $accept()->assertRedirect();
+
+        // Second couple, same vendor + same date, is blocked.
+        $accept()->assertStatus(422);
+
+        $this->assertSame(1, Booking::where('vendor_profile_id', $vendor->id)->count());
     }
 
     public function test_compare_page_lists_offers(): void

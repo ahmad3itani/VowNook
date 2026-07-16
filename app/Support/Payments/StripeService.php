@@ -11,8 +11,10 @@ use App\Models\Payment;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Models\VendorProfile;
+use App\Notifications\PaymentDisputeOpened;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Stripe\Event;
 use Stripe\StripeClient;
 use Stripe\Webhook;
@@ -35,6 +37,16 @@ class StripeService
      * descriptor can't simply be renamed.
      */
     private const DESCRIPTOR_SUFFIX = 'VOWNOOK';
+
+    /**
+     * A single reusable Stripe Coupon id backing the referred-side $20-off
+     * Atelier discount. Native Stripe Coupons/Checkout `discounts` do the
+     * math and display, so no custom discount ledger is needed here.
+     */
+    private const REFERRAL_COUPON_ID = 'vownook-referral-20off';
+
+    /** $20.00 CAD, in cents. */
+    private const REFERRAL_DISCOUNT_CENTS = 2000;
 
     public function isConfigured(): bool
     {
@@ -122,6 +134,44 @@ class StripeService
     }
 
     /**
+     * Whether this user is entitled to the referred-side $20-off Atelier
+     * discount: they were referred by someone, and haven't redeemed it yet.
+     * Pure (no Stripe call) so it's cheap to use for display purposes too.
+     */
+    public function referralDiscountEligible(User $user): bool
+    {
+        return $user->referred_by !== null && $user->referral_discount_used_at === null;
+    }
+
+    /**
+     * Idempotently ensure the shared referral discount Coupon exists in
+     * Stripe. Cheap to call on every eligible checkout — only hits the
+     * network to create it the very first time.
+     */
+    protected function ensureReferralCoupon(): void
+    {
+        try {
+            $this->client()->coupons->retrieve(self::REFERRAL_COUPON_ID);
+        } catch (\Throwable $e) {
+            try {
+                $this->client()->coupons->create([
+                    'id' => self::REFERRAL_COUPON_ID,
+                    'amount_off' => self::REFERRAL_DISCOUNT_CENTS,
+                    'currency' => 'cad',
+                    'duration' => 'once',
+                    'name' => 'Referral — $20 off Atelier',
+                ]);
+            } catch (\Throwable $e) {
+                // Most likely a concurrent request already created it between
+                // our retrieve() and this create() — the coupon exists either
+                // way, so don't crash this checkout over it. If creation
+                // genuinely failed, the coupon reference below will surface
+                // that clearly when the Checkout session itself is created.
+            }
+        }
+    }
+
+    /**
      * Hosted Checkout to upgrade a user's plan: a one-time payment for the
      * couple Atelier tier (priced per wedding) or an annual subscription for
      * Planner HQ. Returns the URL to redirect the user to.
@@ -159,6 +209,14 @@ class StripeService
             $params['subscription_data'] = [
                 'metadata' => ['user_id' => $user->id, 'plan_tier' => $tier],
             ];
+        }
+
+        // The referred-side discount only ever applies to the one-time
+        // Atelier purchase, never the Planner HQ subscription, and only once
+        // per referred user.
+        if ($tier === 'premium' && $this->referralDiscountEligible($user)) {
+            $this->ensureReferralCoupon();
+            $params['discounts'] = [['coupon' => self::REFERRAL_COUPON_ID]];
         }
 
         return $this->client()->checkout->sessions->create($params)->url;
@@ -300,6 +358,38 @@ class StripeService
         ]);
     }
 
+    // ── Refunds ─────────────────────────────────────────────────────────────
+
+    /**
+     * Issue a full refund for a booking's paid charges, from within the app.
+     * `reverse_transfer` claws the money back out of the vendor's payout and
+     * `refund_application_fee` returns the platform commission — so the refund is
+     * funded by the original parties, not the platform's own balance. The
+     * `charge.refunded` webhook then records it and cancels the booking. Returns
+     * the total cents refunded.
+     */
+    public function refundBooking(Booking $booking): int
+    {
+        $payments = $booking->payments()
+            ->where('status', PaymentStatus::Succeeded->value)
+            ->whereIn('type', [PaymentType::Deposit->value, PaymentType::Balance->value])
+            ->whereNotNull('stripe_payment_intent_id')
+            ->get();
+
+        $refunded = 0;
+
+        foreach ($payments as $payment) {
+            $this->client()->refunds->create([
+                'payment_intent' => $payment->stripe_payment_intent_id,
+                'reverse_transfer' => true,
+                'refund_application_fee' => true,
+            ]);
+            $refunded += (int) $payment->amount_cents;
+        }
+
+        return $refunded;
+    }
+
     // ── Webhook ─────────────────────────────────────────────────────────────
 
     /** Verify the signature and parse the event (throws on a bad signature). */
@@ -317,6 +407,8 @@ class StripeService
             'customer.subscription.deleted' => $this->onSubscriptionEnded($event->data->object),
             'account.updated' => $this->onAccountUpdated($event->data->object),
             'charge.refunded' => $this->onChargeRefunded($event->data->object),
+            'charge.dispute.created' => $this->onDisputeCreated($event->data->object),
+            'charge.dispute.closed' => $this->onDisputeClosed($event->data->object),
             default => null,
         };
     }
@@ -420,6 +512,13 @@ class StripeService
             // A real purchase supersedes any comp-code grant.
             'plan_comped_until' => null,
         ])->save();
+
+        // Mark the referred-side discount used only on a completed, paid
+        // checkout — the webhook is the source of truth, never the client-side
+        // success redirect — so an abandoned session never burns the credit.
+        if ($tier === 'premium' && $this->referralDiscountEligible($user)) {
+            $user->forceFill(['referral_discount_used_at' => now()])->save();
+        }
     }
 
     /** Keep the planner subscription's plan in sync with its Stripe status. */
@@ -488,5 +587,75 @@ class StripeService
             $payment->booking->update(['status' => BookingStatus::Cancelled->value]);
             Log::info('Booking cancelled after full refund', ['booking_id' => $payment->booking_id]);
         }
+    }
+
+    /**
+     * A cardholder opened a dispute (chargeback). Alert admins so someone can
+     * submit evidence in Stripe before the deadline — liability is settled when
+     * the dispute closes (see onDisputeClosed).
+     */
+    protected function onDisputeCreated($dispute): void
+    {
+        $booking = $this->bookingForCharge($dispute->payment_intent ?? null);
+
+        Log::critical('Payment dispute opened', [
+            'payment_intent' => $dispute->payment_intent ?? null,
+            'amount' => $dispute->amount ?? null,
+            'booking_id' => $booking?->id,
+        ]);
+
+        if ($booking !== null) {
+            Notification::send(
+                User::where('is_admin', true)->get(),
+                new PaymentDisputeOpened($booking, (int) ($dispute->amount ?? 0)),
+            );
+        }
+    }
+
+    /**
+     * A dispute closed. If it was lost, the platform's balance was debited — so
+     * reverse the vendor's transfer to recover their share of the loss and cancel
+     * the booking. A won dispute needs no action (Stripe restores the funds).
+     */
+    protected function onDisputeClosed($dispute): void
+    {
+        if (($dispute->status ?? null) !== 'lost') {
+            return;
+        }
+
+        // Claw the vendor's payout back for the lost amount, if we can resolve
+        // the transfer behind the disputed charge.
+        try {
+            $chargeId = $dispute->charge ?? null;
+            if ($chargeId !== null) {
+                $charge = $this->client()->charges->retrieve($chargeId);
+                if (! empty($charge->transfer)) {
+                    $this->client()->transfers->createReversal($charge->transfer, [
+                        'amount' => (int) ($dispute->amount ?? 0),
+                        'refund_application_fee' => true,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        $booking = $this->bookingForCharge($dispute->payment_intent ?? null);
+        if ($booking !== null) {
+            $booking->update(['status' => BookingStatus::Cancelled->value]);
+            Log::warning('Booking cancelled after lost dispute', ['booking_id' => $booking->id]);
+        }
+    }
+
+    /** The booking behind a charge's payment intent, if any. */
+    protected function bookingForCharge(?string $paymentIntent): ?Booking
+    {
+        if ($paymentIntent === null) {
+            return null;
+        }
+
+        return Payment::where('stripe_payment_intent_id', $paymentIntent)
+            ->where('type', '!=', PaymentType::Refund->value)
+            ->first()?->booking;
     }
 }

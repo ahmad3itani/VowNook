@@ -8,6 +8,7 @@ use App\Enums\AccountType;
 use App\Enums\VendorProfileStatus;
 use App\Models\User;
 use App\Models\VendorProfile;
+use App\Support\Conversions;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -28,6 +29,9 @@ class CreateNewUser implements CreatesNewUsers
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
             'account_type' => ['sometimes', Rule::in(AccountType::values())],
+            'terms' => ['accepted'],
+        ], [
+            'terms.accepted' => 'You must accept the Terms of Service and Privacy Policy to create an account.',
         ])->validate();
 
         $accountType = AccountType::tryFrom($input['account_type'] ?? '') ?? AccountType::Couple;
@@ -46,6 +50,9 @@ class CreateNewUser implements CreatesNewUsers
             'referred_by' => $referrerId,
             // CASL: signing up is express consent to lifecycle email; record it.
             'marketing_consent_at' => now(),
+            // Record acceptance of the Terms of Service + Privacy Policy (validated
+            // as `accepted` above) for a consumer-protection audit trail.
+            'terms_accepted_at' => now(),
         ]);
 
         if ($accountType === AccountType::Vendor) {
@@ -63,6 +70,8 @@ class CreateNewUser implements CreatesNewUsers
         if ($accountType === AccountType::Planner) {
             $user->forceFill(['plan' => 'planner'])->save();
         }
+
+        Conversions::flash('sign_up', 'CompleteRegistration', ['method' => 'email']);
 
         $user->notify(new \App\Notifications\WelcomeNotification());
 

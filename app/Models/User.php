@@ -22,7 +22,7 @@ use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'account_type', 'email_preferences', 'marketing_consent_at', 'referred_by'])]
+#[Fillable(['name', 'email', 'password', 'account_type', 'email_preferences', 'marketing_consent_at', 'terms_accepted_at', 'referred_by', 'referral_discount_used_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail, PasskeyUser
 {
@@ -39,6 +39,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'two_factor_confirmed_at' => 'datetime',
             'email_preferences' => 'array',
             'marketing_consent_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'referral_discount_used_at' => 'datetime',
             'plan_comped_until' => 'datetime',
             'last_login_at' => 'datetime',
             'suspended_at' => 'datetime',

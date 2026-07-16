@@ -8,11 +8,15 @@ use App\Enums\PaymentType;
 use App\Models\Booking;
 use App\Models\Inquiry;
 use App\Models\Offer;
+use App\Models\Payment;
 use App\Models\User;
 use App\Models\VendorProfile;
 use App\Models\Wedding;
+use App\Notifications\PaymentDisputeOpened;
 use App\Support\Payments\StripeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Mockery;
 use Tests\TestCase;
 
 class PaymentTest extends TestCase
@@ -136,7 +140,20 @@ class PaymentTest extends TestCase
 
         $this->actingAs($couple)
             ->post("/bookings/{$booking->id}/checkout/deposit")
-            ->assertRedirect('https://checkout.stripe.test/cs_123');
+            ->assertRedirect('https://checkout.stripe.test/cs_123')
+            ->assertSessionHas('vn_pending_purchase.value', 300);
+    }
+
+    public function test_success_fires_a_purchase_conversion_with_the_stashed_amount(): void
+    {
+        ['couple' => $couple, 'booking' => $booking] = $this->scenario();
+
+        $this->actingAs($couple)
+            ->withSession(['vn_pending_purchase' => ['booking_id' => $booking->id, 'value' => 300]])
+            ->get(route('payments.success', $booking))
+            ->assertRedirect()
+            ->assertSessionHas('conversion.ga', 'purchase')
+            ->assertSessionHas('conversion.meta', 'Purchase');
     }
 
     public function test_cannot_pay_a_booking_from_another_wedding(): void
@@ -195,5 +212,94 @@ class PaymentTest extends TestCase
         $this->actingAs($couple)
             ->post("/bookings/{$booking->id}/checkout/balance")
             ->assertRedirect();
+    }
+
+    // ── Refunds & disputes ────────────────────────────────────────────────────
+
+    public function test_refund_booking_reverses_the_transfer_and_refunds_the_fee(): void
+    {
+        ['booking' => $booking] = $this->scenario();
+        Payment::create([
+            'booking_id' => $booking->id,
+            'type' => PaymentType::Deposit->value,
+            'amount_cents' => 30000,
+            'status' => PaymentStatus::Succeeded->value,
+            'currency' => 'cad',
+            'stripe_payment_intent_id' => 'pi_refund_1',
+        ]);
+
+        $refunds = Mockery::mock();
+        $refunds->shouldReceive('create')->once()->with(Mockery::on(fn ($a) => $a['payment_intent'] === 'pi_refund_1'
+            && $a['reverse_transfer'] === true
+            && $a['refund_application_fee'] === true))->andReturn((object) ['id' => 're_1']);
+
+        $client = Mockery::mock(\Stripe\StripeClient::class);
+        $client->refunds = $refunds;
+
+        $service = Mockery::mock(StripeService::class)->makePartial();
+        $service->shouldReceive('client')->andReturn($client);
+
+        $this->assertSame(30000, $service->refundBooking($booking->fresh()));
+    }
+
+    public function test_dispute_created_alerts_admins(): void
+    {
+        Notification::fake();
+        $admin = User::factory()->admin()->create();
+
+        ['booking' => $booking] = $this->scenario();
+        Payment::create([
+            'booking_id' => $booking->id,
+            'type' => PaymentType::Deposit->value,
+            'amount_cents' => 30000,
+            'status' => PaymentStatus::Succeeded->value,
+            'currency' => 'cad',
+            'stripe_payment_intent_id' => 'pi_dispute_1',
+        ]);
+
+        $event = \Stripe\Event::constructFrom([
+            'type' => 'charge.dispute.created',
+            'data' => ['object' => ['payment_intent' => 'pi_dispute_1', 'amount' => 30000, 'charge' => 'ch_1']],
+        ]);
+
+        app(StripeService::class)->handleEvent($event);
+
+        Notification::assertSentTo($admin, PaymentDisputeOpened::class);
+    }
+
+    public function test_lost_dispute_reverses_the_vendor_transfer_and_cancels_the_booking(): void
+    {
+        ['booking' => $booking] = $this->scenario();
+        $booking->update(['status' => BookingStatus::PaidInFull]);
+        Payment::create([
+            'booking_id' => $booking->id,
+            'type' => PaymentType::Deposit->value,
+            'amount_cents' => 30000,
+            'status' => PaymentStatus::Succeeded->value,
+            'currency' => 'cad',
+            'stripe_payment_intent_id' => 'pi_dispute_2',
+        ]);
+
+        $charges = Mockery::mock();
+        $charges->shouldReceive('retrieve')->with('ch_2')->andReturn((object) ['transfer' => 'tr_2']);
+        $transfers = Mockery::mock();
+        $transfers->shouldReceive('createReversal')->once()->with('tr_2', Mockery::on(fn ($a) => $a['amount'] === 30000
+            && $a['refund_application_fee'] === true))->andReturn((object) ['id' => 'trr_2']);
+
+        $client = Mockery::mock(\Stripe\StripeClient::class);
+        $client->charges = $charges;
+        $client->transfers = $transfers;
+
+        $service = Mockery::mock(StripeService::class)->makePartial();
+        $service->shouldReceive('client')->andReturn($client);
+
+        $event = \Stripe\Event::constructFrom([
+            'type' => 'charge.dispute.closed',
+            'data' => ['object' => ['status' => 'lost', 'payment_intent' => 'pi_dispute_2', 'amount' => 30000, 'charge' => 'ch_2']],
+        ]);
+
+        $service->handleEvent($event);
+
+        $this->assertSame(BookingStatus::Cancelled, $booking->fresh()->status);
     }
 }

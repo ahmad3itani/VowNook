@@ -26,4 +26,17 @@ class LocalContent extends Model
             ->where('city_slug', $citySlug)
             ->first();
     }
+
+    /**
+     * Whether this copy is rich enough to make an otherwise-thin page worth
+     * indexing on its own (a real guide + a couple of FAQs). Mirrored by the
+     * sitemap so the two never disagree on what is indexable.
+     */
+    public function isSubstantial(): bool
+    {
+        return is_string($this->intro)
+            && mb_strlen(trim($this->intro)) >= 200
+            && is_array($this->faqs)
+            && count($this->faqs) >= 2;
+    }
 }

@@ -82,6 +82,7 @@ class MarketingEngineTest extends TestCase
             'email' => 'couple@example.com',
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
+            'terms' => 'on',
         ]);
 
         Notification::assertSentTo($user, WelcomeNotification::class);
@@ -269,6 +270,7 @@ class MarketingEngineTest extends TestCase
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
             'ref' => $referrer->referral_code,
+            'terms' => 'on',
         ]);
 
         $this->assertSame($referrer->id, $referred->referred_by);

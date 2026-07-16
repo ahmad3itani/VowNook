@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\VendorCategory;
 use App\Models\BlogPost;
+use App\Models\LocalContent;
 use App\Models\VendorProfile;
 use App\Models\WeddingWebsite;
 use App\Support\MarketplaceCatalog;
@@ -67,14 +68,28 @@ class SitemapController extends Controller
             ->groupBy('category')
             ->pluck('max_updated', 'category');
 
-        // Programmatic local-SEO pages: every category hub, plus city pages that
-        // clear the vendor-count quality gate (we never list noindex'd thin pages).
-        // Vendors are loaded once per category and counted per city in PHP — so
-        // this stays one query per category even with dozens of cities.
+        // A substantial local guide makes an otherwise-thin page indexable on its
+        // own — mirror PublicLocalController exactly so the sitemap and the pages
+        // never disagree on what's indexable. Keyed "category|city_slug".
+        $contentSet = LocalContent::all(['category', 'city_slug', 'intro', 'faqs'])
+            ->filter->isSubstantial()
+            ->map(fn (LocalContent $c) => $c->category.'|'.($c->city_slug ?? ''))
+            ->flip();
+
+        // Head-term all-categories hubs (always indexable, rich content).
+        $urls[] = ['loc' => route('local.all'), 'changefreq' => 'weekly', 'lastmod' => $today];
+        foreach (array_keys(OntarioCities::all()) as $citySlug) {
+            $urls[] = ['loc' => route('local.all-city', $citySlug), 'changefreq' => 'weekly'];
+        }
+
+        // Programmatic local-SEO pages: category hubs + city pages that clear the
+        // vendor-count gate OR carry a real local guide (never list noindex'd thin
+        // pages). Vendors are loaded once per category and counted per city in PHP.
         foreach (VendorCategory::seoCases() as $category) {
             $catUpdated = $categoryFreshness[$category->value] ?? null;
             $catVendors = $this->catalog->browse(['category' => $category->value]);
 
+            // Category hubs are always indexable (see PublicLocalController).
             $urls[] = [
                 'loc' => route('local.category', $category->seoSlug()),
                 'changefreq' => 'weekly',
@@ -84,7 +99,7 @@ class SitemapController extends Controller
             foreach (OntarioCities::all() as $citySlug => $city) {
                 $cityVendors = $catVendors->filter(fn ($p) => $this->catalog->cityMatches($p, $city['name']));
 
-                if ($cityVendors->count() >= self::CITY_INDEX_THRESHOLD) {
+                if ($cityVendors->count() >= self::CITY_INDEX_THRESHOLD || $contentSet->has($category->value.'|'.$citySlug)) {
                     $urls[] = [
                         'loc' => route('local.city-category', [$category->seoSlug(), $citySlug]),
                         'changefreq' => 'weekly',

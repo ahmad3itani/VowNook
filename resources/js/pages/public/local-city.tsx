@@ -6,6 +6,7 @@ const fraunces = "font-['Fraunces']";
 
 type LinkItem = { name?: string; noun?: string; url: string };
 type Faq = { question: string; answer: string };
+type Cost = { low_cents: number; high_cents: number; unit: string; note: string; display: string };
 
 type Props = {
     category: { slug: string; noun: string; label: string };
@@ -13,6 +14,7 @@ type Props = {
     vendors: VendorCardData[];
     total: number;
     price_range: string | null;
+    cost: Cost | null;
     other_cities: LinkItem[];
     other_categories: LinkItem[];
     hub_url: string;
@@ -44,6 +46,7 @@ export default function LocalCity({
     vendors,
     total,
     price_range,
+    cost,
     other_cities,
     other_categories,
     hub_url,
@@ -77,11 +80,31 @@ export default function LocalCity({
                             ? `Compare ${total} ${category.noun.toLowerCase()} serving ${city.name} and the surrounding area${price_range ? `, with packages from ${price_range}` : ''}. Every vendor is reviewed before listing — view portfolios, read verified reviews, and request quotes for free.`
                             : `We're adding ${category.noun.toLowerCase()} in ${city.name} right now. Browse the full marketplace, or create your free planning studio and we'll help you find the right match.`}
                     </p>
-                    <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-[#52493d]/80">{city.blurb}</p>
+                    {/* The local guide opens with this same city context, so only
+                        show it here when there's no guide — never both. */}
+                    {!intro_html && (
+                        <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-[#52493d]/80">{city.blurb}</p>
+                    )}
                 </div>
             </section>
 
-            {/* Local guide (AI-written, stored) */}
+            {/* Typical cost — unique per-city data, and a high-intent SEO hook. */}
+            {cost && (
+                <section className="px-5 pb-10 md:px-12">
+                    <div className="mx-auto max-w-[760px] rounded-2xl border border-[#191613]/12 bg-white p-6 md:p-7">
+                        <p className="text-[11px] tracking-[0.28em] text-[#8a651c] uppercase">Typical cost</p>
+                        <p className={`${fraunces} mt-2 text-2xl leading-tight font-light md:text-[28px]`}>
+                            {category.noun} in {city.name} cost{' '}
+                            <span className="text-[#8a651c]">{cost.display}</span>
+                        </p>
+                        <p className="mt-2.5 text-[14px] leading-relaxed text-[#52493d]">
+                            Estimated range — {cost.note}. Your final quote depends on your date, guest count and style.
+                        </p>
+                    </div>
+                </section>
+            )}
+
+            {/* Local guide (stored, data-backed) */}
             {intro_html && (
                 <section className="px-5 pb-10 md:px-12">
                     <div

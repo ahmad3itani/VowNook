@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsurePlanFeature;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PersistConversionFlash;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetCurrentVendorProfile;
 use App\Http\Middleware\SetCurrentWedding;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetCurrentWedding::class,
             SetCurrentVendorProfile::class,
             HandleInertiaRequests::class,
+            PersistConversionFlash::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 

@@ -15,11 +15,13 @@ use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\VendorGapController;
 use App\Http\Controllers\Admin\VendorModerationController;
 use App\Http\Controllers\Admin\WeddingController as AdminWeddingController;
 use App\Http\Controllers\AiPlannerController;
 use App\Http\Controllers\BudgetCategoryController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\BudgetFirstController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\ContactController;
@@ -44,6 +46,7 @@ use App\Http\Controllers\MarketplaceBrowseController;
 use App\Http\Controllers\MealOptionsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfferController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlannerDashboardController;
 use App\Http\Controllers\PlannerListingController;
@@ -164,6 +167,23 @@ Route::middleware('throttle:120,1')->group(function () {
     Route::get('llms.txt', function () {
         $base = rtrim(config('app.url'), '/');
         $name = config('app.name');
+
+        // Typical Ontario cost ranges — single-sourced from LocalCosts so the
+        // facts AI engines lift here match the on-page cost data exactly.
+        $costs = new \App\Support\Seo\LocalCosts;
+        $costLines = collect([
+            \App\Enums\VendorCategory::Venue,
+            \App\Enums\VendorCategory::Catering,
+            \App\Enums\VendorCategory::Photography,
+            \App\Enums\VendorCategory::Florist,
+            \App\Enums\VendorCategory::Music,
+            \App\Enums\VendorCategory::Planner,
+        ])->map(function (\App\Enums\VendorCategory $c) use ($costs) {
+            $d = $costs->for($c, null);
+
+            return "- {$c->seoNoun()}: {$d['display']} ({$d['note']})";
+        })->implode("\n");
+
         $body = <<<MD
         # {$name}
 
@@ -175,9 +195,16 @@ Route::middleware('throttle:120,1')->group(function () {
         - [How it works]({$base}/how-it-works): step-by-step for couples and for vendors.
         - [Pricing]({$base}/pricing): free for couples; \$99 one-time Atelier; \$499/yr Planner HQ; vendors list free and pay a capped success fee when booked.
         - [Features]({$base}/features): a screenshot tour of every tool — dashboard, guests & RSVPs, budget, checklist, seating studio, wedding website, registry, marketplace, stationery studio.
-        - [Wedding photographers in Ontario]({$base}/wedding-photographers)
+        - [Wedding vendors in Ontario]({$base}/wedding-vendors): every vendor type with typical local costs, by category and city.
         - [Wedding venues in Ontario]({$base}/wedding-venues)
+        - [Wedding photographers in Ontario]({$base}/wedding-photographers)
+        - [Wedding caterers in Ontario]({$base}/wedding-caterers)
+        - [Wedding florists in Ontario]({$base}/wedding-florists)
         - [Wedding planners in Ontario]({$base}/wedding-planners)
+
+        ## Typical Ontario wedding costs (estimates)
+        Typical ranges for Ontario; they vary by city, date, guest count and style — higher in Toronto and the GTA and in destination regions (Muskoka, Niagara), lower in southwestern and northern Ontario.
+        {$costLines}
 
         ## Key facts
         - Free for couples: guest list, RSVP, budget, checklist, seating chart, an AI plan starter, a wedding website with registry, and an AI honeymoon concierge — no credit card.
@@ -265,6 +292,13 @@ Route::middleware('throttle:120,1')->group(function () {
         Route::get('{slug}/media/{media}', [PublicVendorProfileController::class, 'serveMedia'])->name('media');
     });
 
+    // Head-term all-categories hubs. "wedding-vendors" is not a VendorCategory
+    // seo slug, so these literal routes never collide with the category pages
+    // below — but define them first for clarity.
+    Route::get('wedding-vendors', [PublicLocalController::class, 'allVendors'])->name('local.all');
+    Route::get('wedding-vendors/{city}', [PublicLocalController::class, 'allVendorsCity'])
+        ->where('city', OntarioCities::slugPattern())->name('local.all-city');
+
     // Programmatic local-SEO pages — constrained to known category/city slugs so
     // they never shadow literal routes. Defined last in the public group.
     Route::get('{category}/{city}', [PublicLocalController::class, 'cityCategory'])
@@ -310,6 +344,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Create a wedding workspace (couples' first wedding, planners' client weddings).
     Route::post('weddings', [WeddingController::class, 'store'])->name('weddings.store');
+
+    // Onboarding-enrichment — one lightweight, skippable capture (city, budget
+    // band, vibe, season) shown once to a couple right after their first
+    // wedding is created. Never shown again once completed or skipped.
+    Route::get('onboarding/wedding-details', [OnboardingController::class, 'show'])
+        ->name('onboarding.wedding-details.show');
+    Route::post('onboarding/wedding-details', [OnboardingController::class, 'store'])
+        ->name('onboarding.wedding-details.store');
 
     // Planner HQ — portfolio across all client weddings (account_type=planner).
     Route::get('planner', [PlannerDashboardController::class, 'index'])->name('planner.dashboard');
@@ -372,7 +414,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('budget', [BudgetController::class, 'index'])
         ->middleware('permission:budget,read')->name('budget.index');
 
+    // Budget-first: "bring your budget, we'll make it work".
+    Route::get('budget/plan', [BudgetFirstController::class, 'show'])
+        ->middleware('permission:budget,read')->name('budget.plan');
+
     Route::middleware('permission:budget,write')->group(function () {
+        Route::post('budget/plan', [BudgetFirstController::class, 'store'])->name('budget.plan.store');
+        Route::post('budget/plan/apply', [BudgetFirstController::class, 'apply'])->name('budget.plan.apply');
+
         Route::post('budget', [BudgetController::class, 'store'])->name('budget.store');
         Route::put('budget/{item}', [BudgetController::class, 'update'])->name('budget.update');
         Route::delete('budget/{item}', [BudgetController::class, 'destroy'])->name('budget.destroy');
@@ -738,6 +787,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Platform-wide marketplace activity.
         Route::get('marketplace', [AdminMarketplaceController::class, 'index'])->name('marketplace.index');
+
+        // Vendor-recruitment priority list: real supply vs. demand by city × category.
+        Route::get('vendor-gaps', [VendorGapController::class, 'index'])->name('vendor-gaps.index');
 
         // Blog authoring.
         Route::get('blog', [AdminBlogController::class, 'index'])->name('blog.index');

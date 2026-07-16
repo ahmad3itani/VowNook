@@ -21,6 +21,9 @@ class VendorProfile extends Model
     /** @use HasFactory<VendorProfileFactory> */
     use HasFactory;
 
+    /** Reserved login-email domain for the fictional beta "sample" vendors. */
+    public const DEMO_EMAIL_DOMAIN = '@demo.vownook.test';
+
     protected $fillable = [
         'user_id',
         'business_name',
@@ -100,6 +103,17 @@ class VendorProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Whether this is a fictional "sample" listing seeded via `marketplace:demo`
+     * (identified by its reserved login-email domain) rather than a real vendor.
+     * Sample listings must be labelled honestly — never "fully booked" — and can
+     * never receive real inquiries. Eager-load `user:id,email` to avoid N+1.
+     */
+    public function getIsDemoAttribute(): bool
+    {
+        return str_ends_with((string) $this->user?->email, self::DEMO_EMAIL_DOMAIN);
     }
 
     public function services(): HasMany

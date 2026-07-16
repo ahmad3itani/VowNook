@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\VendorCategory;
 use App\Models\LocalContent;
+use App\Models\VendorProfile;
 use App\Support\Markdown;
 use App\Support\MarketplaceCatalog;
 use App\Support\OntarioCities;
 use App\Support\Seo;
+use App\Support\Seo\LocalCosts;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -57,11 +59,19 @@ class PublicLocalController extends Controller
             $schemas[] = $faq;
         }
 
+        $cost = (new LocalCosts)->for($cat, null);
+
         $seo = Seo::make(
             title: "{$noun} in Ontario",
-            description: "Browse and compare {$noun} across Ontario — view portfolios, packages and verified reviews, and request quotes for free on ".config('app.name').'.',
+            description: ($cost
+                ? "Compare {$noun} across Ontario — typically {$cost['display']}. "
+                : "Compare {$noun} across Ontario. ")
+                .'Reviews tied to real bookings, free quotes on '.config('app.name').'.',
             canonical: route('local.category', $cat->seoSlug()),
-            index: $vendors->isNotEmpty(),
+            // Category hubs are always useful (typical-cost data, a full 42-city
+            // directory and a local guide), so always indexable — the thin-content
+            // gate lives at the city level below.
+            index: true,
             schemas: $schemas,
         );
 
@@ -70,6 +80,7 @@ class PublicLocalController extends Controller
             'vendors' => $vendors->map(fn ($p) => $this->catalog->cardData($p)),
             'cities' => $cities,
             'total' => $vendors->count(),
+            'cost' => $cost,
             'other_categories' => $this->otherCategoryLinks($cat, null),
             'intro_html' => $content?->intro ? Markdown::toHtml($content->intro) : null,
             'faqs' => $content?->faqs ?? [],
@@ -92,13 +103,17 @@ class PublicLocalController extends Controller
         $content = LocalContent::forPage($cat->value, $city);
 
         $priceRange = $this->priceRange($vendors);
+        $cost = (new LocalCosts)->for($cat, $city);
+        $costDisplay = $cost['display'] ?? null;
 
         $description = $count > 0
             ? "Compare {$count} ".strtolower($noun)." in {$cityName}, Ontario"
-                .($priceRange ? " starting from {$priceRange}" : '')
-                .'. View portfolios and verified reviews, and request quotes for free.'
-            : 'Looking for '.strtolower($noun)." in {$cityName}, Ontario? Browse "
-                .config('app.name').' and request quotes from trusted local wedding vendors.';
+                .($priceRange ? " from {$priceRange}" : '')
+                .($costDisplay ? " (typically {$costDisplay})" : '')
+                .'. Reviews tied to real bookings, free quotes.'
+            : 'Looking for '.strtolower($noun)." in {$cityName}, Ontario? "
+                .($costDisplay ? "Typical cost {$costDisplay}. " : '')
+                .'Compare local vendors and request quotes for free on '.config('app.name').'.';
 
         $schemas = [
             $this->collectionSchema("{$noun} in {$cityName}", $vendors),
@@ -116,7 +131,8 @@ class PublicLocalController extends Controller
             title: "{$noun} in {$cityName}, Ontario",
             description: $description,
             canonical: route('local.city-category', [$cat->seoSlug(), $city]),
-            index: $count >= self::INDEX_THRESHOLD,
+            // Indexable once it clears the vendor gate OR carries a real local guide.
+            index: $count >= self::INDEX_THRESHOLD || ($content?->isSubstantial() ?? false),
             schemas: $schemas,
         );
 
@@ -134,6 +150,7 @@ class PublicLocalController extends Controller
             'vendors' => $vendors->map(fn ($p) => $this->catalog->cardData($p)),
             'total' => $count,
             'price_range' => $priceRange,
+            'cost' => $cost,
             'other_cities' => $otherCities,
             'other_categories' => $this->otherCategoryLinks($cat, $city),
             'hub_url' => route('local.category', $cat->seoSlug()),
@@ -142,7 +159,123 @@ class PublicLocalController extends Controller
         ])->withViewData(['seo' => $seo]);
     }
 
+    /** All-categories hub for the head term: "Wedding Vendors in Ontario". */
+    public function allVendors(): Response
+    {
+        return $this->renderAllVendors(null);
+    }
+
+    /** All-categories hub for a single city: "Wedding Vendors in {City}, Ontario". */
+    public function allVendorsCity(string $city): Response
+    {
+        abort_if(OntarioCities::get($city) === null, 404);
+
+        return $this->renderAllVendors($city);
+    }
+
+    /** Shared builder for the all-categories hub (Ontario or a city). */
+    private function renderAllVendors(?string $citySlug): Response
+    {
+        $costs = new LocalCosts;
+        $cityData = $citySlug !== null ? OntarioCities::get($citySlug) : null;
+        $cityName = $cityData['name'] ?? null;
+        $place = $cityName !== null ? "{$cityName}, Ontario" : 'Ontario';
+        $counts = $this->categoryCounts($cityName);
+
+        $categories = collect(VendorCategory::seoCases())->map(fn (VendorCategory $c) => [
+            'slug' => $c->seoSlug(),
+            'noun' => $c->seoNoun(),
+            'label' => $c->label(),
+            'url' => $citySlug !== null
+                ? route('local.city-category', [$c->seoSlug(), $citySlug])
+                : route('local.category', $c->seoSlug()),
+            'cost' => $costs->for($c, $citySlug)['display'] ?? null,
+            'count' => $counts[$c->value] ?? 0,
+        ])->values();
+
+        // A small cross-category sample of real published vendors as visual proof.
+        $vendors = $this->catalog->browse($cityName !== null ? ['city' => $cityName] : [])
+            ->take(9)
+            ->map(fn ($p) => $this->catalog->cardData($p))
+            ->values();
+
+        $cities = collect(OntarioCities::all())
+            ->reject(fn ($d, $slug) => $slug === $citySlug)
+            ->map(fn ($d, $slug) => ['slug' => $slug, 'name' => $d['name'], 'url' => route('local.all-city', $slug)])
+            ->values();
+
+        $title = "Wedding Vendors in {$place}";
+        $canonical = $citySlug !== null ? route('local.all-city', $citySlug) : route('local.all');
+
+        $collection = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $title,
+            'url' => $canonical,
+            'mainEntity' => [
+                '@type' => 'ItemList',
+                'numberOfItems' => $categories->count(),
+                'itemListElement' => $categories->map(fn (array $c, int $i) => [
+                    '@type' => 'ListItem',
+                    'position' => $i + 1,
+                    'url' => $c['url'],
+                    'name' => "{$c['noun']} in {$place}",
+                ])->all(),
+            ],
+        ];
+
+        $schemas = [
+            $collection,
+            Seo::breadcrumbs(array_filter([
+                'Marketplace' => route('public.marketplace'),
+                'Wedding Vendors' => route('local.all'),
+                (string) $cityName => $citySlug !== null ? route('local.all-city', $citySlug) : null,
+            ])),
+            Seo::faqSchema(Seo::brandFaqs()),
+        ];
+
+        $seo = Seo::make(
+            title: $title,
+            description: "Find and compare wedding vendors in {$place} — venues, photographers, caterers, florists, planners and more. Reviews tied to real bookings, free quotes on ".config('app.name').'.',
+            canonical: $canonical,
+            index: true,
+            schemas: $schemas,
+        );
+
+        return Inertia::render('public/local-vendors', [
+            'place' => ['name' => $place, 'city' => $cityName, 'slug' => $citySlug, 'blurb' => $cityData['blurb'] ?? null],
+            'categories' => $categories,
+            'cities' => $cities,
+            'vendors' => $vendors,
+            'faqs' => collect(Seo::brandFaqs())->map(fn (array $f) => ['question' => $f['q'], 'answer' => $f['a']])->all(),
+            'total_vendors' => array_sum($counts),
+        ])->withViewData(['seo' => $seo]);
+    }
+
     // -----------------------------------------------------------------------
+
+    /**
+     * Published-vendor counts per category (optionally filtered to a city) in a
+     * single grouped query — keeps the all-categories hub to one COUNT query.
+     *
+     * @return array<string, int>  category value => count
+     */
+    private function categoryCounts(?string $cityName): array
+    {
+        $query = VendorProfile::published();
+
+        if ($cityName !== null) {
+            $query->where(function ($w) use ($cityName) {
+                $w->where('city', 'like', "%{$cityName}%")
+                    ->orWhere('service_area', 'like', "%{$cityName}%");
+            });
+        }
+
+        return $query->selectRaw('category, COUNT(*) as c')
+            ->groupBy('category')
+            ->pluck('c', 'category')
+            ->all();
+    }
 
     /** Links to the same city across other categories (or the hubs when no city). */
     private function otherCategoryLinks(VendorCategory $current, ?string $city): array

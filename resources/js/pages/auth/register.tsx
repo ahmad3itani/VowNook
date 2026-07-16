@@ -162,10 +162,45 @@ export default function Register({ passwordRules }: Props) {
                                 />
                             </div>
 
+                            <div className="grid gap-1.5">
+                                <label htmlFor="terms" className="flex items-start gap-2.5 text-sm leading-snug text-muted-foreground">
+                                    <input
+                                        id="terms"
+                                        name="terms"
+                                        type="checkbox"
+                                        required
+                                        tabIndex={5}
+                                        className="mt-0.5 size-4 shrink-0 rounded border-input accent-[#775a19]"
+                                    />
+                                    <span>
+                                        I agree to VowNook's{' '}
+                                        <a
+                                            href="/terms"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-medium text-[#775a19] underline underline-offset-2"
+                                        >
+                                            Terms of Service
+                                        </a>{' '}
+                                        and{' '}
+                                        <a
+                                            href="/privacy"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-medium text-[#775a19] underline underline-offset-2"
+                                        >
+                                            Privacy Policy
+                                        </a>
+                                        .
+                                    </span>
+                                </label>
+                                <InputError message={errors.terms} />
+                            </div>
+
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                tabIndex={6}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -175,7 +210,7 @@ export default function Register({ passwordRules }: Props) {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink href={login()} tabIndex={7}>
                                 Log in
                             </TextLink>
                         </div>

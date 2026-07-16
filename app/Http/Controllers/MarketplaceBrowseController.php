@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\InquiryStatus;
 use App\Enums\VendorCategory;
 use App\Models\Inquiry;
+use App\Support\Budget\BudgetAllocator;
 use App\Support\CurrentWedding;
 use App\Support\MarketplaceCatalog;
+use App\Support\OntarioCities;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,10 +35,12 @@ class MarketplaceBrowseController extends Controller
             'max_price' => $request->query('max_price', ''),
         ];
 
-        $profiles = $this->catalog->browse($filters);
+        $context = $this->personalizationContext();
+
+        $profiles = $this->catalog->browse($filters, $context['city_name'] ?? null);
 
         return Inertia::render('vendors/marketplace', [
-            'profiles'   => $profiles->map(fn ($p) => $this->catalog->cardData($p)),
+            'profiles'   => $profiles->map(fn ($p) => $this->catalog->cardData($p, $context)),
             'categories' => collect(VendorCategory::cases())->map(fn ($c) => [
                 'value' => $c->value,
                 'label' => $c->label(),
@@ -60,7 +64,7 @@ class MarketplaceBrowseController extends Controller
             : null;
 
         return Inertia::render('vendors/marketplace-show', [
-            'profile'           => $this->catalog->profileData($profile),
+            'profile'           => $this->catalog->profileData($profile, $this->personalizationContext()),
             'auth_context'      => [
                 'is_couple'        => true,
                 'has_wedding'      => (bool) $weddingId,
@@ -69,5 +73,31 @@ class MarketplaceBrowseController extends Controller
             'services_for_select' => $this->catalog->serviceOptions($profile),
             'quote_badge'         => Inquiry::offersAwaiting($weddingId),
         ]);
+    }
+
+    /**
+     * "Fits your budget" / "near you" context derived from the couple's own
+     * captured budget + city — zero cost, first-party data only. Empty when
+     * the couple hasn't captured a budget/city yet, which leaves cardData()
+     * and profileData() emitting no personalization keys for that request.
+     *
+     * @return array{category_budgets?: array<string, int>, city_name?: string|null}
+     */
+    protected function personalizationContext(): array
+    {
+        $wedding = $this->wedding->get();
+        $context = [];
+
+        if ($wedding !== null) {
+            if ($wedding->total_budget_cents !== null) {
+                $context['category_budgets'] = app(BudgetAllocator::class)->categoryBudgetsFor($wedding->total_budget_cents);
+            }
+
+            if ($wedding->city !== null) {
+                $context['city_name'] = OntarioCities::name($wedding->city);
+            }
+        }
+
+        return $context;
     }
 }

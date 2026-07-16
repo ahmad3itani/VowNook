@@ -32,6 +32,7 @@ class PlannerPortalTest extends TestCase
             'password' => 'super-secret-password',
             'password_confirmation' => 'super-secret-password',
             'account_type' => 'planner',
+            'terms' => 'on',
         ])->assertRedirect();
 
         $user = User::where('email', 'planner@example.com')->first();
@@ -117,7 +118,7 @@ class PlannerPortalTest extends TestCase
 
         $this->actingAs($couple)
             ->post('/weddings', ['name' => 'Our Wedding'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('onboarding.wedding-details.show'));
 
         $this->actingAs($couple)
             ->from('/dashboard')

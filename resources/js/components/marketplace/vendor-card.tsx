@@ -19,9 +19,12 @@ export type VendorCardData = {
     response_hours: number | null;
     services_count: number;
     is_accepting_bookings: boolean;
+    is_demo?: boolean;
     is_founding?: boolean;
     is_featured?: boolean;
     is_verified?: boolean;
+    fits_budget?: boolean;
+    near_you?: boolean;
     thumb_url: string | null;
 };
 
@@ -72,11 +75,15 @@ export function VendorCard({ vendor, hrefBase }: { vendor: VendorCardData; hrefB
                         </Badge>
                     </div>
                 )}
-                {!vendor.is_accepting_bookings && (
+                {vendor.is_demo ? (
+                    <div className="absolute right-2 top-2">
+                        <Badge variant="secondary" className="text-xs">Sample listing</Badge>
+                    </div>
+                ) : !vendor.is_accepting_bookings ? (
                     <div className="absolute right-2 top-2">
                         <Badge variant="secondary" className="text-xs">Fully booked</Badge>
                     </div>
-                )}
+                ) : null}
             </div>
 
             {/* Content */}
@@ -126,6 +133,21 @@ export function VendorCard({ vendor, hrefBase }: { vendor: VendorCardData; hrefB
                     <p className="mt-2 text-sm font-medium text-[#775a19]">
                         {priceDisplay(vendor.base_price_cents, vendor.price_unit)}
                     </p>
+                )}
+
+                {(vendor.fits_budget || vendor.near_you) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        {vendor.fits_budget && (
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                Fits your budget
+                            </span>
+                        )}
+                        {vendor.near_you && (
+                            <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-400">
+                                Near you
+                            </span>
+                        )}
+                    </div>
                 )}
             </div>
         </Link>

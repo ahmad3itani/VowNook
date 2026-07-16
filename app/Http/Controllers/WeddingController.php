@@ -75,11 +75,15 @@ class WeddingController extends Controller
         }
 
         // Make it the active workspace and land inside it (planners land
-        // back on the HQ where the new card appears first).
+        // back on the HQ where the new card appears first; couples land on
+        // the one-time onboarding-enrichment screen instead of the dashboard
+        // — it isn't a planner's wedding "vibe" to capture).
         $user->forceFill(['current_wedding_id' => $wedding->id])->save();
 
-        return redirect()
-            ->route($user->isPlanner() ? 'planner.dashboard' : 'dashboard')
-            ->with('status', 'wedding-created');
+        if ($user->isPlanner()) {
+            return redirect()->route('planner.dashboard')->with('status', 'wedding-created');
+        }
+
+        return redirect()->route('onboarding.wedding-details.show')->with('status', 'wedding-created');
     }
 }

@@ -73,6 +73,7 @@ export type MarketplaceProfile = {
     rating_count: number;
     response_hours: number | null;
     is_accepting_bookings: boolean;
+    is_demo?: boolean;
     is_verified: boolean;
     logo_url: string | null;
     cover_url: string | null;
@@ -222,9 +223,11 @@ export function VendorProfileView({
                                 {profile.category_label && (
                                     <Badge variant="secondary">{profile.category_label}</Badge>
                                 )}
-                                {!profile.is_accepting_bookings && (
+                                {profile.is_demo ? (
+                                    <Badge variant="outline" className="text-muted-foreground">Sample listing</Badge>
+                                ) : !profile.is_accepting_bookings ? (
                                     <Badge variant="outline" className="text-muted-foreground">Fully booked</Badge>
-                                )}
+                                ) : null}
                             </div>
                         </div>
 
@@ -383,9 +386,11 @@ export function VendorProfileView({
                                 </p>
                             )}
                             <p className="mb-4 text-sm text-muted-foreground">
-                                {profile.is_accepting_bookings
-                                    ? 'This vendor is accepting new bookings.'
-                                    : 'This vendor is fully booked.'}
+                                {profile.is_demo
+                                    ? 'This is a sample listing that shows how real vendors will appear. It is not a real business and cannot be contacted yet — real Ontario vendors are coming soon.'
+                                    : profile.is_accepting_bookings
+                                      ? 'This vendor is accepting new bookings.'
+                                      : 'This vendor is fully booked.'}
                             </p>
 
                             {/* Already has an open inquiry */}
@@ -397,7 +402,7 @@ export function VendorProfileView({
                                     <CheckCircle2 className="size-4" />
                                     View your inquiry
                                 </Link>
-                            ) : authContext.is_couple && authContext.has_wedding && profile.is_accepting_bookings ? (
+                            ) : authContext.is_couple && authContext.has_wedding && profile.is_accepting_bookings && !profile.is_demo ? (
                                 <>
                                     {!showForm ? (
                                         <button
@@ -459,7 +464,7 @@ export function VendorProfileView({
                                         </form>
                                     )}
                                 </>
-                            ) : profile.is_accepting_bookings ? (
+                            ) : profile.is_accepting_bookings && !profile.is_demo ? (
                                 <Link
                                     href="/register"
                                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#775a19] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
@@ -470,11 +475,11 @@ export function VendorProfileView({
                             ) : (
                                 <Button variant="outline" className="w-full" disabled>
                                     <CalendarCheck className="mr-2 size-4" />
-                                    Fully booked
+                                    {profile.is_demo ? 'Sample — coming soon' : 'Fully booked'}
                                 </Button>
                             )}
 
-                            {!authContext.is_couple && profile.is_accepting_bookings && (
+                            {!authContext.is_couple && profile.is_accepting_bookings && !profile.is_demo && (
                                 <p className="mt-3 text-center text-xs text-muted-foreground">
                                     Create a free account to message this vendor
                                 </p>

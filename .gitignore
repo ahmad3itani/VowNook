@@ -27,6 +27,8 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 /auth.json
+# Long-lived Facebook / Instagram Graph API tokens — never commit these.
+/facebook-kit/*token*.txt
 /.fleet
 /.idea
 /.nova

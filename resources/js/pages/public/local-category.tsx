@@ -8,12 +8,14 @@ type CityLink = { slug: string; name: string; count: number; url: string };
 type CatLink = { noun: string; url: string };
 
 type Faq = { question: string; answer: string };
+type Cost = { low_cents: number; high_cents: number; unit: string; note: string; display: string };
 
 type Props = {
     category: { slug: string; noun: string; label: string };
     vendors: VendorCardData[];
     cities: CityLink[];
     total: number;
+    cost: Cost | null;
     other_categories: CatLink[];
     intro_html: string | null;
     faqs: Faq[];
@@ -37,7 +39,7 @@ function PublicNav() {
     );
 }
 
-export default function LocalCategory({ category, vendors, cities, total, other_categories, intro_html, faqs }: Props) {
+export default function LocalCategory({ category, vendors, cities, total, cost, other_categories, intro_html, faqs }: Props) {
     return (
         <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613]">
             <Head title={`${category.noun} in Ontario`} />
@@ -62,7 +64,24 @@ export default function LocalCategory({ category, vendors, cities, total, other_
                 </div>
             </section>
 
-            {/* Local guide (AI-written, stored) */}
+            {/* Typical cost — province-wide range, a high-intent SEO hook. */}
+            {cost && (
+                <section className="px-5 pb-10 md:px-12">
+                    <div className="mx-auto max-w-[760px] rounded-2xl border border-[#191613]/12 bg-white p-6 md:p-7">
+                        <p className="text-[11px] tracking-[0.28em] text-[#8a651c] uppercase">Typical cost in Ontario</p>
+                        <p className={`${fraunces} mt-2 text-2xl leading-tight font-light md:text-[28px]`}>
+                            {category.noun} typically cost{' '}
+                            <span className="text-[#8a651c]">{cost.display}</span>
+                        </p>
+                        <p className="mt-2.5 text-[14px] leading-relaxed text-[#52493d]">
+                            Estimated range — {cost.note}. Costs run higher in Toronto and the GTA, and lower in
+                            southwestern and northern Ontario.
+                        </p>
+                    </div>
+                </section>
+            )}
+
+            {/* Local guide (stored, data-backed) */}
             {intro_html && (
                 <section className="px-5 pb-12 md:px-12">
                     <div

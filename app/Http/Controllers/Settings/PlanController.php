@@ -49,6 +49,7 @@ class PlanController extends Controller
                 'count' => $user->referrals()->count(),
                 'reward_days' => \App\Support\Referrals::REWARD_DAYS,
             ],
+            'referral_discount_eligible' => app(\App\Support\Payments\StripeService::class)->referralDiscountEligible($user),
         ]);
     }
 }
