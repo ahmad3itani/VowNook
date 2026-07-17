@@ -29,6 +29,10 @@ yarn-error.log
 /auth.json
 # Long-lived Facebook / Instagram Graph API tokens — never commit these.
 /facebook-kit/*token*.txt
+# Vendor prospecting list (compiled business contact info). This repo is PUBLIC —
+# publishing an aggregated contact list is needless CASL exposure and hands
+# competitors the recruiting targets. Keep it local.
+/vendor-targets.csv
 /.fleet
 /.idea
 /.nova
