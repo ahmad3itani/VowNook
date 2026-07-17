@@ -33,13 +33,31 @@ class StripeStatus extends Command
         $key = (string) config('services.stripe.key');
         $webhookSecret = (string) config('services.stripe.webhook_secret');
 
-        $mode = str_starts_with($secret, 'sk_live_') ? 'LIVE'
-            : (str_starts_with($secret, 'sk_test_') ? 'TEST' : 'unknown');
+        $mode = self::modeOf($secret, 'sk_');
+        $keyMode = self::modeOf($key, 'pk_');
+        $mismatch = $mode !== 'unknown' && $keyMode !== 'unknown' && $mode !== $keyMode;
 
         $this->info('Stripe keys');
         $this->row('STRIPE_SECRET', $secret !== '' ? "set ({$mode} mode)" : 'MISSING', $secret !== '');
-        $this->row('STRIPE_KEY (publishable)', $key !== '' ? 'set' : 'missing', $key !== '');
+        $this->row(
+            'STRIPE_KEY (publishable)',
+            $key !== '' ? "set ({$keyMode} mode)" : 'missing',
+            $key !== '' && ! $mismatch,
+        );
         $this->row('STRIPE_WEBHOOK_SECRET', $webhookSecret !== '' ? 'set' : 'MISSING', $webhookSecret !== '');
+
+        // A test publishable key alongside a live secret (or vice versa) is silent
+        // today — nothing reads the publishable key, because checkout is a
+        // server-side redirect to Stripe's hosted page. It only detonates the day
+        // someone adds Stripe.js/Elements, and then it fails confusingly. Say so now.
+        if ($mismatch) {
+            $this->newLine();
+            $this->warn("Key mode mismatch: STRIPE_SECRET is {$mode} but STRIPE_KEY is {$keyMode}.");
+            $this->line('    Harmless while checkout stays a server-side redirect (nothing reads the');
+            $this->line('    publishable key), but it will break any client-side Stripe.js/Elements.');
+            $this->line("    Fix: set STRIPE_KEY to the {$mode}-mode publishable key from the Stripe");
+            $this->line('    Dashboard (Developers → API keys), matching STRIPE_SECRET.');
+        }
 
         if (! $stripe->isConfigured()) {
             $this->newLine();
@@ -103,6 +121,16 @@ class StripeStatus extends Command
         $this->info('Done — no secret values were displayed.');
 
         return self::SUCCESS;
+    }
+
+    /** 'LIVE' | 'TEST' | 'unknown' from a key's prefix (e.g. 'sk_', 'pk_'). */
+    private static function modeOf(string $value, string $prefix): string
+    {
+        return match (true) {
+            str_starts_with($value, $prefix.'live_') => 'LIVE',
+            str_starts_with($value, $prefix.'test_') => 'TEST',
+            default => 'unknown',
+        };
     }
 
     private function row(string $label, string $value, bool $ok): void
