@@ -164,6 +164,113 @@ Compare real planners and request quotes for free on VowNook — [browse wedding
 MD,
             ],
             [
+                // Targets the venue-cost cluster from the "wedding cost" + "wedding
+                // venues" exports (Semrush, Canada 2026-07): "casa loma wedding cost"
+                // 480 (KD 21) + variants ~1,260/mo combined, "graydon hall manor
+                // wedding cost" 260 (KD 13), plus "how much does a wedding cost"
+                // spillover. Named-venue cost queries are low-KD and unowned.
+                //
+                // Distinct from two existing posts, cross-linked not competing:
+                //   - "how much does a wedding cost in ontario" = whole wedding
+                //   - "how to choose a wedding venue / 12 questions" = vetting
+                // This one = the venue line item specifically, and clears up the
+                // rental-vs-all-inclusive confusion no competitor handles cleanly.
+                //
+                // Rental + catering figures are from LocalCosts (venue baseline
+                // $3,000–$12,000, catering $90–$185/guest, × city index) so this and
+                // /wedding-venues/{city} can't contradict each other. The
+                // all-inclusive per-guest figure is a labelled estimate (venue +
+                // food + bar + service), NOT a LocalCosts field — derived in-text.
+                'slug' => 'how-much-does-a-wedding-venue-cost-ontario',
+                'title' => 'How Much Does a Wedding Venue Cost in Ontario? (2026)',
+                'cover_image_path' => 'images/blog/venue.webp',
+                'cover_alt' => 'An elegant Ontario wedding reception set with round tables, candles and floral centrepieces',
+                'category' => BlogCategory::Budgeting->value,
+                'excerpt' => 'An Ontario wedding venue costs about $3,000–$12,000 to rent, or roughly $150–$250 per guest all-inclusive. Here is what that means for your guest count and city — and how to read a venue quote.',
+                'meta_title' => 'How Much Does a Wedding Venue Cost in Ontario? (2026)',
+                'meta_description' => 'Ontario wedding venues cost $3,000–$12,000 to rent, or ~$150–$250/guest all-inclusive. Real 2026 prices by city, plus rental vs all-inclusive explained.',
+                'body' => <<<'MD'
+**An Ontario wedding venue typically costs $3,000–$12,000 to rent the space, or roughly $150–$250 per guest for an all-inclusive package that includes catering and bar.** For 100 guests, that works out to about **$18,000–$25,000 all-in** at a mid-range venue, rising to **$30,000–$45,000+** in downtown Toronto or at a premium estate. The venue is usually the single biggest line on a wedding budget — around a third of the total.
+
+The confusing part is that "venue cost" means two completely different things depending on how the venue prices. Sort that out first and every quote suddenly makes sense.
+
+## Rental vs all-inclusive — the split that confuses everyone
+
+**Rental (à la carte).** You pay a site fee for the space and hours, then bring in your own caterer, bar and rentals separately. Common at lofts, galleries, barns, historic buildings and outdoor sites.
+
+- Site fee: **$3,000–$12,000** in most of Ontario
+- Catering, added separately: **$90–$185 per guest** for food
+- Plus bar, rentals, staff and often a kitchen or corkage fee
+
+**All-inclusive (per-guest).** One price per person covers the space, food, and usually bar and staff. Common at banquet halls, hotels, golf and country clubs.
+
+- Typically **$150–$250 per guest**, all in
+- Simpler to budget, but compare what's actually bundled — cake, late-night, tax and gratuity are often extra
+
+Neither is cheaper by default. A $6,000 loft rental plus $150/guest catering for 100 guests ($21,000) lands in the same place as a $200/guest all-inclusive hall. What differs is control and effort.
+
+## Ontario venue rental cost by city (2026)
+
+Site fees track the local market. These are typical rental ranges — add catering on top:
+
+| City | Typical venue rental |
+|---|---|
+| Toronto | $3,600 – $14,400 |
+| Muskoka | $3,600 – $14,400 |
+| Niagara-on-the-Lake | $3,450 – $13,800 |
+| Prince Edward County | $3,350 – $13,450 |
+| Mississauga | $3,250 – $12,950 |
+| Niagara | $3,250 – $12,950 |
+| Ottawa | $3,150 – $12,600 |
+| Hamilton / Kitchener-Waterloo / Barrie / Kingston | $3,000 – $12,000 |
+| London | $2,850 – $11,400 |
+| Windsor | $2,700 – $10,800 |
+| Sudbury | $2,650 – $10,550 |
+
+Catering scales the same way — roughly **$110–$220 per guest in Toronto**, **$90–$185 in Hamilton**, **$80–$165 in Windsor or the north**. All figures are planning estimates, not quotes. See live venues and pricing for your city on [wedding venues in Ontario](/wedding-venues).
+
+## What premium venues cost
+
+Landmark venues — Casa Loma, historic estates like Graydon Hall Manor, vineyard properties in Niagara and Prince Edward County — sit at the very top of these ranges and often above them. They're typically quoted as a package with food-and-beverage minimums rather than a flat rental, and the number moves with your date and guest count. For those, the honest answer is *request a quote* — but budget from the top of the ranges above, not the middle.
+
+## What actually moves the price
+
+1. **Guest count.** All-inclusive scales directly per head; even rentals price on the count they have to seat and staff.
+2. **Day and season.** A Saturday in June, September or early October is peak. A Friday, Sunday or off-season winter date can cut the venue cost 20–40%.
+3. **Food and bar minimums.** Many venues set a floor. If your headcount is below it, you pay the difference anyway.
+4. **What's bundled.** Tables, linens, setup, teardown, staff, security, a day-of coordinator — each one that isn't included is a separate invoice.
+5. **Overtime and end-time rules.** Some Ontario venues cut music at 11pm; extra hours are billed steeply.
+
+## How to lower it without downgrading
+
+- **Move the date.** A Friday or off-season wedding is the single biggest lever.
+- **Trim the guest list.** At $150–$250 all-in per head, ten fewer guests is $1,500–$2,500.
+- **Look one city out.** Hamilton, Niagara or Prince Edward County deliver character at 10–20% under downtown Toronto.
+- **Ask what's negotiable.** Bar packages, upgrade tiers and minimums often have more give than the headline rate.
+
+## Frequently asked questions
+
+**How much does a wedding venue cost in Ontario?**
+$3,000–$12,000 to rent the space, or about $150–$250 per guest all-inclusive. For 100 guests that's roughly $18,000–$25,000 mid-range, and $30,000–$45,000+ in Toronto or at a premium venue.
+
+**How much does a Casa Loma or estate wedding cost?**
+Landmark and estate venues sit at the top of the range and are usually quoted as a package with a food-and-beverage minimum. Budget from the upper end of the city ranges above and request a quote for exact numbers.
+
+**Is it cheaper to rent a venue or book all-inclusive?**
+Neither is reliably cheaper. A rental plus outside catering often lands within a few thousand dollars of an all-inclusive package for the same guest count — the real difference is how much control and coordination you want.
+
+**What percentage of the wedding budget is the venue?**
+Around a third for most Ontario couples, once you include catering and bar. It's the largest single line, which is why the date and guest count matter so much.
+
+**How far ahead should I book?**
+12–18 months for peak-season Saturdays at popular venues; 6–9 months is workable off-season. The best dates go first.
+
+---
+
+Compare real Ontario venues and request quotes for free on VowNook — [browse wedding venues](/wedding-venues). Not sure how to weigh them? Read [how to choose a wedding venue](/blog/questions-to-ask-wedding-venue), or see the [full cost of an Ontario wedding](/blog/how-much-does-a-wedding-cost-in-ontario).
+MD,
+            ],
+            [
                 'slug' => 'how-to-plan-a-wedding-for-free-ontario',
                 'title' => 'How to Plan Your Wedding for Free in Ontario (2026)',
                 'cover_image_path' => 'images/blog/timeline.webp',
@@ -218,7 +325,8 @@ MD,
                 'cover_alt' => 'An elegant Ontario wedding reception with beautifully set tables and soft daylight',
                 'category' => BlogCategory::Budgeting->value,
                 'excerpt' => 'A realistic breakdown of what couples actually spend on an Ontario wedding in 2026 — by category, by guest count, and where the money really goes.',
-                'meta_description' => 'What a wedding really costs in Ontario in 2026: average totals, a full category breakdown (venue, catering, photography), and practical ways to spend less without it showing.',
+                'meta_title' => 'Average Wedding Cost in Ontario 2026 (Full Breakdown)',
+                'meta_description' => 'The average wedding cost in Ontario is about $35,000 for 100 guests (most spend $25k–$45k). Full 2026 category breakdown and where the money really goes.',
                 'body' => <<<'MD'
 The honest answer: most Ontario weddings in 2026 land somewhere between **$25,000 and $45,000**, with the average around **$35,000** for roughly 100 guests. But "average" hides a lot — your venue choice, guest count and city move that number more than anything else.
 
@@ -249,6 +357,20 @@ Every guest costs you a meal, a drink tab, a chair, a place setting and a slice 
 ## Where not to cut
 
 Photography and catering are the two things guests remember. A great photographer and food people actually enjoy are worth protecting in the budget.
+
+## Frequently asked questions
+
+**What is the average wedding cost in Ontario?**
+About $35,000 for a 100-guest wedding in 2026, with most couples landing between $25,000 and $45,000. Guest count, venue and city move that number more than anything else.
+
+**What is the average wedding cost in Canada?**
+Roughly $30,000 nationally — but the average varies widely by province. Ontario, British Columbia and the major cities run above the national figure; smaller centres and the prairies run below it.
+
+**How much does a wedding cost for 50 guests?**
+Around $18,000–$28,000 in Ontario. Halving the guest list doesn't halve the total — fixed costs like photography, the officiant and the base venue fee stay roughly the same — but catering, bar and rentals scale down directly.
+
+**What's the most expensive part of a wedding?**
+The venue and catering together, usually more than half the budget. That's why the guest count is the real lever: almost every big line is priced per head.
 
 ## Build the budget before you book
 
@@ -313,14 +435,28 @@ You don't have to track this on paper. Generate a personalized checklist, budget
 MD,
             ],
             [
+                // Retitled to capture "how to choose a wedding venue" — 8,100
+                // searches/mo in Canada at KD 32 (Semrush, 2026-07), the single
+                // highest-volume winnable query across the venues/cost/checklist/
+                // day-of exports. The post already answered this intent (vetting a
+                // venue); it was just titled for the lower-volume "questions to ask"
+                // phrasing. Slug kept as-is: it's live and in the sitemap, and the
+                // seeder's updateOrCreate keys on slug, so changing it would orphan
+                // the old URL and duplicate the post. Answer-first opener added for
+                // the featured snippet + AI citation (SSR makes it crawler-visible).
                 'slug' => 'questions-to-ask-wedding-venue',
-                'title' => '12 Questions to Ask Before You Book a Wedding Venue',
+                'title' => 'How to Choose a Wedding Venue: 12 Questions to Ask (Ontario 2026)',
                 'cover_image_path' => 'images/blog/venue.webp',
                 'cover_alt' => 'A stunning Ontario wedding venue at golden hour with an outdoor ceremony aisle lined with florals',
                 'category' => BlogCategory::Venues->value,
-                'excerpt' => 'The venue is your biggest decision and your biggest cost. Ask these 12 questions before you sign — they reveal the hidden costs and dealbreakers.',
-                'meta_description' => 'The 12 questions every couple should ask a wedding venue before booking — covering hidden fees, vendor rules, capacity, weather backup and exactly what\'s included.',
+                'excerpt' => 'Choosing a wedding venue comes down to five things — guest count, budget, location, what\'s included, and the vibe. Here\'s how to weigh them, plus the 12 questions to ask before you sign.',
+                'meta_title' => 'How to Choose a Wedding Venue: 12 Questions to Ask (2026)',
+                'meta_description' => 'How to choose a wedding venue in Ontario: weigh guest count, budget, location and what\'s included, then ask these 12 questions before you sign.',
                 'body' => <<<'MD'
+**To choose a wedding venue, work through five things in order: your guest count, your total budget, the location and date, what's actually included in the price, and whether the space fits your vibe.** Get those right and the shortlist writes itself — most couples fall for the photos first and discover the guest count or the catering minimum doesn't work only after they've toured three places.
+
+Once a venue clears those five, the fastest way to separate the right one from a pretty picture is to ask twelve specific questions before you sign. They reveal the hidden costs, the dealbreakers, and exactly what you're getting.
+
 Your venue sets the date, the guest count, the vibe and roughly a third of your budget. Before you fall in love with the photos, get straight answers to these.
 
 ## Money & the contract
