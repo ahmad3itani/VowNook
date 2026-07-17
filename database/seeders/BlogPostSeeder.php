@@ -32,6 +32,138 @@ class BlogPostSeeder extends Seeder
     {
         return [
             [
+                // Targets the "wedding planner cost" cluster — ~2,500 searches/mo in
+                // Canada at KD 9–22 (Semrush, 2026-07): "wedding planner cost" (KD 10),
+                // "wedding planner charges" (KD 10), "how much wedding planner cost"
+                // (KD 9), "day of wedding planner cost" (KD 9), "how much does a wedding
+                // planner cost" (KD 18) and ~9 more. The lowest-difficulty, highest-
+                // intent cluster in the whole keyword set, and the one place we hold
+                // data nobody else has: real per-city Ontario pricing.
+                //
+                // Figures come from App\Support\Seo\LocalCosts (planner baseline
+                // $1,800–$9,000 × the city cost index), so this post and the
+                // /wedding-planners/{city} pages can never contradict each other.
+                // If LocalCosts::BASELINE changes, update the table below to match.
+                //
+                // Deliberately scoped to the PLANNER only — "how much does a wedding
+                // cost in Ontario" (below) covers the whole-wedding query. Different
+                // intent, no cannibalisation; they cross-link instead.
+                'slug' => 'how-much-does-a-wedding-planner-cost-ontario',
+                'title' => 'How Much Does a Wedding Planner Cost in Ontario? (2026)',
+                'cover_image_path' => 'images/blog/cost.webp',
+                'cover_alt' => 'A wedding budget spreadsheet, calculator and notebook on a desk beside a coffee cup',
+                'category' => BlogCategory::Budgeting->value,
+                'excerpt' => 'Most Ontario couples pay $1,800–$9,000 for a wedding planner, depending on the city and how much help you want. Here is what each level of service actually costs — and how to tell which one you need.',
+                'meta_title' => 'How Much Does a Wedding Planner Cost in Ontario? (2026)',
+                'meta_description' => 'Ontario wedding planners cost $1,800–$9,000. Real 2026 prices by city and service level — day-of coordination, partial and full planning.',
+                'body' => <<<'MD'
+**Most Ontario couples pay between $1,800 and $9,000 for a wedding planner.** Day-of coordination usually runs **$1,800–$3,000**, partial planning **$3,000–$5,500**, and full planning **$5,500–$9,000+**. In Toronto and Muskoka, expect roughly 20% more — around **$2,150–$10,800**. Some planners instead charge **10–15% of your total wedding budget**.
+
+That's the short answer. The longer answer is that "wedding planner" covers three quite different jobs, and most couples overpay because they buy the wrong one — not because they picked an expensive planner.
+
+## What you actually get at each price
+
+### Day-of coordination — $1,800–$3,000
+
+The most misunderstood tier, and the one most couples actually need. "Day-of" is a misnomer: a good coordinator starts 4–6 weeks out. They take the plans you already made, confirm every vendor, build the timeline, and run the day so you aren't texting the florist in your dress.
+
+**Worth it if:** you enjoy planning and have the time, but don't want to be the point of contact on the day. This is the best value in the entire wedding industry.
+
+### Partial planning — $3,000–$5,500
+
+You've booked the venue and maybe one or two vendors; they handle the rest. Typically includes vendor recommendations, contract review, budget management and design help, plus the coordination above.
+
+**Worth it if:** you started planning, hit a wall, and want the remaining decisions taken off your plate.
+
+### Full planning — $5,500–$9,000+
+
+Everything from concept to cleanup: design, sourcing, negotiation, every meeting, the full timeline. For a large, multi-day or multicultural wedding, this can exceed $12,000 — and at that scale it's often the thing that keeps the budget from sliding.
+
+**Worth it if:** your guest count is high, you're planning from another city, or you simply don't have the hours.
+
+## Ontario wedding planner cost by city (2026)
+
+Planner rates track the local cost of doing business. These are typical ranges spanning day-of coordination up to full planning:
+
+| City | Typical planner cost |
+|---|---|
+| Toronto | $2,150 – $10,800 |
+| Muskoka | $2,150 – $10,800 |
+| Mississauga | $1,950 – $9,700 |
+| Niagara | $1,950 – $9,700 |
+| Ottawa | $1,900 – $9,450 |
+| Hamilton | $1,800 – $9,000 |
+| Kitchener-Waterloo | $1,800 – $9,000 |
+| Barrie | $1,800 – $9,000 |
+| Kingston | $1,800 – $9,000 |
+| London | $1,700 – $8,550 |
+| Windsor | $1,600 – $8,100 |
+| Sudbury | $1,600 – $7,900 |
+
+All figures are estimates for planning purposes, not quotes. Your actual fee depends on guest count, season, and how much of the work is already done. See live pricing and planners for your city on [wedding planners in Ontario](/wedding-planners).
+
+## Flat fee vs percentage — which is better for you?
+
+Ontario planners price one of two ways:
+
+- **Flat fee** — a fixed number agreed upfront. Predictable, and it doesn't quietly grow when your budget does.
+- **Percentage of budget** — usually 10–15%. On a $40,000 wedding that's $4,000–$6,000.
+
+**The percentage model has a conflict of interest baked in:** the planner earns more when you spend more. That doesn't make it wrong — many excellent planners work this way, and a good one saves you more than the fee — but it's worth naming. If you're offered a percentage, ask what happens if the budget drops. If the fee doesn't drop with it, that tells you something.
+
+## What actually moves the price
+
+1. **Guest count.** 150 guests is roughly double the coordination work of 75.
+2. **Season.** June, September and early October are peak in Ontario. A February wedding is cheaper across every vendor category, planners included.
+3. **How many vendors are unbooked.** Every vendor still to source is hours of work.
+4. **Cultural or multi-day events.** A South Asian wedding with a Mehndi, Sangeet and Baraat is three events, not one — and priced accordingly.
+5. **Travel.** A Toronto planner working a Muskoka or Prince Edward County wedding will bill travel and accommodation.
+
+## Do you actually need one?
+
+Honestly: not always.
+
+**You probably don't** if you're under ~60 guests, at an all-inclusive venue with its own coordinator, and you like spreadsheets. A free [wedding checklist](/features) and [budget tracker](/features) covers most of it.
+
+**You probably do** if any of these are true: 100+ guests, a raw venue where every element is sourced separately, a multi-day or multicultural celebration, or you're planning from out of province.
+
+**The middle path most couples miss:** plan it yourself, then hire day-of coordination for $1,800–$3,000. You keep control and the budget, and still hand off the day.
+
+## Questions to ask before you sign
+
+- Is this a flat fee or a percentage — and what does it include?
+- How many weddings are you taking on my date's weekend?
+- Will *you* be there on the day, or an associate?
+- Do you take commissions or kickbacks from vendors you recommend? *(Ask this one directly.)*
+- What happens if we cancel or postpone?
+- Can I see a real timeline you built for a wedding like mine?
+
+## Frequently asked questions
+
+**How much does a wedding planner cost in Ontario?**
+$1,800–$9,000 for most couples. Day-of coordination is $1,800–$3,000, partial planning $3,000–$5,500, and full planning $5,500–$9,000+. Toronto and Muskoka run about 20% higher.
+
+**How much does a day-of wedding planner cost?**
+$1,800–$3,000 in most of Ontario; $2,150–$2,800 in Toronto. Despite the name, they typically start 4–6 weeks before the wedding.
+
+**Do wedding planners charge a percentage?**
+Some do — usually 10–15% of your total budget. Others charge a flat fee. Flat fees are more predictable and avoid the incentive to grow your budget.
+
+**Is a wedding planner worth the cost?**
+For weddings over ~100 guests, or at venues without an in-house coordinator, usually yes — a good planner often recovers their fee in vendor negotiation and avoided mistakes. For a small wedding at an all-inclusive venue, day-of coordination alone is usually enough.
+
+**What's the difference between a wedding planner and a venue coordinator?**
+A venue coordinator works for the venue and manages the venue's part. A wedding planner works for you and manages everything. Many couples find out they aren't the same thing far too late.
+
+**When should I book?**
+9–12 months out for full planning; 4–6 months for day-of coordination. Peak-season Saturdays go first.
+
+---
+
+Compare real planners and request quotes for free on VowNook — [browse wedding planners in Ontario](/wedding-planners), or start with a [free planning studio](/register): checklist, budget, guest list and seating, no credit card.
+MD,
+            ],
+            [
                 'slug' => 'how-to-plan-a-wedding-for-free-ontario',
                 'title' => 'How to Plan Your Wedding for Free in Ontario (2026)',
                 'cover_image_path' => 'images/blog/timeline.webp',
