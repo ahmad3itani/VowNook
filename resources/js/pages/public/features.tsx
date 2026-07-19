@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
+import { Rail } from '@/components/marketing/rail';
 import { Reveal } from '@/components/motion/reveal';
 
 const fraunces = "font-['Newsreader']";
@@ -230,19 +231,27 @@ export default function Features() {
 
             {/* Hero */}
             <section className="px-5 pt-32 pb-14 md:px-12 md:pt-40 md:pb-20">
-                <div className="mx-auto max-w-[1480px]">
-                    <Reveal>
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">The full tour</p>
-                        <h1 className={`${fraunces} max-w-3xl text-5xl leading-[1.02] font-light sm:text-6xl md:text-7xl`}>
+                <Rail
+                    n="N°01"
+                    label={
+                        <>
+                            The full
+                            <br />
+                            tour
+                        </>
+                    }
+                >
+                    <Reveal className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+                        <h1 className={`${fraunces} max-w-3xl text-5xl leading-[1.02] font-light sm:text-6xl md:text-[4.2rem]`}>
                             Every tool, shown <em className="text-[#1f5142]">exactly as it is.</em>
                         </h1>
-                        <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-[#4b5850]">
+                        <p className="text-[15px] leading-relaxed text-[#4b5850]">
                             These aren't mockups — every screenshot below is the real product with a real
                             wedding in it. This is what planning looks like inside VowNook, from the first
                             guest to the last thank-you note.
                         </p>
                     </Reveal>
-                </div>
+                </Rail>
             </section>
 
             {/* Tool blocks */}
@@ -250,11 +259,10 @@ export default function Features() {
                 const tools = TOOLS.filter((t) => t.chapter === chapter.id);
                 return (
                     <section key={chapter.id} id={chapter.id} className={`scroll-mt-24 px-5 py-14 md:px-12 md:py-20 ${ci % 2 === 1 ? '' : 'border-t border-[#0f1c17]/10'}`}>
-                        <div className="mx-auto max-w-[1480px]">
+                        {/* The rail carries the chapter number, so the duplicated
+                            "Chapter 0X" eyebrow above every heading is gone. */}
+                        <Rail n={`N°${String(ci + 2).padStart(2, '0')}`} label={chapter.label}>
                             <Reveal className="mb-12">
-                                <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">
-                                    Chapter {String(ci + 1).padStart(2, '0')}
-                                </p>
                                 <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>{chapter.label}</h2>
                             </Reveal>
 
@@ -285,7 +293,7 @@ export default function Features() {
                                     </Reveal>
                                 ))}
                             </div>
-                        </div>
+                        </Rail>
                     </section>
                 );
             })}

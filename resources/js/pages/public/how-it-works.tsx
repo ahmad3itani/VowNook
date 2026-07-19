@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
+import { Rail } from '@/components/marketing/rail';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 
 const fraunces = "font-['Newsreader']";
@@ -187,9 +188,9 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
 
             {/* Hero */}
             <section className="px-5 pt-32 pb-16 md:px-12 md:pt-40 md:pb-24">
-                <div className="mx-auto grid max-w-[1480px] items-end gap-12 md:grid-cols-12">
+                <Rail n="N°01" label={<>The field<br />guide</>}>
+                  <div className="grid items-end gap-12 md:grid-cols-12">
                     <Reveal className="md:col-span-6">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">The field guide</p>
                         <h1 className={`${fraunces} text-5xl leading-[1.02] font-light sm:text-6xl md:text-7xl`}>
                             How it <em className="text-[#1f5142]">works.</em>
                         </h1>
@@ -209,16 +210,16 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                             />
                         </div>
                     </Reveal>
-                </div>
+                  </div>
+                </Rail>
             </section>
 
             {/* Couples */}
             <section id="couples" className="border-t border-[#0f1c17]/10 px-5 py-20 md:px-12 md:py-28">
-                <div className="mx-auto max-w-[1480px]">
+                <Rail n="N°02" label={<>For<br />couples</>}>
                     <Reveal className="mb-14">
-                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">For couples</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            From "yes" to <em className="text-[#1f5142]">"I do"</em> — organised.
+                            From &ldquo;yes&rdquo; to <em className="text-[#1f5142]">&ldquo;I do&rdquo;</em> — organised.
                         </h2>
                     </Reveal>
                     <StepList steps={coupleSteps} />
@@ -231,14 +232,13 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                             <ArrowRight className="size-4" />
                         </Link>
                     </Reveal>
-                </div>
+                </Rail>
             </section>
 
             {/* Vendors */}
             <section id="vendors" className="bg-[#0f1c17] px-5 py-20 text-[#f1f0ea] md:px-12 md:py-28">
-                <div className="mx-auto max-w-[1480px]">
+                <Rail n="N°03" tone="dark" label={<>For<br />vendors</>}>
                     <Reveal className="mb-14">
-                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#7fb79e] uppercase">For vendors</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
                             Leads you can <em className="text-[#7fb79e]">actually close.</em>
                         </h2>
@@ -279,14 +279,13 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                             <ArrowRight className="size-4" />
                         </Link>
                     </Reveal>
-                </div>
+                </Rail>
             </section>
 
             {/* FAQ */}
             <section id="faq" className="px-5 py-20 md:px-12 md:py-28">
-                <div className="mx-auto max-w-[1480px]">
+                <Rail n="N°04" label={<>Questions,<br />answered</>}>
                     <Reveal className="mb-14">
-                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Questions, answered</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
                             The fine print, <em className="text-[#1f5142]">in plain words.</em>
                         </h2>
@@ -299,7 +298,7 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                             </StaggerItem>
                         ))}
                     </Stagger>
-                </div>
+                </Rail>
             </section>
 
             {/* CTA + footer */}

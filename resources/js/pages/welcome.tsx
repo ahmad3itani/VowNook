@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { BudgetInstrument, type BudgetModel } from '@/components/marketing/budget-instrument';
+import { Rail } from '@/components/marketing/rail';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
 
@@ -198,51 +199,6 @@ function Wordmark({ className = '' }: { className?: string }) {
             <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#0f1c17]/10" />
             <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
         </Link>
-    );
-}
-
-/**
- * The page's structural signature.
- *
- * A left rail carries the chapter number and a short italic label while the
- * content sits offset in the right column. Every section uses it, so the page
- * reads as one composed system instead of a stack of centred blocks — which was
- * the tell that made the old layout feel machine-made. Nothing here is centred
- * on purpose: the consistent left edge is what makes it feel typeset.
- */
-function Rail({
-    n,
-    label,
-    children,
-    className = '',
-    tone = 'light',
-}: {
-    n: string;
-    label: ReactNode;
-    children: ReactNode;
-    className?: string;
-    tone?: 'light' | 'dark';
-}) {
-    const muted = tone === 'dark' ? 'text-white/55' : 'text-[#4b5850]';
-
-    return (
-        <div
-            className={`mx-auto grid max-w-[1480px] gap-8 lg:grid-cols-[7rem_minmax(0,1fr)] lg:gap-12 ${className}`}
-        >
-            <div className="hidden lg:block">
-                <div className="sticky top-32">
-                    <span
-                        aria-hidden
-                        className={`block h-px w-12 ${tone === 'dark' ? 'bg-[#7fb79e]' : 'bg-[#c4502e]'}`}
-                    />
-                    <p className={`eyebrow mt-4 ${muted}`}>{n}</p>
-                    <p className={`${fraunces} mt-2 text-[15px] leading-snug italic ${muted}`}>
-                        {label}
-                    </p>
-                </div>
-            </div>
-            <div className="min-w-0">{children}</div>
-        </div>
     );
 }
 
