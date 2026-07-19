@@ -80,15 +80,15 @@
             var bar = document.createElement('div');
             bar.setAttribute('role', 'dialog');
             bar.setAttribute('aria-label', 'Cookie consent');
-            bar.style.cssText = 'position:fixed;z-index:2147483647;left:1rem;right:1rem;bottom:1rem;max-width:560px;margin:0 auto;background:#1e1b17;color:#faf6ef;border-radius:12px;padding:16px 18px;font-family:DM Sans,system-ui,sans-serif;font-size:13px;line-height:1.5;box-shadow:0 18px 40px -12px rgba(0,0,0,.45);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between';
-            bar.innerHTML = '<span style="flex:1;min-width:200px">We use privacy-friendly analytics to improve VowNook. <a href="/privacy" style="color:#e9c176;text-decoration:underline">Privacy</a>.</span>';
+            bar.style.cssText = 'position:fixed;z-index:2147483647;left:1rem;right:1rem;bottom:1rem;max-width:560px;margin:0 auto;background:#12211b;color:#f1f0ea;border-radius:12px;padding:16px 18px;font-family:DM Sans,system-ui,sans-serif;font-size:13px;line-height:1.5;box-shadow:0 18px 40px -12px rgba(0,0,0,.45);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between';
+            bar.innerHTML = '<span style="flex:1;min-width:200px">We use privacy-friendly analytics to improve VowNook. <a href="/privacy" style="color:#7fb79e;text-decoration:underline">Privacy</a>.</span>';
             function choose(v){ try{localStorage.setItem('vn_consent', v);}catch(e){} if(v==='granted'){ gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'}); if(window.fbq){ fbq('consent','grant'); fbq('track','PageView'); } } bar.remove(); }
             var wrap = document.createElement('span'); wrap.style.cssText='display:flex;gap:8px;flex-shrink:0';
             var decline = document.createElement('button'); decline.textContent='Decline';
-            decline.style.cssText='background:transparent;border:1px solid rgba(250,246,239,.35);color:#faf6ef;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer';
+            decline.style.cssText='background:transparent;border:1px solid rgba(241,240,234,.35);color:#f1f0ea;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer';
             decline.onclick=function(){choose('denied');};
             var accept = document.createElement('button'); accept.textContent='Accept';
-            accept.style.cssText='background:#e9c176;border:0;color:#1e1b17;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer';
+            accept.style.cssText='background:#7fb79e;border:0;color:#12211b;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer';
             accept.onclick=function(){choose('granted');};
             wrap.appendChild(decline); wrap.appendChild(accept); bar.appendChild(wrap);
             document.body.appendChild(bar);

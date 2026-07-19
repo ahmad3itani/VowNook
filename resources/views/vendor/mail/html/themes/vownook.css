@@ -12,8 +12,8 @@ body *:not(html):not(style):not(br):not(tr):not(code) {
 
 body {
     -webkit-text-size-adjust: none;
-    background-color: #f4ecdf;
-    color: #4f463a;
+    background-color: #eaede5;
+    color: #4b5850;
     height: 100%;
     line-height: 1.5;
     margin: 0;
@@ -30,7 +30,7 @@ blockquote {
 }
 
 a {
-    color: #8a651c;
+    color: #1b4638;
 }
 
 a img {
@@ -40,7 +40,7 @@ a img {
 /* Typography — serif display headings to echo the brand's Fraunces feel */
 
 h1 {
-    color: #1f1b16;
+    color: #12211b;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 22px;
     font-weight: 600;
@@ -49,7 +49,7 @@ h1 {
 }
 
 h2 {
-    color: #1f1b16;
+    color: #12211b;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 18px;
     font-weight: 600;
@@ -58,7 +58,7 @@ h2 {
 }
 
 h3 {
-    color: #1f1b16;
+    color: #12211b;
     font-size: 14px;
     font-weight: bold;
     margin-top: 0;
@@ -66,7 +66,7 @@ h3 {
 }
 
 p {
-    color: #4f463a;
+    color: #4b5850;
     font-size: 16px;
     line-height: 1.6em;
     margin-top: 0;
@@ -87,7 +87,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f4ecdf;
+    background-color: #eaede5;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -110,7 +110,7 @@ img {
 }
 
 .header a {
-    color: #8a651c;
+    color: #1b4638;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 30px;
     font-weight: 600;
@@ -140,9 +140,9 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f4ecdf;
-    border-bottom: 1px solid #f4ecdf;
-    border-top: 1px solid #f4ecdf;
+    background-color: #eaede5;
+    border-bottom: 1px solid #eaede5;
+    border-top: 1px solid #eaede5;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -152,8 +152,8 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 570px;
-    background-color: #fffdf8;
-    border-color: #e8dcc4;
+    background-color: #fafaf6;
+    border-color: #dce2d8;
     border-radius: 14px;
     border-width: 1px;
     box-shadow: 0 8px 24px -12px rgba(70, 53, 18, 0.25);
@@ -169,7 +169,7 @@ img {
 /* Subcopy */
 
 .subcopy {
-    border-top: 1px solid #e8dcc4;
+    border-top: 1px solid #dce2d8;
     margin-top: 25px;
     padding-top: 25px;
 }
@@ -199,7 +199,7 @@ img {
 }
 
 .footer a {
-    color: #8a651c;
+    color: #1b4638;
     text-decoration: underline;
 }
 
@@ -214,14 +214,14 @@ img {
 }
 
 .table th {
-    border-bottom: 1px solid #e8dcc4;
-    color: #1f1b16;
+    border-bottom: 1px solid #dce2d8;
+    color: #12211b;
     margin: 0;
     padding-bottom: 8px;
 }
 
 .table td {
-    color: #4f463a;
+    color: #4b5850;
     font-size: 15px;
     line-height: 18px;
     margin: 0;
@@ -249,7 +249,7 @@ img {
 .button {
     -webkit-text-size-adjust: none;
     border-radius: 10px;
-    color: #fffdf8;
+    color: #fafaf6;
     display: inline-block;
     font-weight: 600;
     overflow: hidden;
@@ -258,46 +258,46 @@ img {
 
 .button-blue,
 .button-primary {
-    background-color: #8a651c;
-    border-bottom: 9px solid #8a651c;
-    border-left: 20px solid #8a651c;
-    border-right: 20px solid #8a651c;
-    border-top: 9px solid #8a651c;
+    background-color: #1b4638;
+    border-bottom: 9px solid #1b4638;
+    border-left: 20px solid #1b4638;
+    border-right: 20px solid #1b4638;
+    border-top: 9px solid #1b4638;
 }
 
 .button-green,
 .button-success {
-    background-color: #6f7a3f;
-    border-bottom: 9px solid #6f7a3f;
-    border-left: 20px solid #6f7a3f;
-    border-right: 20px solid #6f7a3f;
-    border-top: 9px solid #6f7a3f;
+    background-color: #3f6b49;
+    border-bottom: 9px solid #3f6b49;
+    border-left: 20px solid #3f6b49;
+    border-right: 20px solid #3f6b49;
+    border-top: 9px solid #3f6b49;
 }
 
 .button-red,
 .button-error {
-    background-color: #b3442f;
-    border-bottom: 9px solid #b3442f;
-    border-left: 20px solid #b3442f;
-    border-right: 20px solid #b3442f;
-    border-top: 9px solid #b3442f;
+    background-color: #c4502e;
+    border-bottom: 9px solid #c4502e;
+    border-left: 20px solid #c4502e;
+    border-right: 20px solid #c4502e;
+    border-top: 9px solid #c4502e;
 }
 
 /* Panels */
 
 .panel {
-    border-left: #8a651c solid 4px;
+    border-left: #1b4638 solid 4px;
     margin: 21px 0;
 }
 
 .panel-content {
     background-color: #f9f1e3;
-    color: #4f463a;
+    color: #4b5850;
     padding: 16px;
 }
 
 .panel-content p {
-    color: #4f463a;
+    color: #4b5850;
 }
 
 .panel-item {

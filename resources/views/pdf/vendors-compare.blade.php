@@ -4,17 +4,17 @@
     <meta charset="utf-8">
     <style>
         * { font-family: DejaVu Sans, sans-serif; }
-        body { color: #1e1b17; font-size: 11px; margin: 0; }
-        h1 { font-size: 22px; margin: 0 0 2px; color: #1e1b18; }
-        .subtitle { color: #775a19; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 16px; }
+        body { color: #12211b; font-size: 11px; margin: 0; }
+        h1 { font-size: 22px; margin: 0 0 2px; color: #12211b; }
+        .subtitle { color: #1b4638; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; border-bottom: 2px solid #cec5bd; padding: 7px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: #6f675e; }
-        td { border-bottom: 1px solid #efe7e0; padding: 7px 8px; vertical-align: top; }
-        .name { font-size: 13px; color: #1e1b18; }
-        .best { background: #fbf3df; }
-        .badge { display: inline-block; background: #775a19; color: #fff; font-size: 8px; text-transform: uppercase; letter-spacing: .1em; padding: 2px 6px; }
+        th { text-align: left; border-bottom: 2px solid #d5d8d1; padding: 7px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: #5c6a62; }
+        td { border-bottom: 1px solid #e4e8e0; padding: 7px 8px; vertical-align: top; }
+        .name { font-size: 13px; color: #12211b; }
+        .best { background: #eef1eb; }
+        .badge { display: inline-block; background: #1b4638; color: #fff; font-size: 8px; text-transform: uppercase; letter-spacing: .1em; padding: 2px 6px; }
         .muted { color: #a8a29e; }
-        .gold { color: #775a19; }
+        .gold { color: #1b4638; }
         .footer { margin-top: 24px; text-align: center; color: #a8a29e; font-size: 10px; }
     </style>
 </head>

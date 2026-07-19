@@ -4,24 +4,24 @@
     <meta charset="utf-8">
     <style>
         * { font-family: DejaVu Sans, sans-serif; }
-        body { color: #1e1b17; font-size: 11px; margin: 0; }
-        h1 { font-size: 20px; margin: 0 0 2px; color: #1e1b18; }
-        .subtitle { color: #775a19; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 12px; }
-        .canvas { position: relative; border: 1.5px solid #b9ab97; background: #efe7da; margin: 0 auto; }
-        .el { position: absolute; border: 1px solid #9c8f7d; background: #e6d8bd; color: #5b4a1f; font-size: 8px; text-align: center; overflow: hidden; }
+        body { color: #12211b; font-size: 11px; margin: 0; }
+        h1 { font-size: 20px; margin: 0 0 2px; color: #12211b; }
+        .subtitle { color: #1b4638; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 12px; }
+        .canvas { position: relative; border: 1.5px solid #b9ab97; background: #e4e8e0; margin: 0 auto; }
+        .el { position: absolute; border: 1px solid #8a968e; background: #cfd8d0; color: #5b4a1f; font-size: 8px; text-align: center; overflow: hidden; }
         .table { position: absolute; border: 1.5px solid #3d3833; background: #ffffff; }
-        .table-label { position: absolute; text-align: center; font-size: 7px; font-weight: bold; color: #1e1b18; }
+        .table-label { position: absolute; text-align: center; font-size: 7px; font-weight: bold; color: #12211b; }
         .table-label span { background: #ffffff; padding: 0 2px; }
         .chair { position: absolute; border-radius: 50%; text-align: center; }
-        .chair-on { background: #775a19; color: #ffffff; }
-        .chair-off { background: #ffffff; border: 1px solid #9c8f7d; color: #7d7468; }
+        .chair-on { background: #1b4638; color: #ffffff; }
+        .chair-off { background: #ffffff; border: 1px solid #8a968e; color: #7d7468; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; border-bottom: 1.5px solid #cec5bd; padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: #6f675e; }
-        td { border-bottom: 1px solid #f4ece6; padding: 6px 8px; vertical-align: top; }
-        .seat-no { color: #775a19; font-weight: bold; }
+        th { text-align: left; border-bottom: 1.5px solid #d5d8d1; padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: #5c6a62; }
+        td { border-bottom: 1px solid #e7e9e2; padding: 6px 8px; vertical-align: top; }
+        .seat-no { color: #1b4638; font-weight: bold; }
         .allergy { color: #b4524a; font-size: 10px; }
         .muted { color: #a8a29e; }
-        .table-title { font-size: 13px; color: #1e1b18; margin: 14px 0 4px; }
+        .table-title { font-size: 13px; color: #12211b; margin: 14px 0 4px; }
         .footer { margin-top: 14px; text-align: center; color: #a8a29e; font-size: 9px; }
     </style>
 </head>
