@@ -113,7 +113,7 @@ export default function GiftsIndex({
 
                 <div className="grid gap-3 sm:grid-cols-3">
                     <Card><CardContent className="pt-5"><p className="text-2xl font-semibold">{summary.total}</p><p className="text-sm text-muted-foreground">Gifts received</p></CardContent></Card>
-                    <Card><CardContent className="pt-5"><p className="text-2xl font-semibold text-[#775a19]">{summary.pending}</p><p className="text-sm text-muted-foreground">Thank-yous to send</p></CardContent></Card>
+                    <Card><CardContent className="pt-5"><p className="text-2xl font-semibold text-[#1b4638]">{summary.pending}</p><p className="text-sm text-muted-foreground">Thank-yous to send</p></CardContent></Card>
                     <Card><CardContent className="pt-5"><p className="text-2xl font-semibold">{formatMoney(summary.cash_cents)}</p><p className="text-sm text-muted-foreground">Cash &amp; funds</p></CardContent></Card>
                 </div>
 
@@ -123,7 +123,7 @@ export default function GiftsIndex({
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-                                filter === f ? 'border-[#775a19] bg-[#fed488]/20 font-medium text-[#1e1b18]' : 'border-[#cec5bd]/60 hover:border-[#775a19]/50'
+                                filter === f ? 'border-[#1b4638] bg-[#a8d5c2]/20 font-medium text-[#12211b]' : 'border-[#d5d8d1]/60 hover:border-[#1b4638]/50'
                             }`}
                         >
                             {f === 'all' ? `All (${gifts.length})` : `To thank (${summary.pending})`}
@@ -146,7 +146,7 @@ export default function GiftsIndex({
                                             checked={g.thank_you_sent}
                                             onChange={() => writable && toggleThankYou(g)}
                                             disabled={!writable}
-                                            className="size-4 accent-[#775a19]"
+                                            className="size-4 accent-[#1b4638]"
                                         />
                                         <span className="sr-only">Thank-you sent</span>
                                     </label>
@@ -158,11 +158,11 @@ export default function GiftsIndex({
                                             <span>{KIND_LABELS[g.kind] ?? g.kind}</span>
                                             {g.amount_cents != null && <span>· {formatMoney(g.amount_cents)}</span>}
                                             {g.received_at && <span>· {g.received_at}</span>}
-                                            {g.from_registry && <span className="rounded-full bg-[#f6efe1] px-2 py-0.5 text-[#775a19]">from registry</span>}
+                                            {g.from_registry && <span className="rounded-full bg-[#eaede5] px-2 py-0.5 text-[#1b4638]">from registry</span>}
                                         </p>
                                         {g.notes && <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground italic">“{g.notes}”</p>}
                                     </div>
-                                    <span className={`text-xs ${g.thank_you_sent ? 'text-[#775a19]' : 'text-muted-foreground'}`}>
+                                    <span className={`text-xs ${g.thank_you_sent ? 'text-[#1b4638]' : 'text-muted-foreground'}`}>
                                         {g.thank_you_sent ? 'Thanked ✓' : 'To thank'}
                                     </span>
                                     {writable && (

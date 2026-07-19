@@ -24,7 +24,7 @@ export function PlanUsage({
             </span>
             <div className="h-2 min-w-32 flex-1 overflow-hidden rounded-full bg-muted">
                 <div
-                    className={`h-full rounded-full ${atLimit ? 'bg-destructive' : 'bg-[#775a19]'}`}
+                    className={`h-full rounded-full ${atLimit ? 'bg-destructive' : 'bg-[#1b4638]'}`}
                     style={{ width: `${pct}%` }}
                 />
             </div>

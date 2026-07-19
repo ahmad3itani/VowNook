@@ -119,7 +119,7 @@ function TypingDots() {
             {[0, 1, 2].map((i) => (
                 <span
                     key={i}
-                    className="size-1.5 animate-bounce rounded-full bg-[#775a19]/50"
+                    className="size-1.5 animate-bounce rounded-full bg-[#1b4638]/50"
                     style={{ animationDelay: `${i * 0.15}s` }}
                 />
             ))}
@@ -321,11 +321,11 @@ function ChatPlanner({
     }
 
     return (
-        <Card className="border-[#775a19]/25">
+        <Card className="border-[#1b4638]/25">
             <CardContent className="flex flex-col gap-4 py-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                        <span className="flex size-8 items-center justify-center rounded-full bg-[#775a19] text-white">
+                        <span className="flex size-8 items-center justify-center rounded-full bg-[#1b4638] text-white">
                             <Sparkles className="size-4" />
                         </span>
                         <div>
@@ -366,7 +366,7 @@ function ChatPlanner({
                                         key={s}
                                         type="button"
                                         onClick={() => send(s)}
-                                        className="rounded-full border border-[#775a19]/30 bg-[#775a19]/[0.04] px-3 py-1.5 text-xs text-[#775a19] transition-colors hover:bg-[#775a19]/[0.09]"
+                                        className="rounded-full border border-[#1b4638]/30 bg-[#1b4638]/[0.04] px-3 py-1.5 text-xs text-[#1b4638] transition-colors hover:bg-[#1b4638]/[0.09]"
                                     >
                                         {s}
                                     </button>
@@ -378,13 +378,13 @@ function ChatPlanner({
                     {messages.map((m, i) =>
                         m.role === 'user' ? (
                             <div key={i} className="flex justify-end">
-                                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-[#775a19] px-4 py-2.5 text-sm whitespace-pre-line text-white">
+                                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-[#1b4638] px-4 py-2.5 text-sm whitespace-pre-line text-white">
                                     {m.content}
                                 </div>
                             </div>
                         ) : (
                             <div key={i} className="flex gap-2.5">
-                                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#775a19]/10 text-[#775a19]">
+                                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1b4638]/10 text-[#1b4638]">
                                     <Sparkles className="size-3.5" />
                                 </span>
                                 <div className="flex max-w-[85%] min-w-0 flex-col items-start gap-2">
@@ -423,7 +423,7 @@ function ChatPlanner({
                                                                     key,
                                                                 )
                                                             }
-                                                            className="inline-flex items-center gap-1.5 rounded-full border border-[#775a19]/30 bg-card px-3 py-1 text-xs text-[#775a19] transition-colors hover:bg-[#775a19]/[0.06] disabled:opacity-50"
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-[#1b4638]/30 bg-card px-3 py-1 text-xs text-[#1b4638] transition-colors hover:bg-[#1b4638]/[0.06] disabled:opacity-50"
                                                         >
                                                             {extractingKey ===
                                                             key ? (
@@ -635,7 +635,7 @@ export default function AssistantIndex({
                         {!configured && (
                             <Card>
                                 <CardContent className="flex items-start gap-3 py-5 text-sm text-muted-foreground">
-                                    <WandSparkles className="mt-0.5 size-5 shrink-0 text-[#775a19]" />
+                                    <WandSparkles className="mt-0.5 size-5 shrink-0 text-[#1b4638]" />
                                     <p>
                                         AI assistance isn’t configured on this
                                         server yet. Once an API key is added it
@@ -683,12 +683,12 @@ export default function AssistantIndex({
                                         onClick={() => switchKind(g.kind)}
                                         className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors ${
                                             activeCard
-                                                ? 'shadow-atelier border-[#775a19] bg-[#775a19]/[0.06]'
-                                                : 'border-border bg-card hover:border-[#775a19]/40'
+                                                ? 'shadow-atelier border-[#1b4638] bg-[#1b4638]/[0.06]'
+                                                : 'border-border bg-card hover:border-[#1b4638]/40'
                                         }`}
                                     >
                                         <Icon
-                                            className={`size-5 ${activeCard ? 'text-[#775a19]' : 'text-muted-foreground'}`}
+                                            className={`size-5 ${activeCard ? 'text-[#1b4638]' : 'text-muted-foreground'}`}
                                         />
                                         <span className="font-medium">
                                             {g.label}
@@ -838,8 +838,8 @@ function UpgradeCard() {
         <Card>
             <CardContent className="flex flex-col items-start gap-4 py-8">
                 <div className="flex items-center gap-3">
-                    <span className="flex size-10 items-center justify-center rounded-full bg-[#775a19]/10">
-                        <WandSparkles className="size-5 text-[#775a19]" />
+                    <span className="flex size-10 items-center justify-center rounded-full bg-[#1b4638]/10">
+                        <WandSparkles className="size-5 text-[#1b4638]" />
                     </span>
                     <div>
                         <h2 className="font-serif text-lg">

@@ -166,7 +166,7 @@ export default function PlannerTemplates({ templates, weddings }: Props) {
 
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <p className="text-[11px] tracking-[0.25em] text-[#8a651c] uppercase">Planner HQ</p>
+                    <p className="text-[11px] tracking-[0.25em] text-[#1f5142] uppercase">Planner HQ</p>
                     <h1 className="mt-1 font-serif text-3xl font-light tracking-tight">Templates</h1>
                     <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
                         Your methodology, reusable — apply a checklist or budget to any client in
@@ -192,9 +192,9 @@ export default function PlannerTemplates({ templates, weddings }: Props) {
                         <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                             <div className="flex items-center gap-3">
                                 {t.type === 'checklist' ? (
-                                    <ClipboardList className="size-4 text-[#775a19]" />
+                                    <ClipboardList className="size-4 text-[#1b4638]" />
                                 ) : (
-                                    <Wallet className="size-4 text-[#775a19]" />
+                                    <Wallet className="size-4 text-[#1b4638]" />
                                 )}
                                 <div>
                                     <p className="font-medium">{t.name}</p>

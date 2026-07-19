@@ -162,7 +162,7 @@ function NewWeddingDialog() {
 function StatChip({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) {
     return (
         <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3">
-            <Icon className="size-4 text-[#775a19]" />
+            <Icon className="size-4 text-[#1b4638]" />
             <div>
                 <p className="text-lg font-semibold leading-none">{value}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{label}</p>
@@ -183,7 +183,7 @@ export default function PlannerDashboard({ weddings, attention, totals, listing 
 
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <p className="text-[11px] tracking-[0.25em] text-[#8a651c] uppercase">Planner HQ</p>
+                    <p className="text-[11px] tracking-[0.25em] text-[#1f5142] uppercase">Planner HQ</p>
                     <h1 className="mt-1 font-serif text-3xl font-light tracking-tight">Your weddings</h1>
                     <p className="mt-1.5 text-sm text-muted-foreground">
                         Everything that needs you, across every client.
@@ -194,7 +194,7 @@ export default function PlannerDashboard({ weddings, attention, totals, listing 
             </div>
 
             {/* Public marketplace listing — get discovered by couples. */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#8a651c]/30 bg-[#8a651c]/5 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#1f5142]/30 bg-[#1f5142]/5 p-4">
                 <div>
                     <p className="text-sm font-semibold">Your public planner listing</p>
                     <p className="text-sm text-muted-foreground">
@@ -255,7 +255,7 @@ export default function PlannerDashboard({ weddings, attention, totals, listing 
 
                     <div className="rounded-xl border bg-card p-4">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                            <ClipboardList className="size-4 text-[#775a19]" /> Due this week
+                            <ClipboardList className="size-4 text-[#1b4638]" /> Due this week
                         </h2>
                         <ul className="space-y-2">
                             {attention.due_this_week.length === 0 && (
@@ -280,7 +280,7 @@ export default function PlannerDashboard({ weddings, attention, totals, listing 
 
                     <div className="rounded-xl border bg-card p-4">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                            <Inbox className="size-4 text-[#775a19]" /> Offers awaiting a decision
+                            <Inbox className="size-4 text-[#1b4638]" /> Offers awaiting a decision
                         </h2>
                         <ul className="space-y-2">
                             {attention.offers_awaiting.length === 0 && (
@@ -331,7 +331,7 @@ export default function PlannerDashboard({ weddings, attention, totals, listing 
                                             <p className="text-sm text-muted-foreground">
                                                 {w.event_date ?? 'Date to be set'}
                                                 {w.days_until !== null && !past && (
-                                                    <span className="ml-1 font-medium text-[#775a19]">
+                                                    <span className="ml-1 font-medium text-[#1b4638]">
                                                         · {w.days_until}d to go
                                                     </span>
                                                 )}
@@ -364,13 +364,13 @@ export default function PlannerDashboard({ weddings, attention, totals, listing 
                                     {/* Budget progress */}
                                     <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
                                         <div
-                                            className="h-full rounded-full bg-[#775a19]"
+                                            className="h-full rounded-full bg-[#1b4638]"
                                             style={{ width: `${budgetPct}%` }}
                                         />
                                     </div>
 
                                     {w.offers_awaiting > 0 && (
-                                        <p className="mt-3 text-xs font-medium text-[#775a19]">
+                                        <p className="mt-3 text-xs font-medium text-[#1b4638]">
                                             {w.offers_awaiting} offer{w.offers_awaiting !== 1 ? 's' : ''} awaiting a decision
                                         </p>
                                     )}

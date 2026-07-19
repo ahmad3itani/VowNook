@@ -53,10 +53,10 @@ export default function VendorAgreement() {
                 <p>
                     Listings are reviewed before publishing. We may request proof of business identity and can grant a
                     <strong> Verified</strong> badge after a manual check. We can unpublish or suspend listings that
-                    breach this agreement, the <Link href="/marketplace-rules" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">Marketplace Rules</Link>, or that we cannot verify — with notice where practicable.
+                    breach this agreement, the <Link href="/marketplace-rules" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">Marketplace Rules</Link>, or that we cannot verify — with notice where practicable.
                 </p>
                 <p>
-                    Questions? <Link href="/contact" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">Contact us</Link>.
+                    Questions? <Link href="/contact" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">Contact us</Link>.
                 </p>
             </DocSection>
         </PublicPageShell>

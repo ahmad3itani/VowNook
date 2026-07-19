@@ -20,7 +20,7 @@ export type TravelData = {
     flights_partner?: string | null;
 };
 
-const serif = "font-['Playfair_Display']";
+const serif = "font-['Newsreader']";
 
 /** Public "Travel & Stays" section — hotel blocks, rentals, transport + notes,
  *  plus affiliate "stays near your venue" + "flying in?" blocks. */

@@ -296,7 +296,7 @@ export default function VendorServicesPage({ services }: PageProps) {
                                             {service.description && (
                                                 <p className="text-sm text-muted-foreground">{service.description}</p>
                                             )}
-                                            <p className="flex items-center gap-1 text-sm font-medium text-[#775a19]">
+                                            <p className="flex items-center gap-1 text-sm font-medium text-[#1b4638]">
                                                 <Tag className="size-3.5" />
                                                 {priceLabel(service)}
                                             </p>

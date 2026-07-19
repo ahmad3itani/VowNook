@@ -12,7 +12,7 @@ export type EventData = {
     is_rsvpable: boolean;
 };
 
-const serif = "font-['Playfair_Display']";
+const serif = "font-['Newsreader']";
 
 const TYPE_LABEL: Record<string, string> = {
     ceremony: 'Ceremony',

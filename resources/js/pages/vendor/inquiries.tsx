@@ -52,7 +52,7 @@ export default function VendorInquiries({ inquiries, stats }: PageProps) {
                 <div className="grid gap-4 sm:grid-cols-3">
                     <StatChip label="New inquiries" value={stats.new} accent={stats.new > 0 ? 'text-amber-600' : ''} />
                     <StatChip label="Offers sent" value={stats.offered} />
-                    <StatChip label="Accepted" value={stats.accepted} accent="text-[#775a19]" />
+                    <StatChip label="Accepted" value={stats.accepted} accent="text-[#1b4638]" />
                 </div>
 
                 {inquiries.length === 0 ? (

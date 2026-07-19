@@ -58,8 +58,8 @@ export default function VendorEarnings({ totals, bookings }: PageProps) {
                     {summary.map((s) => (
                         <Card key={s.label}>
                             <CardContent className="flex items-center gap-3 py-4">
-                                <div className="rounded-lg bg-[#775a19]/10 p-2.5">
-                                    <s.icon className="size-5 text-[#775a19]" />
+                                <div className="rounded-lg bg-[#1b4638]/10 p-2.5">
+                                    <s.icon className="size-5 text-[#1b4638]" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">{s.label}</p>
@@ -104,7 +104,7 @@ export default function VendorEarnings({ totals, bookings }: PageProps) {
                                             <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                                                 −{formatMoney(b.platform_fee_cents)}
                                             </td>
-                                            <td className="px-4 py-3 text-right font-semibold tabular-nums text-[#775a19]">
+                                            <td className="px-4 py-3 text-right font-semibold tabular-nums text-[#1b4638]">
                                                 {formatMoney(b.net_cents)}
                                             </td>
                                             <td className="px-4 py-3">

@@ -104,7 +104,7 @@ export default function AdminUserShow({ subject, weddings, vendor_profile, stats
                     <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="capitalize">{subject.account_type}</Badge>
                         {subject.is_admin && (
-                            <Badge className="gap-1 bg-[#775a19] hover:bg-[#775a19]"><ShieldCheck className="size-3" /> Admin</Badge>
+                            <Badge className="gap-1 bg-[#1b4638] hover:bg-[#1b4638]"><ShieldCheck className="size-3" /> Admin</Badge>
                         )}
                         {subject.suspended ? (
                             <Badge variant="destructive">Suspended</Badge>
@@ -129,7 +129,7 @@ export default function AdminUserShow({ subject, weddings, vendor_profile, stats
                     ].map((s) => (
                         <Card key={s.label}>
                             <CardContent className="flex items-center gap-3 p-4">
-                                <s.icon className="size-5 text-[#775a19]" />
+                                <s.icon className="size-5 text-[#1b4638]" />
                                 <div>
                                     <div className="text-lg font-semibold tabular-nums">{s.value}</div>
                                     <div className="text-xs text-muted-foreground">{s.label}</div>
@@ -169,7 +169,7 @@ export default function AdminUserShow({ subject, weddings, vendor_profile, stats
                                             {vendor_profile.status} · ★ {vendor_profile.rating_avg ?? '—'} ({vendor_profile.rating_count})
                                         </div>
                                     </div>
-                                    <a href={`/marketplace/${vendor_profile.slug}`} target="_blank" rel="noreferrer" className="text-sm font-medium text-[#775a19] hover:underline">
+                                    <a href={`/marketplace/${vendor_profile.slug}`} target="_blank" rel="noreferrer" className="text-sm font-medium text-[#1b4638] hover:underline">
                                         View listing
                                     </a>
                                 </CardContent>
@@ -189,7 +189,7 @@ export default function AdminUserShow({ subject, weddings, vendor_profile, stats
                                                     <div className="font-medium">{w.name}</div>
                                                     <div className="text-xs text-muted-foreground">{fmtDate(w.event_date)} · {w.guests_count} guests</div>
                                                 </div>
-                                                <Link href={`/admin/weddings/${w.id}`} className="text-xs font-medium text-[#775a19] hover:underline">Open</Link>
+                                                <Link href={`/admin/weddings/${w.id}`} className="text-xs font-medium text-[#1b4638] hover:underline">Open</Link>
                                             </li>
                                         ))}
                                     </ul>

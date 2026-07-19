@@ -48,7 +48,7 @@ export default function AdminDashboard({ stats, recent }: PageProps) {
                     <StatCard label="Weddings" value={num.format(stats.total_weddings)} sub={`${stats.upcoming_weddings} upcoming`} icon={<CalendarHeart className="size-4" />} href="/admin/weddings" />
                     <StatCard label="Users" value={num.format(stats.total_users)} sub={`${stats.new_users_30d} new in 30d`} icon={<Users2 className="size-4" />} href="/admin/users" />
                     <StatCard label="Vendor profiles" value={num.format(stats.vendor_profiles)} sub={`${stats.vendors_pending} pending review`} icon={<ShoppingBag className="size-4" />} href="/admin/vendors" />
-                    <StatCard label="Marketplace GMV" value={money(stats.gmv)} sub={`${stats.total_bookings} bookings`} accent="text-[#775a19]" href="/admin/marketplace" />
+                    <StatCard label="Marketplace GMV" value={money(stats.gmv)} sub={`${stats.total_bookings} bookings`} accent="text-[#1b4638]" href="/admin/marketplace" />
                 </div>
 
                 {/* Account / vendor breakdown */}

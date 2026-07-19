@@ -183,14 +183,14 @@ export default function VendorPortalIndex({ wedding, vendor, timeline }: PagePro
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Paid to date</span>
-                                    <span className="font-semibold tabular-nums text-[#775a19]">
+                                    <span className="font-semibold tabular-nums text-[#1b4638]">
                                         {vendor.paid !== null ? formatMoney(vendor.paid * 100) : '—'}
                                     </span>
                                 </div>
                                 {balance !== null && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Balance owing</span>
-                                        <span className={`font-semibold tabular-nums ${balance > 0 ? 'text-destructive' : 'text-[#775a19]'}`}>
+                                        <span className={`font-semibold tabular-nums ${balance > 0 ? 'text-destructive' : 'text-[#1b4638]'}`}>
                                             {formatMoney(balance * 100)}
                                         </span>
                                     </div>
@@ -203,7 +203,7 @@ export default function VendorPortalIndex({ wedding, vendor, timeline }: PagePro
                                         </div>
                                         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                                             <div
-                                                className="h-full rounded-full bg-[#775a19] transition-all"
+                                                className="h-full rounded-full bg-[#1b4638] transition-all"
                                                 style={{ width: `${paidPct}%` }}
                                             />
                                         </div>
@@ -221,7 +221,7 @@ export default function VendorPortalIndex({ wedding, vendor, timeline }: PagePro
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         {vendor.contract_status === 'signed'
-                                            ? <FileCheck className="size-4 text-[#775a19]" />
+                                            ? <FileCheck className="size-4 text-[#1b4638]" />
                                             : <FileX className="size-4 text-muted-foreground" />}
                                         <span>Service contract</span>
                                     </div>
@@ -244,7 +244,7 @@ export default function VendorPortalIndex({ wedding, vendor, timeline }: PagePro
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         {vendor.coi_status === 'on_file'
-                                            ? <ShieldCheck className="size-4 text-[#775a19]" />
+                                            ? <ShieldCheck className="size-4 text-[#1b4638]" />
                                             : <ShieldX className="size-4 text-muted-foreground" />}
                                         <span>Certificate of insurance (COI)</span>
                                     </div>
@@ -307,7 +307,7 @@ export default function VendorPortalIndex({ wedding, vendor, timeline }: PagePro
                                     <ol className="relative border-l border-border pl-5">
                                         {timeline.map((event) => (
                                             <li key={event.id} className="mb-6 last:mb-0">
-                                                <div className="absolute -left-1.5 mt-1.5 size-3 rounded-full border border-background bg-[#775a19]" />
+                                                <div className="absolute -left-1.5 mt-1.5 size-3 rounded-full border border-background bg-[#1b4638]" />
                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                     <Clock className="size-3" />
                                                     {event.start_time ? formatTime(event.start_time) : 'TBD'}
@@ -346,7 +346,7 @@ export default function VendorPortalIndex({ wedding, vendor, timeline }: PagePro
 
                         {/* All-clear when booked + signed */}
                         {vendor.status === 'booked' && vendor.contract_status === 'signed' && (
-                            <div className="flex items-center gap-2 rounded-lg border border-[#775a19]/30 bg-[#775a19]/5 px-4 py-3 text-sm text-[#775a19]">
+                            <div className="flex items-center gap-2 rounded-lg border border-[#1b4638]/30 bg-[#1b4638]/5 px-4 py-3 text-sm text-[#1b4638]">
                                 <CheckCircle2 className="size-4 shrink-0" />
                                 <span>You're all set — booked and contract signed.</span>
                             </div>

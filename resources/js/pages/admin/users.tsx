@@ -74,7 +74,7 @@ export default function AdminUsers({ users, plans }: PageProps) {
                     <div className="flex items-center gap-1.5 rounded-lg border border-border bg-card p-1">
                         {TYPES.map((t) => (
                             <button key={t} type="button" onClick={() => setType(t)}
-                                className={`rounded px-3 py-1 text-xs font-medium capitalize transition-colors ${type === t ? 'bg-[#775a19] text-white' : 'text-muted-foreground hover:bg-muted'}`}>
+                                className={`rounded px-3 py-1 text-xs font-medium capitalize transition-colors ${type === t ? 'bg-[#1b4638] text-white' : 'text-muted-foreground hover:bg-muted'}`}>
                                 {t}
                             </button>
                         ))}
@@ -104,7 +104,7 @@ export default function AdminUsers({ users, plans }: PageProps) {
                                                     <Link href={`/admin/users/${u.id}`} className="group flex flex-col">
                                                         <span className="flex items-center gap-2">
                                                             <span className="font-medium group-hover:underline">{u.name}</span>
-                                                            {u.is_admin && <ShieldCheck className="size-3.5 text-[#775a19]" aria-label="Admin" />}
+                                                            {u.is_admin && <ShieldCheck className="size-3.5 text-[#1b4638]" aria-label="Admin" />}
                                                             {u.suspended && <Badge variant="destructive" className="px-1.5 py-0 text-[10px]">Suspended</Badge>}
                                                         </span>
                                                         <span className="text-xs text-muted-foreground">{u.email}</span>
@@ -121,7 +121,7 @@ export default function AdminUsers({ users, plans }: PageProps) {
                                                 </td>
                                                 <td className="px-4 py-3 text-muted-foreground">{relativeTime(u.last_login_at)}</td>
                                                 <td className="px-4 py-3 text-right">
-                                                    <Link href={`/admin/users/${u.id}`} className="inline-flex items-center text-xs font-medium text-[#775a19] hover:underline">
+                                                    <Link href={`/admin/users/${u.id}`} className="inline-flex items-center text-xs font-medium text-[#1b4638] hover:underline">
                                                         View <ChevronRight className="size-3.5" />
                                                     </Link>
                                                 </td>

@@ -34,14 +34,14 @@ export function VendorsHubTabs({ active, quoteBadge }: { active: VendorsHubTab; 
                         href={tab.href}
                         className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                             isActive
-                                ? 'border-[#775a19] text-[#775a19]'
+                                ? 'border-[#1b4638] text-[#1b4638]'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <Icon className="size-4" />
                         {tab.label}
                         {tab.key === 'quotes' && quoteBadge ? (
-                            <span className="ml-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-[#775a19] px-1.5 py-0.5 text-xs font-semibold text-white">
+                            <span className="ml-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-[#1b4638] px-1.5 py-0.5 text-xs font-semibold text-white">
                                 {quoteBadge}
                             </span>
                         ) : null}

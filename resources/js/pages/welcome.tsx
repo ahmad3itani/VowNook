@@ -26,7 +26,7 @@ import { useState } from 'react';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
 
-const fraunces = "font-['Fraunces']";
+const fraunces = "font-['Newsreader']";
 const DEMO = '/w/amelia-and-julian';
 
 const IMG = {
@@ -194,7 +194,7 @@ const SHOWCASE = [
 function Wordmark({ className = '' }: { className?: string }) {
     return (
         <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label="VowNook home">
-            <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+            <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#0f1c17]/10" />
             <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
         </Link>
     );
@@ -207,7 +207,7 @@ export default function Welcome() {
     const [showcaseIdx, setShowcaseIdx] = useState(0);
 
     return (
-        <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
+        <div className="min-h-screen bg-[#f1f0ea] font-['Instrument_Sans'] text-[#0f1c17] antialiased selection:bg-[#7fb79e]/40">
             {/* Title/description/canonical/OG are server-rendered in the blade head. */}
             <Head />
 
@@ -219,29 +219,29 @@ export default function Welcome() {
             `}</style>
 
             {/* ── Header ─────────────────────────────────────────────────── */}
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
+            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#0f1c17]/8 bg-[#f1f0ea]/85 backdrop-blur-md">
                 <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-3.5 md:px-12">
                     <Wordmark />
                     <div className="hidden items-center gap-9 md:flex">
-                        <a href="#couples" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <a href="#couples" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             For couples
                         </a>
-                        <a href="#suite" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <a href="#suite" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             The suite
                         </a>
-                        <Link href="/marketplace" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <Link href="/marketplace" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             Marketplace
                         </Link>
-                        <a href="/shop" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <a href="/shop" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             Shop
                         </a>
-                        <Link href="/features" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <Link href="/features" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             Features
                         </Link>
-                        <a href="#vendors" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <a href="#vendors" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             For vendors
                         </a>
-                        <a href="#pricing" className="text-[13px] tracking-wide text-[#52493d] transition-colors hover:text-[#8a651c]">
+                        <a href="#pricing" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
                             Pricing
                         </a>
                     </div>
@@ -249,18 +249,18 @@ export default function Welcome() {
                         {authed ? (
                             <Link
                                 href={dashboard()}
-                                className="bg-[#191613] px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] md:px-6"
+                                className="cta-press px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase md:px-6"
                             >
                                 Dashboard
                             </Link>
                         ) : (
                             <>
-                                <Link href={login()} className="hidden text-[13px] text-[#52493d] hover:text-[#8a651c] sm:block">
+                                <Link href={login()} className="hidden text-[13px] text-[#4b5850] hover:text-[#1f5142] sm:block">
                                     Sign in
                                 </Link>
                                 <Link
                                     href={register()}
-                                    className="bg-[#191613] px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] md:px-6"
+                                    className="cta-press px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase md:px-6"
                                 >
                                     Get started
                                 </Link>
@@ -271,7 +271,7 @@ export default function Welcome() {
                             onClick={() => setMenuOpen((o) => !o)}
                             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
                             aria-expanded={menuOpen}
-                            className="flex size-10 items-center justify-center text-[#191613] md:hidden"
+                            className="flex size-10 items-center justify-center text-[#0f1c17] md:hidden"
                         >
                             {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
                         </button>
@@ -280,16 +280,16 @@ export default function Welcome() {
 
                 {/* Mobile menu */}
                 {menuOpen && (
-                    <div className="flex flex-col border-t border-[#191613]/8 bg-[#faf6ef] px-5 py-2 md:hidden">
-                        <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For couples</a>
-                        <a href="#suite" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">The suite</a>
-                        <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Marketplace</Link>
-                        <a href="/shop" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Shop</a>
-                        <Link href="/features" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Features</Link>
-                        <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">For vendors</a>
-                        <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Pricing</a>
+                    <div className="flex flex-col border-t border-[#0f1c17]/8 bg-[#f1f0ea] px-5 py-2 md:hidden">
+                        <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">For couples</a>
+                        <a href="#suite" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">The suite</a>
+                        <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Marketplace</Link>
+                        <a href="/shop" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Shop</a>
+                        <Link href="/features" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Features</Link>
+                        <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">For vendors</a>
+                        <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Pricing</a>
                         {!authed && (
-                            <Link href={login()} onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#52493d]">Sign in</Link>
+                            <Link href={login()} onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Sign in</Link>
                         )}
                     </div>
                 )}
@@ -306,7 +306,7 @@ export default function Welcome() {
                     transition={{ duration: 16, ease: 'easeOut' }}
                     fetchPriority="high"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/85 via-[#191613]/25 to-[#191613]/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1c17]/85 via-[#0f1c17]/25 to-[#0f1c17]/30" />
 
                 {/* Editorial issue stamp */}
                 <motion.div
@@ -321,7 +321,7 @@ export default function Welcome() {
 
                 <div className="relative z-10 mx-auto w-full max-w-[1480px] px-5 pb-16 md:px-12 md:pb-20">
                     <motion.p
-                        className="mb-5 text-[11px] tracking-[0.35em] text-[#e9c176] uppercase"
+                        className="mb-5 text-[11px] tracking-[0.35em] text-[#7fb79e] uppercase"
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.9, delay: 0.2 }}
@@ -336,7 +336,7 @@ export default function Welcome() {
                     >
                         Where weddings
                         <br />
-                        <em className="font-normal text-[#e9c176]">find their people.</em>
+                        <em className="font-normal text-[#7fb79e]">find their people.</em>
                     </motion.h1>
 
                     <motion.div
@@ -349,34 +349,50 @@ export default function Welcome() {
                             Plan every detail in one calm workspace — guests, seating, budget, a wedding website,
                             registry and more — then discover trusted vendors and compare real quotes, all in one place.
                         </p>
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                            <Link
-                                href={authed ? dashboard() : register()}
-                                className="group flex items-center justify-center gap-3 bg-[#faf6ef] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#191613] uppercase transition-colors hover:bg-[#e9c176]"
-                            >
-                                {authed ? 'Open your studio' : 'Start planning — free'}
-                                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                            </Link>
-                            <Link
-                                href="/marketplace"
-                                className="flex items-center justify-center gap-3 border border-white/40 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-white uppercase transition-colors hover:bg-white hover:text-[#191613]"
-                            >
-                                Explore vendors
-                            </Link>
+                        {/* Conversion hotspot. The persimmon CTA is the only
+                            warm colour in the viewport, so the eye lands on it
+                            before anything else; the secondary action stays a
+                            ghost button so it never competes. The risk-reversal
+                            line sits directly beneath, where hesitation peaks. */}
+                        <div>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <Link
+                                    href={authed ? dashboard() : register()}
+                                    className="cta-press group flex items-center justify-center gap-3 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] uppercase"
+                                >
+                                    <span className="relative z-10 flex items-center gap-3">
+                                        {authed ? 'Open your studio' : 'Start planning — free'}
+                                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                                    </span>
+                                </Link>
+                                <Link
+                                    href="/marketplace"
+                                    className="flex items-center justify-center gap-3 border border-white/40 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-white uppercase transition-colors hover:bg-white hover:text-[#0f1c17]"
+                                >
+                                    Explore vendors
+                                </Link>
+                            </div>
+                            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] tracking-[0.14em] text-white/60 uppercase">
+                                <span>Free forever</span>
+                                <span aria-hidden className="text-white/25">·</span>
+                                <span>No credit card</span>
+                                <span aria-hidden className="text-white/25">·</span>
+                                <span>Ontario vendors, vetted</span>
+                            </p>
                         </div>
                     </motion.div>
                 </div>
             </section>
 
             {/* ── Category marquee ───────────────────────────────────────── */}
-            <div className="overflow-hidden border-y border-[#191613]/10 bg-[#f3ecdf] py-4">
+            <div className="overflow-hidden border-y border-[#0f1c17]/10 bg-[#e7e9e2] py-4">
                 <div className="wfa-marquee flex w-max items-center">
                     {[0, 1].map((dup) => (
                         <div key={dup} className="flex items-center" aria-hidden={dup === 1}>
                             {CATEGORIES.map((c) => (
                                 <span key={`${dup}-${c}`} className="flex items-center">
-                                    <span className={`${fraunces} px-6 text-sm tracking-[0.25em] text-[#52493d] uppercase`}>{c}</span>
-                                    <span className="text-[#8a651c]">✦</span>
+                                    <span className={`${fraunces} px-6 text-sm tracking-[0.25em] text-[#4b5850] uppercase`}>{c}</span>
+                                    <span className="text-[#1f5142]">✦</span>
                                 </span>
                             ))}
                         </div>
@@ -395,23 +411,23 @@ export default function Welcome() {
                                 className="aspect-[3/4] w-full object-cover"
                                 loading="lazy"
                             />
-                            <p className={`${fraunces} px-2 pt-3 pb-1 text-xs italic text-[#52493d]`}>
+                            <p className={`${fraunces} px-2 pt-3 pb-1 text-xs italic text-[#4b5850]`}>
                                 The long table, an hour before everyone arrived.
                             </p>
                         </div>
-                        <div className="absolute -top-10 -left-6 z-0 hidden h-full w-full border border-[#8a651c]/25 md:block" />
-                        <span className={`${fraunces} pointer-events-none absolute -top-16 -right-2 z-20 text-[120px] leading-none font-light text-[#8a651c]/15 select-none md:text-[170px]`}>
+                        <div className="absolute -top-10 -left-6 z-0 hidden h-full w-full border border-[#1f5142]/25 md:block" />
+                        <span className={`${fraunces} pointer-events-none absolute -top-16 -right-2 z-20 text-[120px] leading-none font-light text-[#1f5142]/15 select-none md:text-[170px]`}>
                             01
                         </span>
                     </Reveal>
 
                     <div className="md:col-span-6 md:col-start-7">
                         <Reveal>
-                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">For couples</p>
+                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">For couples</p>
                             <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
-                                Every detail, <em className="text-[#8a651c]">composed.</em>
+                                Every detail, <em className="text-[#1f5142]">composed.</em>
                             </h2>
-                            <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-[#52493d]">
+                            <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-[#4b5850]">
                                 Guest lists, seating, budget, timeline, a wedding website your guests will
                                 actually visit — one calm studio instead of eleven spreadsheets.
                             </p>
@@ -420,9 +436,9 @@ export default function Welcome() {
                         <Stagger className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
                             {coupleFeatures.map((f) => (
                                 <StaggerItem key={f.title} className="group">
-                                    <f.icon className="mb-3 size-5 text-[#8a651c]" />
+                                    <f.icon className="mb-3 size-5 text-[#1f5142]" />
                                     <h3 className="text-sm font-bold tracking-wide">{f.title}</h3>
-                                    <p className="mt-1.5 text-sm leading-relaxed text-[#52493d]">{f.body}</p>
+                                    <p className="mt-1.5 text-sm leading-relaxed text-[#4b5850]">{f.body}</p>
                                 </StaggerItem>
                             ))}
                         </Stagger>
@@ -430,11 +446,11 @@ export default function Welcome() {
                         <Reveal delay={0.2} className="mt-10 flex flex-wrap items-center gap-6">
                             <Link
                                 href={authed ? dashboard() : register()}
-                                className="bg-[#191613] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                                className="cta-press px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase"
                             >
                                 Start planning
                             </Link>
-                            <a href={DEMO} className="group flex items-center gap-1.5 text-sm text-[#52493d] underline-offset-4 hover:text-[#8a651c] hover:underline">
+                            <a href={DEMO} className="group flex items-center gap-1.5 text-sm text-[#4b5850] underline-offset-4 hover:text-[#1f5142] hover:underline">
                                 See a live wedding site
                                 <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                             </a>
@@ -444,17 +460,17 @@ export default function Welcome() {
             </section>
 
             {/* ── The complete suite (NEW) ───────────────────────────────── */}
-            <section id="suite" className="overflow-hidden border-t border-[#191613]/10 bg-[#f6efe1] px-5 py-24 md:px-12 md:py-36">
+            <section id="suite" className="overflow-hidden border-t border-[#0f1c17]/10 bg-[#eaede5] px-5 py-24 md:px-12 md:py-36">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mx-auto max-w-3xl text-center">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">New · The complete suite</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">New · The complete suite</p>
                         <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
-                            From the first “yes” to the <em className="text-[#8a651c]">last thank-you note.</em>
+                            From the first “yes” to the <em className="text-[#1f5142]">last thank-you note.</em>
                         </h2>
-                        <p className="mt-6 text-[15px] leading-relaxed text-[#52493d]">
+                        <p className="mt-6 text-[15px] leading-relaxed text-[#4b5850]">
                             VowNook now carries the whole celebration — a gift registry, a multi-day schedule with
                             per-event RSVPs, hotel room blocks, branded save-the-dates with open-tracking, guest
-                            messaging, print-ready stationery, thank-you tracking, and a free <strong className="font-semibold text-[#191613]">name.vownook.com</strong> wedding website.
+                            messaging, print-ready stationery, thank-you tracking, and a free <strong className="font-semibold text-[#0f1c17]">name.vownook.com</strong> wedding website.
                         </p>
                     </Reveal>
 
@@ -467,7 +483,7 @@ export default function Welcome() {
                                 className="h-[300px] w-full object-cover md:h-[460px]"
                                 loading="lazy"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/70 via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0f1c17]/70 via-transparent to-transparent" />
                             <p className={`${fraunces} absolute bottom-6 left-6 max-w-md text-2xl leading-tight text-white md:bottom-10 md:left-10 md:text-4xl`}>
                                 One studio for the whole weekend, not just the big day.
                             </p>
@@ -475,17 +491,17 @@ export default function Welcome() {
                     </Reveal>
 
                     {/* Eight feature cards */}
-                    <Stagger className="mt-14 grid gap-px overflow-hidden rounded-sm border border-[#191613]/10 bg-[#191613]/10 sm:grid-cols-2 lg:grid-cols-4">
+                    <Stagger className="mt-14 grid gap-px overflow-hidden rounded-sm border border-[#0f1c17]/10 bg-[#0f1c17]/10 sm:grid-cols-2 lg:grid-cols-4">
                         {suite.map((f) => (
                             <StaggerItem
                                 key={f.title}
-                                className="group bg-[#faf6ef] p-7 transition-colors duration-300 hover:bg-white"
+                                className="group bg-[#f1f0ea] p-7 transition-colors duration-300 hover:bg-white"
                             >
-                                <div className="flex size-11 items-center justify-center rounded-full bg-[#f0e6d2] text-[#8a651c] transition-transform duration-300 group-hover:-translate-y-0.5">
+                                <div className="flex size-11 items-center justify-center rounded-full bg-[#f0e6d2] text-[#1f5142] transition-transform duration-300 group-hover:-translate-y-0.5">
                                     <f.icon className="size-5" />
                                 </div>
                                 <h3 className={`${fraunces} mt-4 text-xl font-medium`}>{f.title}</h3>
-                                <p className="mt-2 text-sm leading-relaxed text-[#52493d]">{f.body}</p>
+                                <p className="mt-2 text-sm leading-relaxed text-[#4b5850]">{f.body}</p>
                             </StaggerItem>
                         ))}
                     </Stagger>
@@ -500,7 +516,7 @@ export default function Welcome() {
                                     className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105"
                                     loading="lazy"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#191613]/60 to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1c17]/60 to-transparent" />
                                 <span className="absolute bottom-3 left-3 text-[10px] font-semibold tracking-[0.2em] text-white uppercase">{m.label}</span>
                             </StaggerItem>
                         ))}
@@ -509,7 +525,7 @@ export default function Welcome() {
                     <Reveal delay={0.15} className="mt-12 text-center">
                         <Link
                             href={authed ? dashboard() : register()}
-                            className="inline-flex items-center gap-3 bg-[#8a651c] px-9 py-4 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#191613]"
+                            className="inline-flex items-center gap-3 bg-[#1f5142] px-9 py-4 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#0f1c17]"
                         >
                             Build your wedding suite
                             <ArrowRight className="size-4" />
@@ -519,14 +535,14 @@ export default function Welcome() {
             </section>
 
             {/* ── Product showcase: real screenshots ─────────────────────── */}
-            <section className="border-t border-[#191613]/10 px-5 py-24 md:px-12 md:py-36">
+            <section className="border-t border-[#0f1c17]/10 px-5 py-24 md:px-12 md:py-36">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mx-auto max-w-3xl text-center">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Inside the studio</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Inside the studio</p>
                         <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
-                            Don't imagine it — <em className="text-[#8a651c]">look at it.</em>
+                            Don't imagine it — <em className="text-[#1f5142]">look at it.</em>
                         </h2>
-                        <p className="mt-6 text-[15px] leading-relaxed text-[#52493d]">
+                        <p className="mt-6 text-[15px] leading-relaxed text-[#4b5850]">
                             Every screenshot below is the real product with a real wedding in it. Click
                             through the tools your planning will actually live in.
                         </p>
@@ -541,8 +557,8 @@ export default function Welcome() {
                                     onClick={() => setShowcaseIdx(i)}
                                     className={`rounded-full border px-4 py-2 text-[12px] tracking-wide transition-colors ${
                                         i === showcaseIdx
-                                            ? 'border-[#191613] bg-[#191613] text-[#faf6ef]'
-                                            : 'border-[#191613]/15 bg-white/60 text-[#52493d] hover:border-[#191613]/40'
+                                            ? 'border-[#0f1c17] bg-[#0f1c17] text-[#f1f0ea]'
+                                            : 'border-[#0f1c17]/15 bg-white/60 text-[#4b5850] hover:border-[#0f1c17]/40'
                                     }`}
                                 >
                                     {s.label}
@@ -551,11 +567,11 @@ export default function Welcome() {
                         </div>
 
                         <div className="mx-auto mt-8 max-w-5xl">
-                            <div className="overflow-hidden rounded-xl border border-[#191613]/10 bg-white shadow-[0_50px_100px_-45px_rgba(25,22,19,0.5)]">
-                                <div className="flex items-center gap-2 border-b border-[#191613]/8 bg-[#f4efe6] px-4 py-2.5">
-                                    <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
-                                    <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
-                                    <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
+                            <div className="overflow-hidden rounded-xl border border-[#0f1c17]/10 bg-white shadow-[0_50px_100px_-45px_rgba(25,22,19,0.5)]">
+                                <div className="flex items-center gap-2 border-b border-[#0f1c17]/8 bg-[#f4efe6] px-4 py-2.5">
+                                    <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
+                                    <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
+                                    <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
                                     <span className="mx-auto flex h-5 w-1/2 items-center justify-center rounded bg-white/70 text-[10px] tracking-wide text-[#8c8478]">
                                         vownook.com
                                     </span>
@@ -570,13 +586,13 @@ export default function Welcome() {
                                     loading="lazy"
                                 />
                             </div>
-                            <p className="mt-5 text-center text-[14px] text-[#52493d]">
+                            <p className="mt-5 text-center text-[14px] text-[#4b5850]">
                                 {SHOWCASE[showcaseIdx].caption}
                             </p>
                             <p className="mt-6 text-center">
                                 <Link
                                     href="/features"
-                                    className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] text-[#8a651c] uppercase hover:text-[#191613]"
+                                    className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] text-[#1f5142] uppercase hover:text-[#0f1c17]"
                                 >
                                     Take the full tour — every tool, explained <ArrowRight className="size-3.5" />
                                 </Link>
@@ -587,7 +603,7 @@ export default function Welcome() {
             </section>
 
             {/* ── 02 · The marketplace (dark chapter) ────────────────────── */}
-            <section className="relative overflow-hidden bg-[#191613] px-5 py-24 text-[#faf6ef] md:px-12 md:py-36">
+            <section className="relative overflow-hidden bg-[#0f1c17] px-5 py-24 text-[#f1f0ea] md:px-12 md:py-36">
                 <span className={`${fraunces} pointer-events-none absolute top-10 left-6 text-[140px] leading-none font-light text-white/5 select-none md:text-[220px]`}>
                     02
                 </span>
@@ -595,11 +611,11 @@ export default function Welcome() {
                 <div className="relative mx-auto grid max-w-[1480px] gap-16 md:grid-cols-12">
                     <div className="md:col-span-5">
                         <Reveal>
-                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#e9c176] uppercase">The marketplace</p>
+                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#7fb79e] uppercase">The marketplace</p>
                             <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
                                 Real vendors. Real quotes.
                                 <br />
-                                <em className="text-[#e9c176]">No guesswork.</em>
+                                <em className="text-[#7fb79e]">No guesswork.</em>
                             </h2>
                             <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/70">
                                 Every listing is reviewed before it goes live. Send one inquiry with your date
@@ -614,7 +630,7 @@ export default function Welcome() {
                                 { icon: MailOpen, text: 'Accept, and the vendor appears in your planning workspace automatically.' },
                             ].map((item) => (
                                 <StaggerItem key={item.text} className="flex items-start gap-4">
-                                    <item.icon className="mt-0.5 size-5 shrink-0 text-[#e9c176]" />
+                                    <item.icon className="mt-0.5 size-5 shrink-0 text-[#7fb79e]" />
                                     <p className="text-sm leading-relaxed text-white/80">{item.text}</p>
                                 </StaggerItem>
                             ))}
@@ -623,7 +639,7 @@ export default function Welcome() {
                         <Reveal delay={0.2} className="mt-10">
                             <Link
                                 href="/marketplace"
-                                className="inline-flex items-center gap-3 bg-[#e9c176] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-[#191613] uppercase transition-colors hover:bg-[#faf6ef]"
+                                className="inline-flex items-center gap-3 bg-[#7fb79e] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-[#0f1c17] uppercase transition-colors hover:bg-[#f1f0ea]"
                             >
                                 Browse the marketplace
                                 <ArrowRight className="size-4" />
@@ -634,13 +650,13 @@ export default function Welcome() {
                     {/* Staggered editorial image pair */}
                     <div className="relative min-h-[420px] md:col-span-6 md:col-start-7">
                         <Reveal className="absolute top-0 left-0 w-[62%]">
-                            <div className="bg-[#faf6ef] p-2.5">
+                            <div className="bg-[#f1f0ea] p-2.5">
                                 <img src={IMG.florist} alt="A florist arranging a cream bridal bouquet" className="aspect-[3/4] w-full object-cover" loading="lazy" />
                             </div>
                             <p className="mt-2 text-[10px] tracking-[0.25em] text-white/50 uppercase">Florals · The bouquet bench</p>
                         </Reveal>
                         <Reveal delay={0.18} className="absolute right-0 bottom-0 w-[52%]">
-                            <div className="bg-[#faf6ef] p-2.5">
+                            <div className="bg-[#f1f0ea] p-2.5">
                                 <img src={IMG.photographer} alt="A wedding photographer at work in a courtyard at golden hour" className="aspect-[3/4] w-full object-cover" loading="lazy" />
                             </div>
                             <p className="mt-2 text-right text-[10px] tracking-[0.25em] text-white/50 uppercase">Photography · Golden hour</p>
@@ -651,27 +667,27 @@ export default function Welcome() {
 
             {/* ── 03 · For vendors ───────────────────────────────────────── */}
             <section id="vendors" className="relative overflow-hidden px-5 py-24 md:px-12 md:py-36">
-                <span className={`${fraunces} pointer-events-none absolute -top-6 right-6 text-[140px] leading-none font-light text-[#8a651c]/10 select-none md:text-[220px]`}>
+                <span className={`${fraunces} pointer-events-none absolute -top-6 right-6 text-[140px] leading-none font-light text-[#1f5142]/10 select-none md:text-[220px]`}>
                     03
                 </span>
 
                 <div className="relative mx-auto max-w-[1480px]">
                     <Reveal className="max-w-2xl">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">For vendors</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">For vendors</p>
                         <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
-                            Your craft, in front of couples <em className="text-[#8a651c]">ready to book.</em>
+                            Your craft, in front of couples <em className="text-[#1f5142]">ready to book.</em>
                         </h2>
-                        <p className="mt-6 text-[15px] leading-relaxed text-[#52493d]">
+                        <p className="mt-6 text-[15px] leading-relaxed text-[#4b5850]">
                             Build a portfolio page with packages and availability, receive structured inquiries
                             instead of cold DMs, and reply with offers that win — all from one business dashboard.
                         </p>
                     </Reveal>
 
-                    <Stagger className="mt-14 grid gap-px overflow-hidden border border-[#191613]/10 bg-[#191613]/10 sm:grid-cols-3">
+                    <Stagger className="mt-14 grid gap-px overflow-hidden border border-[#0f1c17]/10 bg-[#0f1c17]/10 sm:grid-cols-3">
                         {vendorStats.map((s) => (
-                            <StaggerItem key={s.label} className="bg-[#faf6ef] p-10 text-center sm:p-12">
-                                <p className={`${fraunces} text-5xl font-light text-[#8a651c] sm:text-6xl`}>{s.value}</p>
-                                <p className="mt-3 text-sm text-[#52493d]">{s.label}</p>
+                            <StaggerItem key={s.label} className="bg-[#f1f0ea] p-10 text-center sm:p-12">
+                                <p className={`${fraunces} text-5xl font-light text-[#1f5142] sm:text-6xl`}>{s.value}</p>
+                                <p className="mt-3 text-sm text-[#4b5850]">{s.label}</p>
                             </StaggerItem>
                         ))}
                     </Stagger>
@@ -679,48 +695,48 @@ export default function Welcome() {
                     <Reveal delay={0.15} className="mt-10 flex flex-wrap items-center gap-6">
                         <Link
                             href="/register?type=vendor"
-                            className="bg-[#8a651c] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#191613]"
+                            className="bg-[#1f5142] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#0f1c17]"
                         >
                             List your business — free
                         </Link>
-                        <p className="text-sm text-[#52493d]">Reviewed and published, usually within a day.</p>
+                        <p className="text-sm text-[#4b5850]">Reviewed and published, usually within a day.</p>
                     </Reveal>
                 </div>
             </section>
 
             {/* ── How it works ───────────────────────────────────────────── */}
-            <section className="border-y border-[#191613]/10 bg-[#f3ecdf] px-5 py-24 md:px-12 md:py-32">
+            <section className="border-y border-[#0f1c17]/10 bg-[#e7e9e2] px-5 py-24 md:px-12 md:py-32">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mb-16 text-center">
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            How the room <em className="text-[#8a651c]">comes together</em>
+                            How the room <em className="text-[#1f5142]">comes together</em>
                         </h2>
                     </Reveal>
 
                     <div className="grid gap-16 md:grid-cols-2 md:gap-24">
                         <div>
-                            <p className="mb-8 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">If you're planning</p>
+                            <p className="mb-8 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">If you're planning</p>
                             <Stagger className="space-y-10">
                                 {coupleSteps.map((s) => (
                                     <StaggerItem key={s.n} className="flex gap-6">
-                                        <span className={`${fraunces} text-3xl font-light text-[#8a651c]/50`}>{s.n}</span>
+                                        <span className={`${fraunces} text-3xl font-light text-[#1f5142]/50`}>{s.n}</span>
                                         <div>
                                             <h3 className="text-sm font-bold tracking-wide">{s.title}</h3>
-                                            <p className="mt-1.5 text-sm leading-relaxed text-[#52493d]">{s.body}</p>
+                                            <p className="mt-1.5 text-sm leading-relaxed text-[#4b5850]">{s.body}</p>
                                         </div>
                                     </StaggerItem>
                                 ))}
                             </Stagger>
                         </div>
                         <div>
-                            <p className="mb-8 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">If you're a vendor</p>
+                            <p className="mb-8 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">If you're a vendor</p>
                             <Stagger className="space-y-10">
                                 {vendorSteps.map((s) => (
                                     <StaggerItem key={s.n} className="flex gap-6">
-                                        <span className={`${fraunces} text-3xl font-light text-[#8a651c]/50`}>{s.n}</span>
+                                        <span className={`${fraunces} text-3xl font-light text-[#1f5142]/50`}>{s.n}</span>
                                         <div>
                                             <h3 className="text-sm font-bold tracking-wide">{s.title}</h3>
-                                            <p className="mt-1.5 text-sm leading-relaxed text-[#52493d]">{s.body}</p>
+                                            <p className="mt-1.5 text-sm leading-relaxed text-[#4b5850]">{s.body}</p>
                                         </div>
                                     </StaggerItem>
                                 ))}
@@ -734,9 +750,9 @@ export default function Welcome() {
             <section id="pricing" className="px-5 py-24 md:px-12 md:py-36">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mb-16">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Memberships</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Memberships</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            Choose your <em className="text-[#8a651c]">level of ceremony.</em>
+                            Choose your <em className="text-[#1f5142]">level of ceremony.</em>
                         </h2>
                     </Reveal>
 
@@ -746,28 +762,28 @@ export default function Welcome() {
                                 key={tier.name}
                                 className={`flex flex-col justify-between p-10 md:p-12 ${
                                     tier.featured
-                                        ? 'relative bg-[#191613] text-[#faf6ef] shadow-[0_30px_60px_-25px_rgba(25,22,19,0.6)] md:-translate-y-5'
-                                        : 'border border-[#191613]/12 bg-[#faf6ef]'
+                                        ? 'relative bg-[#0f1c17] text-[#f1f0ea] shadow-[0_30px_60px_-25px_rgba(25,22,19,0.6)] md:-translate-y-5'
+                                        : 'border border-[#0f1c17]/12 bg-[#f1f0ea]'
                                 }`}
                             >
                                 {tier.featured && (
-                                    <div className="absolute top-0 right-0 bg-[#8a651c] px-5 py-2 text-[10px] tracking-[0.25em] text-white uppercase">
+                                    <div className="absolute top-0 right-0 bg-[#1f5142] px-5 py-2 text-[10px] tracking-[0.25em] text-white uppercase">
                                         Recommended
                                     </div>
                                 )}
                                 <div>
-                                    <h3 className={`mb-2 text-xs font-bold tracking-[0.25em] uppercase ${tier.featured ? 'text-[#e9c176]' : 'text-[#191613]'}`}>
+                                    <h3 className={`mb-2 text-xs font-bold tracking-[0.25em] uppercase ${tier.featured ? 'text-[#7fb79e]' : 'text-[#0f1c17]'}`}>
                                         {tier.name}
                                     </h3>
                                     <div className="mb-8 flex items-baseline gap-2">
                                         <span className={`${fraunces} text-5xl font-light`}>{tier.price}</span>
-                                        <span className={`text-sm ${tier.featured ? 'text-white/60' : 'text-[#52493d]'}`}>{tier.cadence}</span>
+                                        <span className={`text-sm ${tier.featured ? 'text-white/60' : 'text-[#4b5850]'}`}>{tier.cadence}</span>
                                     </div>
                                     <ul className="mb-12 space-y-4">
                                         {tier.features.map((f) => (
                                             <li key={f} className="flex items-center gap-3 text-sm">
-                                                <Check className={`size-4 shrink-0 ${tier.featured ? 'text-[#e9c176]' : 'text-[#8a651c]'}`} />
-                                                <span className={tier.featured ? 'text-white/85' : 'text-[#52493d]'}>{f}</span>
+                                                <Check className={`size-4 shrink-0 ${tier.featured ? 'text-[#7fb79e]' : 'text-[#1f5142]'}`} />
+                                                <span className={tier.featured ? 'text-white/85' : 'text-[#4b5850]'}>{f}</span>
                                             </li>
                                         ))}
                                     </ul>
@@ -776,8 +792,8 @@ export default function Welcome() {
                                     href={tier.href}
                                     className={`py-4 text-center text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors ${
                                         tier.featured
-                                            ? 'bg-[#8a651c] text-white hover:bg-[#e9c176] hover:text-[#191613]'
-                                            : 'border border-[#191613] text-[#191613] hover:bg-[#191613] hover:text-[#faf6ef]'
+                                            ? 'bg-[#1f5142] text-white hover:bg-[#7fb79e] hover:text-[#0f1c17]'
+                                            : 'border border-[#0f1c17] text-[#0f1c17] hover:bg-[#0f1c17] hover:text-[#f1f0ea]'
                                     }`}
                                 >
                                     {tier.cta}
@@ -789,29 +805,29 @@ export default function Welcome() {
             </section>
 
             {/* ── FAQ (organic + AI search) ──────────────────────────────── */}
-            <section className="border-t border-[#191613]/10 bg-[#f6efe1] px-5 py-24 md:px-12 md:py-32">
+            <section className="border-t border-[#0f1c17]/10 bg-[#eaede5] px-5 py-24 md:px-12 md:py-32">
                 <div className="mx-auto grid max-w-[1480px] gap-14 md:grid-cols-12">
                     <Reveal className="md:col-span-4">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Good to know</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Good to know</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            Questions, <em className="text-[#8a651c]">answered.</em>
+                            Questions, <em className="text-[#1f5142]">answered.</em>
                         </h2>
-                        <p className="mt-6 text-sm leading-relaxed text-[#52493d]">
+                        <p className="mt-6 text-sm leading-relaxed text-[#4b5850]">
                             Everything couples and vendors ask before they begin. Still curious?{' '}
-                            <Link href="/contact" className="text-[#8a651c] underline-offset-4 hover:underline">Talk to us.</Link>
+                            <Link href="/contact" className="text-[#1f5142] underline-offset-4 hover:underline">Talk to us.</Link>
                         </p>
                     </Reveal>
 
                     <div className="md:col-span-7 md:col-start-6">
-                        <Stagger className="divide-y divide-[#191613]/10 border-y border-[#191613]/10">
+                        <Stagger className="divide-y divide-[#0f1c17]/10 border-y border-[#0f1c17]/10">
                             {faqs.map((item) => (
                                 <StaggerItem key={item.q}>
                                     <details className="group">
                                         <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left">
                                             <h3 className={`${fraunces} text-lg font-medium`}>{item.q}</h3>
-                                            <span className="grid size-7 shrink-0 place-items-center rounded-full border border-[#8a651c]/40 text-[#8a651c] transition-transform duration-300 group-open:rotate-45">+</span>
+                                            <span className="grid size-7 shrink-0 place-items-center rounded-full border border-[#1f5142]/40 text-[#1f5142] transition-transform duration-300 group-open:rotate-45">+</span>
                                         </summary>
-                                        <p className="pb-5 text-sm leading-relaxed text-[#52493d]">{item.a}</p>
+                                        <p className="pb-5 text-sm leading-relaxed text-[#4b5850]">{item.a}</p>
                                     </details>
                                 </StaggerItem>
                             ))}
@@ -821,23 +837,25 @@ export default function Welcome() {
             </section>
 
             {/* ── Final CTA ──────────────────────────────────────────────── */}
-            <section className="bg-[#191613] px-5 py-28 text-center text-[#faf6ef] md:py-40">
+            <section className="bg-[#0f1c17] px-5 py-28 text-center text-[#f1f0ea] md:py-40">
                 <Reveal className="mx-auto max-w-3xl">
-                    <p className="mb-6 text-[11px] tracking-[0.35em] text-[#e9c176] uppercase">The invitation stands</p>
+                    <p className="mb-6 text-[11px] tracking-[0.35em] text-[#7fb79e] uppercase">The invitation stands</p>
                     <h2 className={`${fraunces} text-4xl leading-[1.1] font-light sm:text-6xl`}>
-                        The best days are <em className="text-[#e9c176]">planned together.</em>
+                        The best days are <em className="text-[#7fb79e]">planned together.</em>
                     </h2>
                     <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
                         <Link
                             href={authed ? dashboard() : register()}
-                            className="group inline-flex items-center gap-3 bg-[#faf6ef] px-12 py-5 text-[11px] font-semibold tracking-[0.25em] text-[#191613] uppercase transition-colors hover:bg-[#e9c176]"
+                            className="cta-press group inline-flex items-center gap-3 px-12 py-5 text-[11px] font-semibold tracking-[0.25em] uppercase"
                         >
-                            {authed ? 'Open your studio' : 'Create your account'}
-                            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                            <span className="relative z-10 flex items-center gap-3">
+                                {authed ? 'Open your studio' : 'Create your account'}
+                                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                            </span>
                         </Link>
                         <Link
                             href="/register?type=vendor"
-                            className="inline-flex items-center gap-3 border border-white/30 px-12 py-5 text-[11px] font-semibold tracking-[0.25em] text-white uppercase transition-colors hover:bg-white hover:text-[#191613]"
+                            className="inline-flex items-center gap-3 border border-white/30 px-12 py-5 text-[11px] font-semibold tracking-[0.25em] text-white uppercase transition-colors hover:bg-white hover:text-[#0f1c17]"
                         >
                             I'm a vendor
                         </Link>
@@ -846,22 +864,22 @@ export default function Welcome() {
             </section>
 
             {/* ── Footer ─────────────────────────────────────────────────── */}
-            <footer className="border-t border-[#191613]/10 bg-[#faf6ef] py-12">
+            <footer className="border-t border-[#0f1c17]/10 bg-[#f1f0ea] py-12">
                 <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-6 px-5 md:flex-row md:px-12">
                     <Wordmark />
-                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-[#52493d]">
-                        <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
-                        <Link href="/features" className="hover:text-[#8a651c]">Features</Link>
-                        <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
-                        <Link href="/pricing" className="hover:text-[#8a651c]">Pricing</Link>
-                        <Link href="/blog" className="hover:text-[#8a651c]">Journal</Link>
-                        <a href={DEMO} className="hover:text-[#8a651c]">Live demo</a>
-                        <Link href="/terms" className="hover:text-[#8a651c]">Terms</Link>
-                        <Link href="/privacy" className="hover:text-[#8a651c]">Privacy</Link>
-                        <Link href="/contact" className="hover:text-[#8a651c]">Contact</Link>
-                        <Link href={login()} className="hover:text-[#8a651c]">Sign in</Link>
+                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-[#4b5850]">
+                        <Link href="/marketplace" className="hover:text-[#1f5142]">Marketplace</Link>
+                        <Link href="/features" className="hover:text-[#1f5142]">Features</Link>
+                        <Link href="/how-it-works" className="hover:text-[#1f5142]">How it works</Link>
+                        <Link href="/pricing" className="hover:text-[#1f5142]">Pricing</Link>
+                        <Link href="/blog" className="hover:text-[#1f5142]">Journal</Link>
+                        <a href={DEMO} className="hover:text-[#1f5142]">Live demo</a>
+                        <Link href="/terms" className="hover:text-[#1f5142]">Terms</Link>
+                        <Link href="/privacy" className="hover:text-[#1f5142]">Privacy</Link>
+                        <Link href="/contact" className="hover:text-[#1f5142]">Contact</Link>
+                        <Link href={login()} className="hover:text-[#1f5142]">Sign in</Link>
                     </div>
-                    <p className="text-[11px] tracking-[0.15em] text-[#52493d]/70 uppercase">© {new Date().getFullYear()} VowNook</p>
+                    <p className="text-[11px] tracking-[0.15em] text-[#4b5850]/70 uppercase">© {new Date().getFullYear()} VowNook</p>
                 </div>
             </footer>
         </div>

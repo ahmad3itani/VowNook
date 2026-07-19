@@ -66,7 +66,7 @@ export default function AdminBlogIndex({ posts, autopilot }: PageProps) {
 
                 {autopilot.enabled && (
                     <p className="-mt-2 text-xs text-muted-foreground">
-                        Autopilot is <span className="font-medium text-[#775a19]">on</span> — one SEO article publishes automatically each week.
+                        Autopilot is <span className="font-medium text-[#1b4638]">on</span> — one SEO article publishes automatically each week.
                     </p>
                 )}
 
@@ -97,7 +97,7 @@ export default function AdminBlogIndex({ posts, autopilot }: PageProps) {
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">{p.published_label ?? '—'}</td>
                                             <td className="px-4 py-3 text-right">
-                                                <Link href={`/admin/blog/${p.slug}/edit`} className="text-sm text-[#775a19] hover:underline">Edit</Link>
+                                                <Link href={`/admin/blog/${p.slug}/edit`} className="text-sm text-[#1b4638] hover:underline">Edit</Link>
                                             </td>
                                         </tr>
                                     ))}

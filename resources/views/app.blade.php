@@ -28,11 +28,11 @@
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {
-                background-color: #fff8f3;
+                background-color: #f1f0ea;
             }
 
             html.dark {
-                background-color: #18130d;
+                background-color: #0c1712;
             }
         </style>
 
@@ -41,12 +41,23 @@
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-        <meta name="theme-color" content="#faf6ef">
+        <meta name="theme-color" content="#f1f0ea">
 
-        {{-- Brand fonts (Fraunces display + Playfair Display + DM Sans) --}}
+        {{-- Brand display face: Newsreader (variable, real optical sizing).
+             The body face, Instrument Sans, is served locally by the vite fonts
+             plugin — so only one external font request remains. --}}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..600&display=swap" rel="stylesheet">
+
+        {{-- Couples pick their own template font for their wedding website, and
+             most templates use Playfair Display. That's their page, not our
+             brand chrome — so it loads only on those two routes rather than
+             costing every visitor an extra font request. --}}
+        @php($__component = $page['component'] ?? '')
+        @if (str_starts_with($__component, 'public/website') || str_starts_with($__component, 'website/'))
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+        @endif
 
         @fonts
 

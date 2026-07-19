@@ -154,8 +154,8 @@ const TEMPLATES: Array<{
     {
         id: 'classic',
         label: 'Classic',
-        bg: '#fff8f3',
-        accent: '#775a19',
+        bg: '#f5f4ee',
+        accent: '#1b4638',
         font: 'Playfair Display',
     },
     {
@@ -780,7 +780,7 @@ export default function WebsiteIndex({
                                     Going live is an{' '}
                                     <a
                                         href="/settings/plan"
-                                        className="font-medium text-[#8a651c] underline"
+                                        className="font-medium text-[#1f5142] underline"
                                     >
                                         Atelier feature
                                     </a>{' '}
@@ -805,13 +805,13 @@ export default function WebsiteIndex({
                         {!subdomain_enabled ? (
                             <p className="text-sm text-muted-foreground">
                                 Claim a free, easy-to-share address like{' '}
-                                <span className="font-medium text-[#1e1b17]">
+                                <span className="font-medium text-[#12211b]">
                                     amelia-and-julian.{subdomain_base}
                                 </span>{' '}
                                 — an{' '}
                                 <a
                                     href="/settings/plan"
-                                    className="font-medium text-[#8a651c] underline"
+                                    className="font-medium text-[#1f5142] underline"
                                 >
                                     Atelier feature
                                 </a>
@@ -827,7 +827,7 @@ export default function WebsiteIndex({
                                     Lowercase letters, numbers and hyphens.
                                 </p>
                                 <div className="flex flex-wrap items-stretch gap-2">
-                                    <div className="flex flex-1 items-center overflow-hidden rounded-md border focus-within:ring-1 focus-within:ring-[#775a19]">
+                                    <div className="flex flex-1 items-center overflow-hidden rounded-md border focus-within:ring-1 focus-within:ring-[#1b4638]">
                                         <input
                                             value={subForm.data.subdomain}
                                             onChange={(e) =>
@@ -901,7 +901,7 @@ export default function WebsiteIndex({
                                                 href={`https://${website.subdomain}.${subdomain_base}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="font-medium text-[#8a651c] underline"
+                                                className="font-medium text-[#1f5142] underline"
                                             >
                                                 {website.subdomain}.
                                                 {subdomain_base}
@@ -930,7 +930,7 @@ export default function WebsiteIndex({
                                     onClick={() => pickTemplate(t.id)}
                                     className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all ${
                                         form.data.template === t.id
-                                            ? 'border-[#775a19] shadow-md'
+                                            ? 'border-[#1b4638] shadow-md'
                                             : 'border-transparent hover:border-muted-foreground/30'
                                     }`}
                                     style={{ background: t.bg }}
@@ -955,7 +955,7 @@ export default function WebsiteIndex({
                                         {t.label}
                                     </span>
                                     {form.data.template === t.id && (
-                                        <span className="absolute top-2 right-2 size-2 rounded-full bg-[#775a19]" />
+                                        <span className="absolute top-2 right-2 size-2 rounded-full bg-[#1b4638]" />
                                     )}
                                 </button>
                             ))}
@@ -1139,7 +1139,7 @@ export default function WebsiteIndex({
                                             className="flex items-start gap-3 rounded-lg border p-3"
                                         >
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-xs font-semibold text-[#775a19]">
+                                                <p className="text-xs font-semibold text-[#1b4638]">
                                                     {item.year}
                                                 </p>
                                                 <p className="text-sm font-medium">
@@ -1502,7 +1502,7 @@ export default function WebsiteIndex({
                                                 <p className="text-sm font-medium">
                                                     {m.name}
                                                 </p>
-                                                <p className="text-xs text-[#775a19]">
+                                                <p className="text-xs text-[#1b4638]">
                                                     {[
                                                         m.role,
                                                         SIDE_LABELS[m.side],
@@ -1729,7 +1729,7 @@ export default function WebsiteIndex({
                                                     <p className="text-sm font-medium">
                                                         {r.title}
                                                         {r.category && (
-                                                            <span className="ml-1 text-xs font-normal text-[#775a19]">
+                                                            <span className="ml-1 text-xs font-normal text-[#1b4638]">
                                                                 · {r.category}
                                                             </span>
                                                         )}
@@ -2008,7 +2008,7 @@ function AiButton({
         return (
             <a
                 href="/settings/plan"
-                className="inline-flex w-fit items-center gap-1 text-xs font-medium text-[#8a651c] hover:underline"
+                className="inline-flex w-fit items-center gap-1 text-xs font-medium text-[#1f5142] hover:underline"
             >
                 <Sparkles className="size-3.5" /> {label} — an Atelier perk
             </a>
@@ -2022,7 +2022,7 @@ function AiButton({
             size="sm"
             onClick={onClick}
             disabled={busy}
-            className="w-fit border-[#e9c176] text-[#8a651c] hover:bg-[#fdf8ee] hover:text-[#6f5217]"
+            className="w-fit border-[#7fb79e] text-[#1f5142] hover:bg-[#f7f7f2] hover:text-[#6f5217]"
         >
             {busy ? (
                 <Loader2 className="mr-1.5 size-3.5 animate-spin" />
@@ -2206,7 +2206,7 @@ function SortablePhoto({
             ref={setNodeRef}
             style={style}
             className={`group relative aspect-square overflow-hidden rounded-lg bg-muted ${
-                selected ? 'ring-2 ring-[#8a651c] ring-offset-2' : ''
+                selected ? 'ring-2 ring-[#1f5142] ring-offset-2' : ''
             }`}
         >
             {selecting ? (
@@ -2240,7 +2240,7 @@ function SortablePhoto({
                 <div
                     className={`absolute top-1 left-1 flex size-6 items-center justify-center rounded-full border-2 ${
                         selected
-                            ? 'border-[#8a651c] bg-[#8a651c] text-white'
+                            ? 'border-[#1f5142] bg-[#1f5142] text-white'
                             : 'border-white bg-black/30 text-transparent'
                     }`}
                 >

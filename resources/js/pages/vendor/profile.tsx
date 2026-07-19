@@ -321,7 +321,7 @@ export default function VendorProfilePage({ profile, categories }: PageProps) {
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
                                 {profile.brochure_url && (
-                                    <a href={profile.brochure_url} target="_blank" rel="noreferrer" className="text-sm text-[#8a651c] underline">
+                                    <a href={profile.brochure_url} target="_blank" rel="noreferrer" className="text-sm text-[#1f5142] underline">
                                         Current brochure (PDF)
                                     </a>
                                 )}
@@ -600,7 +600,7 @@ export default function VendorProfilePage({ profile, categories }: PageProps) {
                                     {processing ? 'Saving…' : 'Save profile'}
                                 </Button>
                                 {recentlySuccessful && (
-                                    <p className="flex items-center gap-1.5 text-sm text-[#775a19]">
+                                    <p className="flex items-center gap-1.5 text-sm text-[#1b4638]">
                                         <CheckCircle2 className="size-4" /> Saved
                                     </p>
                                 )}

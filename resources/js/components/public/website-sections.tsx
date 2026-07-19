@@ -23,7 +23,7 @@ export type GuestbookItem = {
     date: string | null;
 };
 
-const serif = "font-['Playfair_Display']";
+const serif = "font-['Newsreader']";
 
 /** Public "Wedding party" section — the people standing beside the couple. */
 export function WebsiteParty({ party }: { party: PartyMember[] }) {

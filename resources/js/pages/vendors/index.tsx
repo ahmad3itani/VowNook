@@ -92,7 +92,7 @@ const STAGE_COLORS: Record<string, string> = {
     researching: 'bg-muted-foreground/30',
     contacted:   'bg-amber-400/70',
     quoted:      'bg-amber-600/80',
-    booked:      'bg-[#775a19]',
+    booked:      'bg-[#1b4638]',
     declined:    'bg-destructive/40',
 };
 
@@ -100,7 +100,7 @@ const STAGE_DOT: Record<string, string> = {
     researching: 'bg-muted-foreground/50',
     contacted:   'bg-amber-400',
     quoted:      'bg-amber-600',
-    booked:      'bg-[#775a19]',
+    booked:      'bg-[#1b4638]',
     declined:    'bg-destructive',
 };
 
@@ -297,9 +297,9 @@ export default function VendorsIndex({ vendors, stats, options, quote_badge }: P
                 {/* Stats row */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Vendors" value={String(stats.total)} />
-                    <StatCard label="Booked" value={String(stats.booked)} accent="text-[#775a19]" />
+                    <StatCard label="Booked" value={String(stats.booked)} accent="text-[#1b4638]" />
                     <StatCard label="Contracted" value={formatMoney(stats.contracted * 100)} />
-                    <StatCard label="Paid" value={formatMoney(stats.paid * 100)} accent="text-[#775a19]" />
+                    <StatCard label="Paid" value={formatMoney(stats.paid * 100)} accent="text-[#1b4638]" />
                 </div>
 
                 {/* Pipeline funnel */}
@@ -480,12 +480,12 @@ export default function VendorsIndex({ vendors, stats, options, quote_badge }: P
                                                     <div className="flex items-center gap-1.5">
                                                         {v.contract_status === 'signed' && (
                                                             <span title="Contract signed">
-                                                                <FileCheck className="size-3.5 text-[#775a19]" />
+                                                                <FileCheck className="size-3.5 text-[#1b4638]" />
                                                             </span>
                                                         )}
                                                         {v.coi_status === 'on_file' && (
                                                             <span title="COI on file">
-                                                                <ShieldCheck className="size-3.5 text-[#775a19]" />
+                                                                <ShieldCheck className="size-3.5 text-[#1b4638]" />
                                                             </span>
                                                         )}
                                                         {v.follow_up_at && (

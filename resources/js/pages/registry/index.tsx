@@ -137,7 +137,7 @@ export default function RegistryIndex({ funds, items }: { funds: Fund[]; items: 
                 <section className="flex flex-col gap-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <h2 className="flex items-center gap-2 text-lg font-semibold">
-                            <Wallet className="size-5 text-[#8a651c]" /> Cash & honeymoon funds
+                            <Wallet className="size-5 text-[#1f5142]" /> Cash & honeymoon funds
                         </h2>
                         {writable && (
                             <Button onClick={() => openFund(null)}>
@@ -168,12 +168,12 @@ export default function RegistryIndex({ funds, items }: { funds: Fund[]; items: 
                                                     </div>
                                                 )}
                                             </div>
-                                            <p className="text-sm font-medium text-[#775a19]">
+                                            <p className="text-sm font-medium text-[#1b4638]">
                                                 {formatMoney(f.raised_cents)} raised{f.goal_cents ? ` of ${formatMoney(f.goal_cents)}` : ''}
                                             </p>
                                             {pct !== null && (
                                                 <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                                                    <div className="h-full rounded-full bg-[#8a651c]" style={{ width: `${pct}%` }} />
+                                                    <div className="h-full rounded-full bg-[#1f5142]" style={{ width: `${pct}%` }} />
                                                 </div>
                                             )}
                                             <p className="text-xs text-muted-foreground">{f.contributions_count} contribution{f.contributions_count === 1 ? '' : 's'}{f.payout_url ? '' : ' · ⚠ add a payout link'}</p>
@@ -189,7 +189,7 @@ export default function RegistryIndex({ funds, items }: { funds: Fund[]; items: 
                 <section className="flex flex-col gap-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <h2 className="flex items-center gap-2 text-lg font-semibold">
-                            <Gift className="size-5 text-[#8a651c]" /> Gift items
+                            <Gift className="size-5 text-[#1f5142]" /> Gift items
                         </h2>
                         {writable && (
                             <Button onClick={() => openItem(null)}>
@@ -215,7 +215,7 @@ export default function RegistryIndex({ funds, items }: { funds: Fund[]; items: 
                                                 </div>
                                             )}
                                         </div>
-                                        {i.price_cents != null && <p className="text-sm text-[#775a19]">{formatMoney(i.price_cents)}</p>}
+                                        {i.price_cents != null && <p className="text-sm text-[#1b4638]">{formatMoney(i.price_cents)}</p>}
                                         <p className="text-xs text-muted-foreground">{i.claimed_count}/{i.quantity} claimed</p>
                                     </CardContent>
                                 </Card>

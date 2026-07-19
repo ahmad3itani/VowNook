@@ -42,7 +42,7 @@ function Stars({ rating }: { rating: number | null }) {
     }
 
     return (
-        <div className="flex gap-0.5 text-[#775a19]">
+        <div className="flex gap-0.5 text-[#1b4638]">
             {Array.from({ length: 5 }, (_, i) => (
                 <Star key={i} className={`size-4 ${i < rating ? 'fill-current' : 'opacity-25'}`} />
             ))}
@@ -57,7 +57,7 @@ function PriceLevel({ level }: { level: number | null }) {
 
     return (
         <span className="font-serif text-2xl">
-            <span className="text-[#775a19]">{'$'.repeat(level)}</span>
+            <span className="text-[#1b4638]">{'$'.repeat(level)}</span>
             <span className="text-muted-foreground/40">{'$'.repeat(4 - level)}</span>
         </span>
     );
@@ -79,7 +79,7 @@ export default function VendorCompare({ categories, active, vendors, bestValueId
                     <div>
                         <Link
                             href="/vendors"
-                            className="mb-2 inline-flex items-center gap-1 text-xs tracking-wide text-muted-foreground uppercase hover:text-[#775a19]"
+                            className="mb-2 inline-flex items-center gap-1 text-xs tracking-wide text-muted-foreground uppercase hover:text-[#1b4638]"
                         >
                             <ArrowLeft className="size-3.5" /> Vendors
                         </Link>
@@ -129,12 +129,12 @@ export default function VendorCompare({ categories, active, vendors, bestValueId
                                     key={v.id}
                                     className={`relative flex flex-col p-8 ${
                                         best
-                                            ? 'border-2 border-[#775a19] bg-card shadow-xl shadow-[#775a19]/5 xl:-translate-y-2'
+                                            ? 'border-2 border-[#1b4638] bg-card shadow-xl shadow-[#1b4638]/5 xl:-translate-y-2'
                                             : 'border border-border bg-card'
                                     }`}
                                 >
                                     {best && (
-                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#775a19] px-5 py-1 text-xs tracking-[0.15em] whitespace-nowrap text-white uppercase">
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1b4638] px-5 py-1 text-xs tracking-[0.15em] whitespace-nowrap text-white uppercase">
                                             Best value
                                         </div>
                                     )}
@@ -175,12 +175,12 @@ export default function VendorCompare({ categories, active, vendors, bestValueId
                                             <div className="space-y-1.5 border-t border-border pt-4 text-sm text-muted-foreground">
                                                 {v.contact_name && <p>{v.contact_name}</p>}
                                                 {v.email && (
-                                                    <a href={`mailto:${v.email}`} className="flex items-center gap-2 hover:text-[#775a19]">
+                                                    <a href={`mailto:${v.email}`} className="flex items-center gap-2 hover:text-[#1b4638]">
                                                         <Mail className="size-3.5" /> {v.email}
                                                     </a>
                                                 )}
                                                 {v.phone && (
-                                                    <a href={`tel:${v.phone}`} className="flex items-center gap-2 hover:text-[#775a19]">
+                                                    <a href={`tel:${v.phone}`} className="flex items-center gap-2 hover:text-[#1b4638]">
                                                         <Phone className="size-3.5" /> {v.phone}
                                                     </a>
                                                 )}
@@ -189,7 +189,7 @@ export default function VendorCompare({ categories, active, vendors, bestValueId
                                                         href={v.website}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-2 hover:text-[#775a19]"
+                                                        className="flex items-center gap-2 hover:text-[#1b4638]"
                                                     >
                                                         <Globe className="size-3.5" /> Website
                                                     </a>

@@ -24,9 +24,9 @@ const KIND_META: Record<string, { title: string; blurb: string; cta: string }> =
 
 function Stat({ icon: Icon, label, value }: { icon: typeof Eye; label: string; value: number }) {
     return (
-        <div className="flex flex-col items-center rounded-lg bg-[#f6efe1] px-3 py-3 text-center">
-            <Icon className="size-4 text-[#8a651c]" />
-            <span className="mt-1 text-xl font-semibold text-[#1e1b17]">{value}</span>
+        <div className="flex flex-col items-center rounded-lg bg-[#eaede5] px-3 py-3 text-center">
+            <Icon className="size-4 text-[#1f5142]" />
+            <span className="mt-1 text-xl font-semibold text-[#12211b]">{value}</span>
             <span className="text-[11px] tracking-wide text-muted-foreground uppercase">{label}</span>
         </div>
     );
@@ -83,7 +83,7 @@ export default function SaveTheDatesIndex({
                             <Card key={kind}>
                                 <CardContent className="flex flex-col gap-4 pt-6">
                                     <div className="flex items-start gap-3">
-                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#f6efe1] text-[#775a19]">
+                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#eaede5] text-[#1b4638]">
                                             <Icon className="size-5" />
                                         </div>
                                         <div>

@@ -82,10 +82,10 @@ function AskAi() {
     }
 
     return (
-        <Card className="border-[#e9c176]/50 bg-[#fdf8ee]">
+        <Card className="border-[#7fb79e]/50 bg-[#f7f7f2]">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
-                    <Sparkles className="size-4 text-[#8a651c]" /> Ask VowNook
+                    <Sparkles className="size-4 text-[#1f5142]" /> Ask VowNook
                     AI
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
@@ -104,20 +104,20 @@ function AskAi() {
                     <Button
                         type="submit"
                         disabled={loading || !question.trim()}
-                        className="bg-[#8a651c] hover:bg-[#6f5016]"
+                        className="bg-[#1f5142] hover:bg-[#6f5016]"
                     >
                         {loading ? 'Thinking…' : <Send className="size-4" />}
                     </Button>
                 </form>
                 {answer && (
-                    <div className="flex gap-2.5 rounded-xl border border-[#e9c176]/60 bg-white/80 p-4 text-sm shadow-sm">
-                        <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#8a651c] text-white">
+                    <div className="flex gap-2.5 rounded-xl border border-[#7fb79e]/60 bg-white/80 p-4 text-sm shadow-sm">
+                        <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1f5142] text-white">
                             <Sparkles className="size-3.5" />
                         </span>
                         <div className="min-w-0 flex-1 text-foreground">
                             <FormattedMessage text={answer.text} />
                             {!answer.confident && (
-                                <p className="mt-3 border-t border-[#e9c176]/30 pt-2 text-xs text-muted-foreground">
+                                <p className="mt-3 border-t border-[#7fb79e]/30 pt-2 text-xs text-muted-foreground">
                                     Still need a hand? Send a request below and
                                     our team will follow up.
                                 </p>

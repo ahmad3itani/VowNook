@@ -16,7 +16,7 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const STATUS_STYLE: Record<string, string> = {
     available: 'bg-background hover:bg-muted',
-    booked: 'bg-[#775a19] text-white hover:opacity-90',
+    booked: 'bg-[#1b4638] text-white hover:opacity-90',
     blocked: 'bg-muted-foreground/20 text-muted-foreground line-through hover:bg-muted-foreground/30',
 };
 
@@ -103,7 +103,7 @@ export default function VendorAvailability({ month, entries }: PageProps) {
                                 <ChevronLeft className="size-4" />
                             </button>
                             <p className="flex items-center gap-2 text-lg font-semibold">
-                                <CalendarRange className="size-5 text-[#775a19]" />
+                                <CalendarRange className="size-5 text-[#1b4638]" />
                                 {monthLabel(month)}
                             </p>
                             <button
@@ -130,7 +130,7 @@ export default function VendorAvailability({ month, entries }: PageProps) {
                                         onClick={() => cycle(cell.date!)}
                                         className={`flex aspect-square items-center justify-center rounded-md border text-sm transition-colors ${
                                             STATUS_STYLE[statusByDate.get(cell.date) ?? 'available']
-                                        } ${cell.date === today ? 'ring-2 ring-[#775a19]/50' : ''}`}
+                                        } ${cell.date === today ? 'ring-2 ring-[#1b4638]/50' : ''}`}
                                     >
                                         {cell.day}
                                     </button>
@@ -145,7 +145,7 @@ export default function VendorAvailability({ month, entries }: PageProps) {
                                 <span className="size-3 rounded border bg-background" /> Available
                             </span>
                             <span className="flex items-center gap-1.5">
-                                <span className="size-3 rounded bg-[#775a19]" /> Booked
+                                <span className="size-3 rounded bg-[#1b4638]" /> Booked
                             </span>
                             <span className="flex items-center gap-1.5">
                                 <span className="size-3 rounded bg-muted-foreground/20" /> Blocked

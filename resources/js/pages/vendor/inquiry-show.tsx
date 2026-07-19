@@ -181,7 +181,7 @@ export default function VendorInquiryShow({ inquiry }: PageProps) {
                                 <CardContent className="flex flex-col gap-3">
                                     {inquiry.messages.map((m) => (
                                         <div key={m.id} className={`flex flex-col gap-1 ${m.is_mine ? 'items-end' : 'items-start'}`}>
-                                            <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${m.is_mine ? 'bg-[#775a19] text-white' : 'bg-muted'}`}>
+                                            <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${m.is_mine ? 'bg-[#1b4638] text-white' : 'bg-muted'}`}>
                                                 {m.body}
                                             </div>
                                             <span className="text-xs text-muted-foreground">
@@ -219,7 +219,7 @@ export default function VendorInquiryShow({ inquiry }: PageProps) {
                     <div className="flex flex-col gap-4">
                         {/* Current offer */}
                         {inquiry.offer && (
-                            <Card className={inquiry.offer.status === 'sent' ? 'border-[#775a19]/40' : ''}>
+                            <Card className={inquiry.offer.status === 'sent' ? 'border-[#1b4638]/40' : ''}>
                                 <CardHeader className="pb-2">
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="text-sm">Your offer</CardTitle>
@@ -231,7 +231,7 @@ export default function VendorInquiryShow({ inquiry }: PageProps) {
                                 <CardContent className="space-y-2 text-sm">
                                     <div className="flex items-center justify-between font-semibold">
                                         <span>Total</span>
-                                        <span className="text-[#775a19]">{formatMoney(inquiry.offer.total_cents)}</span>
+                                        <span className="text-[#1b4638]">{formatMoney(inquiry.offer.total_cents)}</span>
                                     </div>
                                     {inquiry.offer.deposit_cents > 0 && (
                                         <div className="flex items-center justify-between text-muted-foreground">
@@ -385,7 +385,7 @@ export default function VendorInquiryShow({ inquiry }: PageProps) {
                                             <Button
                                                 type="submit"
                                                 size="sm"
-                                                className="flex-1 bg-[#775a19] hover:bg-[#5c4414]"
+                                                className="flex-1 bg-[#1b4638] hover:bg-[#123025]"
                                                 disabled={offerForm.processing || !offerForm.data.total_cents}
                                             >
                                                 <Send className="mr-1.5 size-4" />
@@ -421,8 +421,8 @@ export default function VendorInquiryShow({ inquiry }: PageProps) {
                                         <p className="text-muted-foreground">{inquiry.review.body}</p>
                                     )}
                                     {inquiry.review.vendor_response ? (
-                                        <div className="ml-3 rounded-lg border-l-2 border-[#775a19]/40 bg-muted/50 p-2.5">
-                                            <p className="text-xs font-semibold text-[#775a19]">Your response</p>
+                                        <div className="ml-3 rounded-lg border-l-2 border-[#1b4638]/40 bg-muted/50 p-2.5">
+                                            <p className="text-xs font-semibold text-[#1b4638]">Your response</p>
                                             <p className="mt-0.5 text-xs text-muted-foreground">{inquiry.review.vendor_response}</p>
                                         </div>
                                     ) : (

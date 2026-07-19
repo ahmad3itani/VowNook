@@ -345,7 +345,7 @@ export default function GalleryIndex({ photos: photosProp, albums, active_album,
                         <button
                             type="button"
                             onClick={newAlbum}
-                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[#8a651c] hover:text-[#8a651c]"
+                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[#1f5142] hover:text-[#1f5142]"
                         >
                             <FolderPlus className="size-3.5" />
                             New album
@@ -513,8 +513,8 @@ function AlbumChip({ label, active, onClick }: { label: string; active: boolean;
             onClick={onClick}
             className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
                 active
-                    ? 'bg-[#8a651c] text-white'
-                    : 'border border-border text-muted-foreground hover:border-[#8a651c] hover:text-foreground'
+                    ? 'bg-[#1f5142] text-white'
+                    : 'border border-border text-muted-foreground hover:border-[#1f5142] hover:text-foreground'
             }`}
         >
             {label}
@@ -560,7 +560,7 @@ function SortablePhoto({
             ref={setNodeRef}
             style={style}
             className={`group relative aspect-square overflow-hidden rounded-xl bg-muted ${
-                selected ? 'ring-2 ring-[#8a651c] ring-offset-2' : ''
+                selected ? 'ring-2 ring-[#1f5142] ring-offset-2' : ''
             }`}
         >
             <button
@@ -586,7 +586,7 @@ function SortablePhoto({
             {selectMode && (
                 <div
                     className={`absolute left-2 top-2 flex size-6 items-center justify-center rounded-full border-2 ${
-                        selected ? 'border-[#8a651c] bg-[#8a651c] text-white' : 'border-white bg-black/30 text-transparent'
+                        selected ? 'border-[#1f5142] bg-[#1f5142] text-white' : 'border-white bg-black/30 text-transparent'
                     }`}
                 >
                     <CheckCircle2 className="size-4" />

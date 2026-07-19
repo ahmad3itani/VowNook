@@ -77,7 +77,7 @@ export default function WeddingDetailsOnboarding({ wedding, bands, cities, vibes
                                                 onClick={() => form.setData('band', active ? '' : b.key)}
                                                 className={`rounded-lg border px-2 py-2.5 text-center text-sm transition-colors ${
                                                     active
-                                                        ? 'border-[#775a19] bg-[#775a19]/5 font-medium ring-1 ring-[#775a19]'
+                                                        ? 'border-[#1b4638] bg-[#1b4638]/5 font-medium ring-1 ring-[#1b4638]'
                                                         : 'border-border hover:bg-muted'
                                                 }`}
                                             >
@@ -101,7 +101,7 @@ export default function WeddingDetailsOnboarding({ wedding, bands, cities, vibes
                                                 onClick={() => form.setData('vibe', active ? '' : v.key)}
                                                 className={`rounded-lg border px-2 py-2.5 text-center text-sm transition-colors ${
                                                     active
-                                                        ? 'border-[#775a19] bg-[#775a19]/5 font-medium ring-1 ring-[#775a19]'
+                                                        ? 'border-[#1b4638] bg-[#1b4638]/5 font-medium ring-1 ring-[#1b4638]'
                                                         : 'border-border hover:bg-muted'
                                                 }`}
                                             >
@@ -125,7 +125,7 @@ export default function WeddingDetailsOnboarding({ wedding, bands, cities, vibes
                                                 onClick={() => form.setData('season', active ? '' : s.key)}
                                                 className={`rounded-lg border px-2 py-2.5 text-center text-sm transition-colors ${
                                                     active
-                                                        ? 'border-[#775a19] bg-[#775a19]/5 font-medium ring-1 ring-[#775a19]'
+                                                        ? 'border-[#1b4638] bg-[#1b4638]/5 font-medium ring-1 ring-[#1b4638]'
                                                         : 'border-border hover:bg-muted'
                                                 }`}
                                             >

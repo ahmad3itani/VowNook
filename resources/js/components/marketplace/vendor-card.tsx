@@ -50,7 +50,7 @@ export function VendorCard({ vendor, hrefBase }: { vendor: VendorCardData; hrefB
     return (
         <Link
             href={`${hrefBase}/${vendor.slug}`}
-            className="group lift overflow-hidden rounded-2xl border bg-card shadow-atelier transition-all hover:border-[#8a651c]/40 hover:shadow-atelier-lg"
+            className="group lift overflow-hidden rounded-2xl border bg-card shadow-atelier transition-all hover:border-[#1f5142]/40 hover:shadow-atelier-lg"
         >
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -62,14 +62,14 @@ export function VendorCard({ vendor, hrefBase }: { vendor: VendorCardData; hrefB
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                        <Store className="size-12 text-[#8a651c]/30" />
+                        <Store className="size-12 text-[#1f5142]/30" />
                     </div>
                 )}
                 {/* Soft gradient for legibility + depth */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/15 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                 {(vendor.is_founding || vendor.is_featured) && (
                     <div className="absolute left-2 top-2">
-                        <Badge className="gap-1 border-0 bg-[#8a651c] text-xs text-white hover:bg-[#8a651c]">
+                        <Badge className="gap-1 border-0 bg-[#1f5142] text-xs text-white hover:bg-[#1f5142]">
                             <Award className="size-3" />
                             {vendor.is_featured ? 'Featured' : 'Founding vendor'}
                         </Badge>
@@ -90,7 +90,7 @@ export function VendorCard({ vendor, hrefBase }: { vendor: VendorCardData; hrefB
             <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
                     <div>
-                        <h3 className="flex items-center gap-1 font-semibold leading-tight group-hover:text-[#775a19]">
+                        <h3 className="flex items-center gap-1 font-semibold leading-tight group-hover:text-[#1b4638]">
                             {vendor.business_name}
                             {vendor.is_verified && <BadgeCheck className="size-4 text-sky-600" aria-label="Verified" />}
                         </h3>
@@ -130,7 +130,7 @@ export function VendorCard({ vendor, hrefBase }: { vendor: VendorCardData; hrefB
                 </div>
 
                 {vendor.base_price_cents && (
-                    <p className="mt-2 text-sm font-medium text-[#775a19]">
+                    <p className="mt-2 text-sm font-medium text-[#1b4638]">
                         {priceDisplay(vendor.base_price_cents, vendor.price_unit)}
                     </p>
                 )}

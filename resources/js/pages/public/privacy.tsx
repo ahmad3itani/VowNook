@@ -87,7 +87,7 @@ export default function Privacy() {
                 <p>
                     Under PIPEDA you may request access to the personal information we hold about you, ask us to
                     correct it, withdraw consent, or ask for deletion. Write to us via the{' '}
-                    <Link href="/contact" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">contact page</Link>{' '}
+                    <Link href="/contact" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">contact page</Link>{' '}
                     (choose "Privacy request") and we will respond within 30 days. If you are not satisfied with
                     our response, you may complain to the Office of the Privacy Commissioner of Canada.
                 </p>

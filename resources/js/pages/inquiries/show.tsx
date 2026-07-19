@@ -53,7 +53,7 @@ function BookingPayment({ booking }: { booking: InquiryBooking }) {
 
     if (booking.status === 'paid_in_full' || booking.status === 'completed') {
         return (
-            <div className="flex items-center justify-center gap-1.5 rounded-md bg-[#775a19]/10 py-2 text-xs font-medium text-[#775a19]">
+            <div className="flex items-center justify-center gap-1.5 rounded-md bg-[#1b4638]/10 py-2 text-xs font-medium text-[#1b4638]">
                 <BadgeCheck className="size-4" /> Paid in full
             </div>
         );
@@ -163,7 +163,7 @@ function RateVendorCard({ bookingId }: { bookingId: number }) {
                         placeholder="How was your experience? (optional)"
                         className="text-sm"
                     />
-                    <Button type="submit" size="sm" className="w-full bg-[#775a19] hover:bg-[#5c4414]" disabled={!rating || submitting}>
+                    <Button type="submit" size="sm" className="w-full bg-[#1b4638] hover:bg-[#123025]" disabled={!rating || submitting}>
                         Submit review
                     </Button>
                 </form>
@@ -277,7 +277,7 @@ export default function InquiryShow({ inquiry }: PageProps) {
                                             <div
                                                 className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                                                     m.is_mine
-                                                        ? 'bg-[#775a19] text-white'
+                                                        ? 'bg-[#1b4638] text-white'
                                                         : 'bg-muted text-foreground'
                                                 }`}
                                             >
@@ -319,9 +319,9 @@ export default function InquiryShow({ inquiry }: PageProps) {
                     <div className="flex flex-col gap-4">
                         {/* Booking confirmation (after accept) */}
                         {inquiry.booking && (
-                            <Card className="border-[#775a19]/30 bg-[#775a19]/5">
+                            <Card className="border-[#1b4638]/30 bg-[#1b4638]/5">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="flex items-center gap-2 text-sm text-[#775a19]">
+                                    <CardTitle className="flex items-center gap-2 text-sm text-[#1b4638]">
                                         <CalendarCheck className="size-4" />
                                         Booking confirmed
                                     </CardTitle>
@@ -345,7 +345,7 @@ export default function InquiryShow({ inquiry }: PageProps) {
 
                                     <Link
                                         href="/vendors"
-                                        className="mt-1 block text-center text-xs text-[#775a19] underline underline-offset-2"
+                                        className="mt-1 block text-center text-xs text-[#1b4638] underline underline-offset-2"
                                     >
                                         View in vendor workspace →
                                     </Link>
@@ -365,8 +365,8 @@ export default function InquiryShow({ inquiry }: PageProps) {
                                         <p className="text-muted-foreground">{inquiry.review.body}</p>
                                     )}
                                     {inquiry.review.vendor_response && (
-                                        <div className="ml-3 rounded-lg border-l-2 border-[#775a19]/40 bg-muted/50 p-2.5">
-                                            <p className="text-xs font-semibold text-[#775a19]">Vendor response</p>
+                                        <div className="ml-3 rounded-lg border-l-2 border-[#1b4638]/40 bg-muted/50 p-2.5">
+                                            <p className="text-xs font-semibold text-[#1b4638]">Vendor response</p>
                                             <p className="mt-0.5 text-xs text-muted-foreground">{inquiry.review.vendor_response}</p>
                                         </div>
                                     )}
@@ -379,7 +379,7 @@ export default function InquiryShow({ inquiry }: PageProps) {
 
                         {/* Offer card */}
                         {inquiry.offer && (
-                            <Card className={canAct ? 'border-[#775a19]/40' : ''}>
+                            <Card className={canAct ? 'border-[#1b4638]/40' : ''}>
                                 <CardHeader className="pb-2">
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="text-sm">Vendor offer</CardTitle>
@@ -391,7 +391,7 @@ export default function InquiryShow({ inquiry }: PageProps) {
                                 <CardContent className="space-y-3 text-sm">
                                     <div className="flex items-center justify-between font-semibold">
                                         <span>Total</span>
-                                        <span className="text-[#775a19]">{formatMoney(inquiry.offer.total_cents)}</span>
+                                        <span className="text-[#1b4638]">{formatMoney(inquiry.offer.total_cents)}</span>
                                     </div>
 
                                     {inquiry.offer.deposit_cents > 0 && (
@@ -426,7 +426,7 @@ export default function InquiryShow({ inquiry }: PageProps) {
 
                                     {canAct && (
                                         <div className="flex flex-col gap-2 pt-2">
-                                            <Button className="w-full bg-[#775a19] hover:bg-[#5c4414]" onClick={acceptOffer}>
+                                            <Button className="w-full bg-[#1b4638] hover:bg-[#123025]" onClick={acceptOffer}>
                                                 <CheckCircle2 className="mr-1.5 size-4" />
                                                 Accept offer
                                             </Button>
@@ -454,7 +454,7 @@ export default function InquiryShow({ inquiry }: PageProps) {
                                 )}
                                 <Link
                                     href={`/marketplace/${inquiry.vendor.slug}`}
-                                    className="flex items-center gap-1.5 text-[#775a19] hover:underline"
+                                    className="flex items-center gap-1.5 text-[#1b4638] hover:underline"
                                 >
                                     <Store className="size-3.5" />
                                     View vendor profile

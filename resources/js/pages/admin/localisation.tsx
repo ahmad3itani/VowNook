@@ -57,7 +57,7 @@ export default function AdminLocalisation({ locales, active, strings, status }: 
                         description="Override the interface copy for each language. Empty fields fall back to the default."
                     />
                     <div className="flex items-center gap-2">
-                        <Languages className="size-4 text-[#775a19]" />
+                        <Languages className="size-4 text-[#1b4638]" />
                         <Select value={active} onValueChange={changeLocale}>
                             <SelectTrigger className="w-44">
                                 <SelectValue />

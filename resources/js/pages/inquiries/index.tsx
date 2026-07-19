@@ -53,7 +53,7 @@ export default function InquiriesIndex({ inquiries, quote_badge }: PageProps) {
                         )}
                         <Link
                             href="/vendors/marketplace"
-                            className="inline-flex items-center gap-2 rounded-md bg-[#775a19] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+                            className="inline-flex items-center gap-2 rounded-md bg-[#1b4638] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
                         >
                             <Store className="size-4" />
                             Browse marketplace
@@ -70,7 +70,7 @@ export default function InquiriesIndex({ inquiries, quote_badge }: PageProps) {
                             <p className="text-sm text-muted-foreground">No inquiries yet.</p>
                             <Link
                                 href="/vendors/marketplace"
-                                className="inline-flex items-center gap-2 rounded-md bg-[#775a19] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                                className="inline-flex items-center gap-2 rounded-md bg-[#1b4638] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                             >
                                 Find vendors
                             </Link>
@@ -94,7 +94,7 @@ export default function InquiriesIndex({ inquiries, quote_badge }: PageProps) {
 
                                         <div className="flex items-center gap-2">
                                             {inq.has_offer && inq.status === 'offered' && (
-                                                <Badge variant="default" className="bg-[#775a19] text-xs">
+                                                <Badge variant="default" className="bg-[#1b4638] text-xs">
                                                     Offer received
                                                 </Badge>
                                             )}

@@ -239,7 +239,7 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard label="Tasks" value={String(stats.total)} />
-                    <StatCard label="Completed" value={String(stats.completed)} accent="text-[#775a19]" />
+                    <StatCard label="Completed" value={String(stats.completed)} accent="text-[#1b4638]" />
                     <StatCard label="Outstanding" value={String(stats.outstanding)} />
                     <StatCard
                         label="Overdue"
@@ -261,7 +261,7 @@ export default function ChecklistIndex({ tasks, stats, options, members }: PageP
                                     statusFilter === chip.value
                                         ? chip.danger
                                             ? 'bg-destructive text-destructive-foreground'
-                                            : 'bg-[#775a19] text-white'
+                                            : 'bg-[#1b4638] text-white'
                                         : chip.danger
                                           ? 'text-destructive hover:bg-destructive/10'
                                           : 'text-muted-foreground hover:bg-muted'

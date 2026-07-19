@@ -2,7 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { CheckCircle2, Send } from 'lucide-react';
 import { PublicPageShell } from '@/components/public/page-shell';
 
-const fraunces = "font-['Fraunces']";
+const fraunces = "font-['Newsreader']";
 
 const TOPICS = [
     { value: 'couple', label: "I'm planning a wedding" },
@@ -26,7 +26,7 @@ export default function Contact() {
     }
 
     const inputClass =
-        'w-full border border-[#191613]/20 bg-white/60 px-4 py-3 text-[15px] text-[#191613] placeholder:text-[#52493d]/50 focus:border-[#8a651c] focus:outline-none';
+        'w-full border border-[#0f1c17]/20 bg-white/60 px-4 py-3 text-[15px] text-[#0f1c17] placeholder:text-[#4b5850]/50 focus:border-[#1f5142] focus:outline-none';
 
     return (
         <PublicPageShell
@@ -40,15 +40,15 @@ export default function Contact() {
             <div className="grid gap-14 md:grid-cols-12">
                 <form onSubmit={submit} className="space-y-5 md:col-span-7">
                     {recentlySuccessful && (
-                        <div className="flex items-center gap-3 border border-[#8a651c]/30 bg-[#e9c176]/15 px-4 py-3 text-sm text-[#52493d]">
-                            <CheckCircle2 className="size-4 shrink-0 text-[#8a651c]" />
+                        <div className="flex items-center gap-3 border border-[#1f5142]/30 bg-[#7fb79e]/15 px-4 py-3 text-sm text-[#4b5850]">
+                            <CheckCircle2 className="size-4 shrink-0 text-[#1f5142]" />
                             Thank you — your message is on its way. We'll reply by email.
                         </div>
                     )}
 
                     <div className="grid gap-5 sm:grid-cols-2">
                         <div>
-                            <label htmlFor="contact-name" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#52493d] uppercase">
+                            <label htmlFor="contact-name" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#4b5850] uppercase">
                                 Your name
                             </label>
                             <input
@@ -63,7 +63,7 @@ export default function Contact() {
                             {errors.name && <p className="mt-1 text-sm text-red-700">{errors.name}</p>}
                         </div>
                         <div>
-                            <label htmlFor="contact-email" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#52493d] uppercase">
+                            <label htmlFor="contact-email" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#4b5850] uppercase">
                                 Email
                             </label>
                             <input
@@ -80,7 +80,7 @@ export default function Contact() {
                     </div>
 
                     <div>
-                        <label htmlFor="contact-topic" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#52493d] uppercase">
+                        <label htmlFor="contact-topic" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#4b5850] uppercase">
                             Topic
                         </label>
                         <select
@@ -97,7 +97,7 @@ export default function Contact() {
                     </div>
 
                     <div>
-                        <label htmlFor="contact-message" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#52493d] uppercase">
+                        <label htmlFor="contact-message" className="mb-1.5 block text-[11px] tracking-[0.2em] text-[#4b5850] uppercase">
                             Message
                         </label>
                         <textarea
@@ -115,7 +115,7 @@ export default function Contact() {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="inline-flex items-center gap-3 bg-[#191613] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] disabled:opacity-50"
+                        className="inline-flex items-center gap-3 cta-press px-9 py-4 text-[11px] font-semibold tracking-[0.22em] uppercase disabled:opacity-50"
                     >
                         {processing ? 'Sending…' : 'Send message'}
                         <Send className="size-4" />
@@ -124,17 +124,17 @@ export default function Contact() {
 
                 <aside className="md:col-span-4 md:col-start-9">
                     <h2 className={`${fraunces} text-2xl font-light`}>Before you write…</h2>
-                    <ul className="mt-5 space-y-4 text-sm leading-relaxed text-[#52493d]">
+                    <ul className="mt-5 space-y-4 text-sm leading-relaxed text-[#4b5850]">
                         <li>
-                            <strong className="text-[#191613]">Vendors:</strong> profiles are usually reviewed and
+                            <strong className="text-[#0f1c17]">Vendors:</strong> profiles are usually reviewed and
                             published within a day — no need to chase us before then.
                         </li>
                         <li>
-                            <strong className="text-[#191613]">Privacy requests</strong> (access, correction,
+                            <strong className="text-[#0f1c17]">Privacy requests</strong> (access, correction,
                             deletion) are answered within 30 days as required by PIPEDA.
                         </li>
                         <li>
-                            <strong className="text-[#191613]">Booking questions:</strong> the fastest route is
+                            <strong className="text-[#0f1c17]">Booking questions:</strong> the fastest route is
                             the message thread on the inquiry itself — both sides and our records in one place.
                         </li>
                     </ul>

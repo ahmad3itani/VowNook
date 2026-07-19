@@ -282,7 +282,7 @@ export default function TravelIndex({
                                             )}
                                         </div>
                                         {s.price_note && (
-                                            <p className="text-sm text-[#775a19]">
+                                            <p className="text-sm text-[#1b4638]">
                                                 {s.price_note}
                                             </p>
                                         )}

@@ -17,7 +17,7 @@ export default function AppearanceToggleTab({
     if ((auth?.user?.account_type ?? 'couple') === 'couple') {
         return (
             <div className={cn('flex items-center gap-2 text-sm text-muted-foreground', className)}>
-                <Sun className="size-4 text-[#8a651c]" />
+                <Sun className="size-4 text-[#1f5142]" />
                 Your wedding workspace uses the light Atelier theme.
             </div>
         );

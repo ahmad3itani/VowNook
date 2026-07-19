@@ -320,7 +320,7 @@ export function VendorProfileView({
                                                     <p className="mt-0.5 text-sm text-muted-foreground">{s.description}</p>
                                                 )}
                                             </div>
-                                            <p className="shrink-0 text-sm font-medium text-[#775a19] flex items-center gap-1">
+                                            <p className="shrink-0 text-sm font-medium text-[#1b4638] flex items-center gap-1">
                                                 <Tag className="size-3.5" />
                                                 {priceLabel(s)}
                                             </p>
@@ -357,8 +357,8 @@ export function VendorProfileView({
                                                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{r.body}</p>
                                             )}
                                             {r.vendor_response && (
-                                                <div className="mt-3 ml-4 rounded-lg border-l-2 border-[#775a19]/40 bg-muted/50 p-3">
-                                                    <p className="text-xs font-semibold text-[#775a19]">Response from {profile.business_name}</p>
+                                                <div className="mt-3 ml-4 rounded-lg border-l-2 border-[#1b4638]/40 bg-muted/50 p-3">
+                                                    <p className="text-xs font-semibold text-[#1b4638]">Response from {profile.business_name}</p>
                                                     <p className="mt-1 text-sm text-muted-foreground">{r.vendor_response}</p>
                                                 </div>
                                             )}
@@ -376,7 +376,7 @@ export function VendorProfileView({
                         {/* CTA card */}
                         <div className="rounded-xl border bg-card p-5">
                             {profile.base_price_cents && (
-                                <p className="mb-1 text-2xl font-bold text-[#775a19]">
+                                <p className="mb-1 text-2xl font-bold text-[#1b4638]">
                                     {formatMoney(profile.base_price_cents)}
                                     {profile.price_unit && (
                                         <span className="text-sm font-normal text-muted-foreground">
@@ -397,7 +397,7 @@ export function VendorProfileView({
                             {authContext.existing_inquiry ? (
                                 <Link
                                     href={`/vendors/quotes/${authContext.existing_inquiry}`}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#775a19] px-4 py-2.5 text-sm font-semibold text-[#775a19] hover:bg-[#775a19]/5"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#1b4638] px-4 py-2.5 text-sm font-semibold text-[#1b4638] hover:bg-[#1b4638]/5"
                                 >
                                     <CheckCircle2 className="size-4" />
                                     View your inquiry
@@ -408,7 +408,7 @@ export function VendorProfileView({
                                         <button
                                             type="button"
                                             onClick={() => setShowForm(true)}
-                                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#775a19] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1b4638] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
                                         >
                                             <MessageSquare className="size-4" />
                                             Request a quote
@@ -453,7 +453,7 @@ export function VendorProfileView({
                                                 <Textarea required value={data.message} onChange={(e) => setData('message', e.target.value)} rows={3} className="mt-1 text-sm" placeholder="Tell the vendor about your event…" />
                                             </div>
                                             <div className="flex gap-2">
-                                                <button type="submit" disabled={processing} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#775a19] px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
+                                                <button type="submit" disabled={processing} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#1b4638] px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
                                                     <MessageSquare className="size-3.5" />
                                                     {processing ? 'Sending…' : 'Send inquiry'}
                                                 </button>
@@ -467,7 +467,7 @@ export function VendorProfileView({
                             ) : profile.is_accepting_bookings && !profile.is_demo ? (
                                 <Link
                                     href="/register"
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#775a19] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1b4638] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
                                 >
                                     <MessageSquare className="size-4" />
                                     Request a quote
@@ -491,14 +491,14 @@ export function VendorProfileView({
                             <h3 className="text-sm font-semibold">Contact</h3>
 
                             {profile.phone && (
-                                <a href={`tel:${profile.phone}`} className="flex items-center gap-2 text-sm hover:text-[#775a19]">
+                                <a href={`tel:${profile.phone}`} className="flex items-center gap-2 text-sm hover:text-[#1b4638]">
                                     <Phone className="size-4 shrink-0 text-muted-foreground" />
                                     {profile.phone}
                                 </a>
                             )}
 
                             {profile.email && (
-                                <a href={`mailto:${profile.email}`} className="flex items-center gap-2 text-sm hover:text-[#775a19]">
+                                <a href={`mailto:${profile.email}`} className="flex items-center gap-2 text-sm hover:text-[#1b4638]">
                                     <Mail className="size-4 shrink-0 text-muted-foreground" />
                                     {profile.email}
                                 </a>
@@ -509,7 +509,7 @@ export function VendorProfileView({
                                     href={profile.website}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center gap-2 text-sm hover:text-[#775a19]"
+                                    className="flex items-center gap-2 text-sm hover:text-[#1b4638]"
                                 >
                                     <Globe className="size-4 shrink-0 text-muted-foreground" />
                                     {profile.website.replace(/^https?:\/\//, '')}

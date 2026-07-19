@@ -80,10 +80,10 @@ export default function VendorDashboard({ profile, stats, completeness, payouts 
 
                 {/* Onboarding nudge until the listing is published */}
                 {profile && !profile.is_published && (
-                    <Card className="border-[#775a19]/30 bg-[#775a19]/5">
+                    <Card className="border-[#1b4638]/30 bg-[#1b4638]/5">
                         <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
                             <div className="flex items-center gap-3">
-                                <Store className="size-5 text-[#775a19]" />
+                                <Store className="size-5 text-[#1b4638]" />
                                 <div>
                                     <p className="font-medium">Finish setting up your listing</p>
                                     <p className="text-sm text-muted-foreground">
@@ -93,7 +93,7 @@ export default function VendorDashboard({ profile, stats, completeness, payouts 
                             </div>
                             <Link
                                 href="/vendor/profile"
-                                className="inline-flex items-center gap-1.5 rounded-md bg-[#775a19] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-[#1b4638] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
                             >
                                 Complete profile
                                 <ArrowRight className="size-4" />
@@ -107,7 +107,7 @@ export default function VendorDashboard({ profile, stats, completeness, payouts 
                     <StaggerItem><StatCard label="Services listed" value={String(stats.services)} icon={<PackageOpen className="size-4" />} /></StaggerItem>
                     <StaggerItem><StatCard label="Open inquiries" value={String(stats.inquiries)} icon={<MessageSquare className="size-4" />} /></StaggerItem>
                     <StaggerItem><StatCard label="Bookings" value={String(stats.bookings)} icon={<CalendarRange className="size-4" />} /></StaggerItem>
-                    <StaggerItem><StatCard label="Earnings" value={formatMoney(stats.earnings * 100)} icon={<Wallet className="size-4" />} accent="text-[#775a19]" /></StaggerItem>
+                    <StaggerItem><StatCard label="Earnings" value={formatMoney(stats.earnings * 100)} icon={<Wallet className="size-4" />} accent="text-[#1b4638]" /></StaggerItem>
                 </Stagger>
 
                 {/* Profile strength — complete listings win more inquiries */}
@@ -130,16 +130,16 @@ function ProfileStrength({ completeness }: { completeness: Completeness }) {
             <CardHeader>
                 <CardTitle className="flex items-center justify-between gap-2 text-base">
                     <span className="flex items-center gap-2">
-                        <TrendingUp className="size-4 text-[#775a19]" /> Profile strength
+                        <TrendingUp className="size-4 text-[#1b4638]" /> Profile strength
                     </span>
-                    <span className="font-serif text-2xl font-light text-[#775a19]">{completeness.pct}%</span>
+                    <span className="font-serif text-2xl font-light text-[#1b4638]">{completeness.pct}%</span>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                         <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-[#c5a059] to-[#8a651c]"
+                            className="h-full rounded-full bg-gradient-to-r from-[#6e9e8a] to-[#1f5142]"
                             initial={{ width: 0 }}
                             animate={{ width: `${completeness.pct}%` }}
                             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
@@ -177,7 +177,7 @@ function PayoutsCard({ payouts }: { payouts: Payouts }) {
             <CardContent className="flex flex-wrap items-center justify-between gap-4">
                 {ready ? (
                     <div className="flex items-center gap-2 text-sm">
-                        <BadgeCheck className="size-5 text-[#775a19]" />
+                        <BadgeCheck className="size-5 text-[#1b4638]" />
                         <span className="font-medium">Payouts active.</span>
                         <span className="text-muted-foreground">You can receive bookings — funds land in your Stripe account minus the platform fee.</span>
                     </div>
@@ -225,7 +225,7 @@ function StatCard({
 function SetupRow({ done, label, href }: { done: boolean; label: string; href?: string }) {
     const content = (
         <div className="flex items-center gap-3">
-            <CheckCircle2 className={`size-5 shrink-0 ${done ? 'text-[#775a19]' : 'text-muted-foreground/30'}`} />
+            <CheckCircle2 className={`size-5 shrink-0 ${done ? 'text-[#1b4638]' : 'text-muted-foreground/30'}`} />
             <span className={done ? 'text-muted-foreground line-through' : ''}>{label}</span>
             {href && !done && <ArrowRight className="ml-auto size-4 text-muted-foreground" />}
         </div>

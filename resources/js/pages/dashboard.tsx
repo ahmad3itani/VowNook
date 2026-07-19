@@ -71,12 +71,12 @@ function StatCard({
 }) {
     return (
         <Link href={href} className="group">
-            <Card className="lift h-full transition-all group-hover:border-[#775a19]/50 group-hover:shadow-atelier">
+            <Card className="lift h-full transition-all group-hover:border-[#1b4638]/50 group-hover:shadow-atelier">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-xs font-medium tracking-[0.15em] text-muted-foreground uppercase">
                         {title}
                     </CardTitle>
-                    <span className="flex size-7 items-center justify-center rounded-full bg-[#775a19]/10 text-[#775a19] transition-colors group-hover:bg-[#775a19]/15">
+                    <span className="flex size-7 items-center justify-center rounded-full bg-[#1b4638]/10 text-[#1b4638] transition-colors group-hover:bg-[#1b4638]/15">
                         <Icon className="size-3.5" />
                     </span>
                 </CardHeader>
@@ -91,7 +91,7 @@ function Bar({ value, total, danger }: { value: number; total: number; danger?: 
     return (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
-                className={`h-full rounded-full ${danger ? 'bg-destructive' : 'bg-gradient-to-r from-[#8a651c] to-[#c5a059]'}`}
+                className={`h-full rounded-full ${danger ? 'bg-destructive' : 'bg-gradient-to-r from-[#1f5142] to-[#6e9e8a]'}`}
                 style={{ width: `${pct}%` }}
             />
         </div>
@@ -122,7 +122,7 @@ function ProgressRing({ pct }: { pct: number }) {
     return (
         <div className="relative size-36 shrink-0">
             <svg viewBox="0 0 120 120" className="size-full -rotate-90">
-                <circle cx="60" cy="60" r={R} fill="none" stroke="#191613" strokeOpacity="0.08" strokeWidth="7" />
+                <circle cx="60" cy="60" r={R} fill="none" stroke="#0f1c17" strokeOpacity="0.08" strokeWidth="7" />
                 <motion.circle
                     cx="60"
                     cy="60"
@@ -138,13 +138,13 @@ function ProgressRing({ pct }: { pct: number }) {
                 />
                 <defs>
                     <linearGradient id="ring-gold" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#c5a059" />
-                        <stop offset="100%" stopColor="#8a651c" />
+                        <stop offset="0%" stopColor="#6e9e8a" />
+                        <stop offset="100%" stopColor="#1f5142" />
                     </linearGradient>
                 </defs>
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-serif text-3xl font-light text-[#8a651c]">
+                <span className="font-serif text-3xl font-light text-[#1f5142]">
                     <CountUp value={pct} />%
                 </span>
                 <span className="text-[9px] tracking-[0.22em] text-muted-foreground uppercase">planned</span>
@@ -228,7 +228,7 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
             <>
                 <Head title="Dashboard" />
                 <div className="flex flex-1 flex-col items-center justify-center gap-2 p-12 text-center">
-                    <CalendarHeart className="size-10 text-[#775a19]" />
+                    <CalendarHeart className="size-10 text-[#1b4638]" />
                     <h1 className="font-serif text-2xl">No wedding yet</h1>
                     <p className="text-muted-foreground">Create your wedding to start planning.</p>
                     <CreateWeddingForm />
@@ -261,11 +261,11 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
 
                 {/* Hero — greeting, countdown, planning progress */}
                 <Reveal y={16}>
-                    <div className="relative overflow-hidden rounded-2xl border border-[#8a651c]/20 bg-gradient-to-br from-[#fdf8ee] via-white to-[#f6eedd] p-6 shadow-atelier md:p-8">
+                    <div className="relative overflow-hidden rounded-2xl border border-[#1f5142]/20 bg-gradient-to-br from-[#f7f7f2] via-white to-[#f6eedd] p-6 shadow-atelier md:p-8">
                         {days !== null && days > 0 && (
                             <span
                                 aria-hidden
-                                className="pointer-events-none absolute -right-2 -bottom-12 hidden font-serif text-[11rem] leading-none font-light text-[#8a651c]/[0.07] select-none lg:block"
+                                className="pointer-events-none absolute -right-2 -bottom-12 hidden font-serif text-[11rem] leading-none font-light text-[#1f5142]/[0.07] select-none lg:block"
                             >
                                 {days}
                             </span>
@@ -273,7 +273,7 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
 
                         <div className="relative flex flex-wrap items-center justify-between gap-8">
                             <div className="min-w-0 max-w-2xl">
-                                <p className="text-[11px] tracking-[0.25em] text-[#8a651c] uppercase">
+                                <p className="text-[11px] tracking-[0.25em] text-[#1f5142] uppercase">
                                     {timeGreeting()}
                                     {firstName ? `, ${firstName}` : ''}
                                 </p>
@@ -284,7 +284,7 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                         'Set your wedding date to start the countdown.'
                                     ) : days > 0 ? (
                                         <>
-                                            <span className="font-serif text-2xl text-[#8a651c]">
+                                            <span className="font-serif text-2xl text-[#1f5142]">
                                                 <CountUp value={days} />
                                             </span>{' '}
                                             days to go
@@ -304,7 +304,7 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                 {nextStep && (
                                     <Link
                                         href={nextStep.href}
-                                        className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-[#191613] px-5 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c] sm:w-auto"
+                                        className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-[#0f1c17] px-5 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-[#f1f0ea] uppercase transition-colors hover:bg-[#1f5142] sm:w-auto"
                                     >
                                         Next step: {nextStep.label}
                                         <ArrowRight className="size-3.5" />
@@ -319,8 +319,8 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                                 href={m.href}
                                                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${
                                                     m.done
-                                                        ? 'border-[#8a651c]/30 bg-[#8a651c]/10 text-[#8a651c]'
-                                                        : 'border-border bg-white/60 text-muted-foreground hover:border-[#8a651c]/40 hover:text-[#8a651c]'
+                                                        ? 'border-[#1f5142]/30 bg-[#1f5142]/10 text-[#1f5142]'
+                                                        : 'border-border bg-white/60 text-muted-foreground hover:border-[#1f5142]/40 hover:text-[#1f5142]'
                                                 }`}
                                             >
                                                 {m.done ? <Check className="size-3" /> : <Circle className="size-2" />}
@@ -398,7 +398,7 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                         <CardContent className="flex flex-col gap-5">
                             {!hasAttention && (
                                 <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-5">
-                                    <CheckCircle2 className="size-5 shrink-0 text-[#775a19]" />
+                                    <CheckCircle2 className="size-5 shrink-0 text-[#1b4638]" />
                                     <p className="text-sm text-muted-foreground">You're all caught up — nothing needs attention right now.</p>
                                 </div>
                             )}
@@ -466,8 +466,8 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                             {offersAwaiting > 0 && quotes && (
                                 <div>
                                     <div className="mb-2 flex items-center gap-2">
-                                        <MessageSquare className="size-3.5 text-[#775a19]" />
-                                        <span className="text-xs font-semibold tracking-[0.15em] text-[#775a19] uppercase">
+                                        <MessageSquare className="size-3.5 text-[#1b4638]" />
+                                        <span className="text-xs font-semibold tracking-[0.15em] text-[#1b4638] uppercase">
                                             {offersAwaiting} {offersAwaiting === 1 ? 'offer' : 'offers'} awaiting your response
                                         </span>
                                     </div>
@@ -479,10 +479,10 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                                 className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/40"
                                             >
                                                 <div className="flex items-center gap-2.5">
-                                                    <Circle className="size-2 shrink-0 text-[#775a19]" />
+                                                    <Circle className="size-2 shrink-0 text-[#1b4638]" />
                                                     <span className="text-sm">{q.vendor_name ?? 'Vendor'}</span>
                                                 </div>
-                                                <span className="shrink-0 rounded bg-[#775a19]/10 px-2 py-0.5 text-[11px] font-medium text-[#775a19]">
+                                                <span className="shrink-0 rounded bg-[#1b4638]/10 px-2 py-0.5 text-[11px] font-medium text-[#1b4638]">
                                                     Review offer
                                                 </span>
                                             </Link>
@@ -495,8 +495,8 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                             {(attention.no_meal_count > 0 || attention.unseated_count > 0) && (
                                 <div>
                                     <div className="mb-2 flex items-center gap-2">
-                                        <Users className="size-3.5 text-[#775a19]" />
-                                        <span className="text-xs font-semibold tracking-[0.15em] text-[#775a19] uppercase">
+                                        <Users className="size-3.5 text-[#1b4638]" />
+                                        <span className="text-xs font-semibold tracking-[0.15em] text-[#1b4638] uppercase">
                                             Guest gaps
                                         </span>
                                     </div>
@@ -550,8 +550,8 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                             <div key={t.id}>
                                                 {showDate && (
                                                     <div className="mb-1 mt-3 flex items-center gap-2 first:mt-0">
-                                                        <Clock className="size-3 text-[#775a19]" />
-                                                        <span className="text-[10px] font-semibold tracking-[0.15em] text-[#775a19] uppercase">
+                                                        <Clock className="size-3 text-[#1b4638]" />
+                                                        <span className="text-[10px] font-semibold tracking-[0.15em] text-[#1b4638] uppercase">
                                                             {formatDate(t.due_date)}
                                                         </span>
                                                     </div>
@@ -568,7 +568,7 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                                     })}
                                     <Link
                                         href="/checklist"
-                                        className="mt-3 block border-t border-border pt-3 text-center text-xs text-[#775a19] hover:underline"
+                                        className="mt-3 block border-t border-border pt-3 text-center text-xs text-[#1b4638] hover:underline"
                                     >
                                         View all tasks →
                                     </Link>
@@ -586,12 +586,12 @@ export default function Dashboard({ milestones = [], summary, guests, budget, ta
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {[
-                            { label: 'Attending', value: guests.attending, color: 'text-[#775a19]' },
+                            { label: 'Attending', value: guests.attending, color: 'text-[#1b4638]' },
                             { label: 'Maybe', value: guests.maybe, color: 'text-amber-600' },
                             { label: 'Declined', value: guests.declined, color: 'text-muted-foreground' },
                             { label: 'Pending', value: guests.pending, color: 'text-muted-foreground' },
                         ].map((s) => (
-                            <Link key={s.label} href="/guests" className="group border border-border p-4 hover:border-[#775a19]/40">
+                            <Link key={s.label} href="/guests" className="group border border-border p-4 hover:border-[#1b4638]/40">
                                 <div className={`font-serif text-3xl ${s.color}`}>{s.value}</div>
                                 <div className="mt-1 text-xs tracking-[0.15em] text-muted-foreground uppercase">{s.label}</div>
                             </Link>

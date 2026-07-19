@@ -67,13 +67,13 @@ function Fallback() {
                 gap: '14px',
                 padding: '24px',
                 textAlign: 'center',
-                background: '#faf6ef',
-                color: '#191613',
+                background: '#f1f0ea',
+                color: '#0f1c17',
                 fontFamily: 'Georgia, "Times New Roman", serif',
             }}
         >
             <h1 style={{ fontSize: '26px', fontWeight: 400, margin: 0 }}>Something went wrong</h1>
-            <p style={{ maxWidth: '420px', fontSize: '15px', lineHeight: 1.6, color: '#52493d', fontFamily: 'system-ui, sans-serif' }}>
+            <p style={{ maxWidth: '420px', fontSize: '15px', lineHeight: 1.6, color: '#4b5850', fontFamily: 'system-ui, sans-serif' }}>
                 We hit a snag loading this page. Reloading usually fixes it — if it
                 keeps happening, sign out and back in.
             </p>
@@ -82,8 +82,8 @@ function Fallback() {
                     type="button"
                     onClick={() => window.location.reload()}
                     style={{
-                        background: '#191613',
-                        color: '#faf6ef',
+                        background: '#0f1c17',
+                        color: '#f1f0ea',
                         border: 'none',
                         padding: '11px 22px',
                         fontSize: '12px',
@@ -98,8 +98,8 @@ function Fallback() {
                 <a
                     href="/dashboard"
                     style={{
-                        border: '1px solid #191613',
-                        color: '#191613',
+                        border: '1px solid #0f1c17',
+                        color: '#0f1c17',
                         padding: '11px 22px',
                         fontSize: '12px',
                         letterSpacing: '0.12em',

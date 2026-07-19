@@ -24,7 +24,7 @@ export default function PublicVendorProfile({ profile, auth_context, services_fo
                 <SiteHeader />
 
                 <div className="mx-auto max-w-7xl px-4 pt-5">
-                    <Link href="/marketplace" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-[#8a651c]" prefetch>
+                    <Link href="/marketplace" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-[#1f5142]" prefetch>
                         <ArrowLeft className="size-4" />
                         Back to marketplace
                     </Link>

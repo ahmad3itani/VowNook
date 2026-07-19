@@ -35,9 +35,9 @@ const PROSE =
     '[&_p]:mb-5 [&_p]:leading-relaxed [&_p]:text-[15px] [&_p]:text-foreground/90 ' +
     '[&_ul]:mb-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mb-5 [&_ol]:list-decimal [&_ol]:pl-6 ' +
     '[&_li]:mb-1.5 [&_li]:leading-relaxed ' +
-    '[&_a]:font-medium [&_a]:text-[#8a651c] [&_a]:underline [&_a]:underline-offset-2 ' +
+    '[&_a]:font-medium [&_a]:text-[#1f5142] [&_a]:underline [&_a]:underline-offset-2 ' +
     '[&_strong]:font-semibold [&_strong]:text-foreground ' +
-    '[&_blockquote]:my-6 [&_blockquote]:border-l-2 [&_blockquote]:border-[#8a651c] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground ' +
+    '[&_blockquote]:my-6 [&_blockquote]:border-l-2 [&_blockquote]:border-[#1f5142] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground ' +
     '[&_img]:my-7 [&_img]:h-auto [&_img]:w-full [&_img]:rounded-xl [&_figure]:my-7 [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-muted-foreground';
 
 export default function BlogShow({ post, related }: PageProps) {
@@ -52,7 +52,7 @@ export default function BlogShow({ post, related }: PageProps) {
                 </Link>
 
                 <header className="mt-6">
-                    <Link href={`/blog/category/${post.category.slug}`} className="text-xs font-semibold tracking-wide text-[#8a651c] uppercase hover:underline">
+                    <Link href={`/blog/category/${post.category.slug}`} className="text-xs font-semibold tracking-wide text-[#1f5142] uppercase hover:underline">
                         {post.category.label}
                     </Link>
                     <h1 className="mt-3 font-serif text-3xl leading-tight md:text-4xl">{post.title}</h1>
@@ -79,10 +79,10 @@ export default function BlogShow({ post, related }: PageProps) {
                     <h2 className="font-serif text-2xl">Plan it all in one calm place</h2>
                     <p className="mt-2 text-muted-foreground">Free guest list, budget, timeline and seating — plus trusted Ontario vendors.</p>
                     <div className="mt-5 flex justify-center gap-3">
-                        <Link href="/register" className="rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-[#8a651c] hover:text-white">
+                        <Link href="/register" className="rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-[#1f5142] hover:text-white">
                             Start free
                         </Link>
-                        <Link href="/marketplace" className="rounded-full border border-border px-6 py-2.5 text-sm font-semibold transition-colors hover:border-[#8a651c]">
+                        <Link href="/marketplace" className="rounded-full border border-border px-6 py-2.5 text-sm font-semibold transition-colors hover:border-[#1f5142]">
                             Browse vendors
                         </Link>
                     </div>
@@ -96,8 +96,8 @@ export default function BlogShow({ post, related }: PageProps) {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {related.map((r) => (
                             <Link key={r.slug} href={`/blog/${r.slug}`} className="group flex flex-col gap-1.5 rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-atelier">
-                                <span className="text-xs font-medium tracking-wide text-[#8a651c] uppercase">{r.category.label}</span>
-                                <span className="font-serif text-base leading-snug group-hover:text-[#8a651c]">{r.title}</span>
+                                <span className="text-xs font-medium tracking-wide text-[#1f5142] uppercase">{r.category.label}</span>
+                                <span className="font-serif text-base leading-snug group-hover:text-[#1f5142]">{r.title}</span>
                                 <span className="text-xs text-muted-foreground">{r.published_label} · {r.reading_minutes} min</span>
                             </Link>
                         ))}

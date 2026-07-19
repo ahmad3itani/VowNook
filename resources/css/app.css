@@ -8,13 +8,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+    /* Instrument Sans ships locally via the vite fonts plugin (no external
+       request, no layout shift). Newsreader is the editorial display face —
+       variable, with real optical sizing and a genuinely beautiful italic. */
     --font-sans:
-        'DM Sans', ui-sans-serif, system-ui, sans-serif,
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
-    /* Fraunces is the brand display face (matches the marketing site); Playfair
-       is kept as a graceful fallback. */
-    --font-serif: 'Fraunces', 'Playfair Display', ui-serif, Georgia, serif;
+    --font-serif: 'Newsreader', ui-serif, Georgia, serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -64,77 +65,104 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/*
+ * BOTANICAL PRESS
+ * ---------------
+ * The design language is a letterpress wedding programme, not a luxury landing
+ * page: limestone paper, deep forest ink, hairline rules, and exactly one warm
+ * accent (persimmon) held in reserve for calls to action so the eye always
+ * knows where to go. Green is deliberate — botanical/garden weddings, evergreen
+ * as a marriage metaphor, and the Ontario landscape — and it escapes both the
+ * blush-pink wedding cliché and the cream-and-gold generated-luxury look.
+ *
+ * Rule: persimmon (--accent-warm) is ONLY ever a call to action. If it starts
+ * appearing on decoration, the hierarchy is broken and conversions suffer.
+ */
 :root {
-    /* Atelier — warm ivory, espresso, brushed gold */
-    --background: #fff8f3;
-    --foreground: #1e1b17;
-    --card: #fffdf9;
-    --card-foreground: #1e1b17;
+    --background: #f1f0ea; /* limestone paper */
+    --foreground: #0f1c17; /* forest ink */
+    --card: #fafaf6;
+    --card-foreground: #0f1c17;
     --popover: #ffffff;
-    --popover-foreground: #1e1b17;
-    --primary: #1e1b18;
-    --primary-foreground: #fdf8f3;
-    --secondary: #f4ece6;
-    --secondary-foreground: #1e1b18;
-    --muted: #f4ece6;
-    --muted-foreground: #6f675e;
-    --accent: #efe7e0;
-    --accent-foreground: #1e1b18;
-    --destructive: #ba1a1a;
+    --popover-foreground: #0f1c17;
+    --primary: #1b4638; /* deep forest — brand */
+    --primary-foreground: #f4f6f1;
+    --secondary: #e7e9e2;
+    --secondary-foreground: #12211b;
+    --muted: #e7e9e2;
+    --muted-foreground: #5c6a62;
+    --accent: #dfe4dc;
+    --accent-foreground: #12211b;
+    --destructive: #a8321f;
     --destructive-foreground: #ffffff;
-    --border: #e4dbd0;
-    --input: #d8cec3;
-    --ring: #775a19;
-    --chart-1: #775a19;
-    --chart-2: #b08d3e;
-    --chart-3: #1e1b18;
-    --chart-4: #c5a059;
-    --chart-5: #8a7a5c;
-    --radius: 0.4rem;
-    --sidebar: #faf2ec;
-    --sidebar-foreground: #4c4640;
-    --sidebar-primary: #1e1b18;
-    --sidebar-primary-foreground: #fdf8f3;
-    --sidebar-accent: #efe7e0;
-    --sidebar-accent-foreground: #1e1b18;
-    --sidebar-border: #e4dbd0;
-    --sidebar-ring: #775a19;
+    --border: #d5d8d1;
+    --input: #c6ccc4;
+    --ring: #1b4638;
+
+    /* Brand extensions — the parts Tailwind's shadcn set has no slot for. */
+    --accent-warm: #c4502e; /* persimmon — CTA ONLY */
+    --accent-warm-hover: #a93f20;
+    --accent-warm-soft: #e8bfae;
+    --sage: #7fb79e;
+    --forest-deep: #0f2a21; /* dark chapter surfaces */
+
+    --chart-1: #1b4638;
+    --chart-2: #7fb79e;
+    --chart-3: #c4502e;
+    --chart-4: #5c6a62;
+    --chart-5: #a8c5b6;
+    --radius: 0.25rem; /* printed, not pill-soft */
+    --sidebar: #eceee7;
+    --sidebar-foreground: #47534d;
+    --sidebar-primary: #1b4638;
+    --sidebar-primary-foreground: #f4f6f1;
+    --sidebar-accent: #dfe4dc;
+    --sidebar-accent-foreground: #12211b;
+    --sidebar-border: #d5d8d1;
+    --sidebar-ring: #1b4638;
 }
 
 .dark {
-    /* Atelier — deep espresso with gold accents */
-    --background: #18130d;
-    --foreground: #ece3d8;
-    --card: #211b14;
-    --card-foreground: #ece3d8;
-    --popover: #211b14;
-    --popover-foreground: #ece3d8;
-    --primary: #e9c176;
-    --primary-foreground: #1e1b18;
-    --secondary: #2c241b;
-    --secondary-foreground: #ece3d8;
-    --muted: #2c241b;
-    --muted-foreground: #b3a795;
-    --accent: #332a1f;
-    --accent-foreground: #f4e9d8;
-    --destructive: #e5484d;
+    /* Night edition — pressed into deep forest board. */
+    --background: #0c1712;
+    --foreground: #e4e9e4;
+    --card: #12211b;
+    --card-foreground: #e4e9e4;
+    --popover: #12211b;
+    --popover-foreground: #e4e9e4;
+    --primary: #7fb79e;
+    --primary-foreground: #0c1712;
+    --secondary: #1a2c24;
+    --secondary-foreground: #e4e9e4;
+    --muted: #1a2c24;
+    --muted-foreground: #9aaba2;
+    --accent: #1f3a2f;
+    --accent-foreground: #e8efe8;
+    --destructive: #e0663f;
     --destructive-foreground: #ffffff;
-    --border: #352d22;
-    --input: #352d22;
-    --ring: #e9c176;
-    --chart-1: #e9c176;
-    --chart-2: #c5a059;
-    --chart-3: #b08d3e;
-    --chart-4: #8a7a5c;
-    --chart-5: #d8c9aa;
-    --sidebar: #1e1812;
-    --sidebar-foreground: #c9bdac;
-    --sidebar-primary: #e9c176;
-    --sidebar-primary-foreground: #1e1b18;
-    --sidebar-accent: #2c241b;
-    --sidebar-accent-foreground: #f4e9d8;
-    --sidebar-border: #352d22;
-    --sidebar-ring: #e9c176;
+    --border: #24382e;
+    --input: #24382e;
+    --ring: #7fb79e;
+
+    --accent-warm: #e0663f;
+    --accent-warm-hover: #ef7d57;
+    --accent-warm-soft: #6b3323;
+    --sage: #7fb79e;
+    --forest-deep: #08120e;
+
+    --chart-1: #7fb79e;
+    --chart-2: #e0663f;
+    --chart-3: #a8c5b6;
+    --chart-4: #5c6a62;
+    --chart-5: #d6e3da;
+    --sidebar: #0e1a15;
+    --sidebar-foreground: #b6c4bc;
+    --sidebar-primary: #7fb79e;
+    --sidebar-primary-foreground: #0c1712;
+    --sidebar-accent: #1a2c24;
+    --sidebar-accent-foreground: #e8efe8;
+    --sidebar-border: #24382e;
+    --sidebar-ring: #7fb79e;
 }
 
 @layer base {
@@ -144,46 +172,226 @@
 
     body {
         @apply bg-background text-foreground;
+        /* Printed-page texture. Kept in the body pseudo-element so it costs one
+           composited layer and never intercepts pointer events. */
+        position: relative;
     }
 
-    /* Editorial serif headings get optical sizing + tighter tracking. */
+    /* Paper grain. The turbulence is rasterised ONCE at 160×160 and tiled —
+       without an explicit background-size the SVG stretches to the viewport and
+       the browser recomputes fractal noise over the whole screen on every
+       repaint, which locks up the renderer. */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        pointer-events: none;
+        opacity: 0.04;
+        mix-blend-mode: multiply;
+        will-change: transform;
+        background-repeat: repeat;
+        background-size: 160px 160px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .dark body::before {
+        mix-blend-mode: screen;
+        opacity: 0.05;
+    }
+
+    /* Editorial display type: real optical sizing, tightened at large sizes. */
     .font-serif,
-    [class*='font-serif'] {
+    [class*='font-serif'],
+    [class*="font-['Newsreader']"] {
         font-optical-sizing: auto;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.018em;
+        font-variant-ligatures: common-ligatures contextual;
+    }
+
+    /* Prices, counts and dates align in columns like a printed price list. */
+    table,
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+
+    ::selection {
+        background: var(--accent-warm);
+        color: #fff;
     }
 }
 
 @layer utilities {
-    /* Warm, espresso-tinted elevation — replaces flat neutral-gray shadows for a
-       more premium, atelier feel. */
+    /* Ink-tinted elevation. Names kept from the previous system so every
+       existing usage across the app inherits the new look for free. */
     .shadow-atelier {
         box-shadow:
-            0 1px 2px rgba(30, 27, 24, 0.04),
-            0 10px 28px -14px rgba(30, 27, 24, 0.16);
+            0 1px 2px rgba(15, 28, 23, 0.05),
+            0 12px 30px -16px rgba(15, 28, 23, 0.18);
     }
 
     .shadow-atelier-lg {
         box-shadow:
-            0 2px 6px rgba(30, 27, 24, 0.05),
-            0 28px 56px -24px rgba(30, 27, 24, 0.26);
+            0 2px 6px rgba(15, 28, 23, 0.06),
+            0 30px 60px -26px rgba(15, 28, 23, 0.3);
     }
 
-    /* Subtle lift on interactive cards. */
     .lift {
         transition:
-            transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-            box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 0.4s ease;
     }
 
     .lift:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px);
     }
 
-    /* Hairline gold rule used as an editorial accent under headings. */
+    /* Hairline rule under an eyebrow/heading. */
     .rule-gold {
-        height: 2px;
-        width: 2.5rem;
-        background: linear-gradient(90deg, var(--ring), transparent);
+        height: 1px;
+        width: 3rem;
+        background: linear-gradient(90deg, var(--accent-warm), transparent);
+    }
+
+    /* Letterspaced uppercase label — the "printed caption" voice. */
+    .eyebrow {
+        font-size: 0.6875rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    /* ── Motion ───────────────────────────────────────────────────────────
+       CSS-only so it survives SSR and costs no JS. One orchestrated page-load
+       reveal reads as far more designed than scattered micro-interactions. */
+    @keyframes press-rise {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @keyframes press-wipe {
+        from {
+            clip-path: inset(0 100% 0 0);
+        }
+        to {
+            clip-path: inset(0 0 0 0);
+        }
+    }
+
+    @keyframes press-rule {
+        from {
+            transform: scaleX(0);
+        }
+        to {
+            transform: scaleX(1);
+        }
+    }
+
+    .rise {
+        animation: press-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .wipe {
+        animation: press-wipe 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .rule-draw {
+        transform-origin: left;
+        animation: press-rule 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* Stagger children without per-element delay classes in the markup. */
+    .stagger > * {
+        animation: press-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.12s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.19s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.26s; }
+    .stagger > *:nth-child(5) { animation-delay: 0.33s; }
+    .stagger > *:nth-child(6) { animation-delay: 0.4s; }
+    .stagger > *:nth-child(7) { animation-delay: 0.47s; }
+    .stagger > *:nth-child(8) { animation-delay: 0.54s; }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.32s; }
+    .delay-4 { animation-delay: 0.44s; }
+    .delay-5 { animation-delay: 0.56s; }
+
+    /* ── The call to action ───────────────────────────────────────────────
+       Every conversion hotspot on the site uses this. The sheen sweeps once on
+       hover; the lift is small enough to feel mechanical rather than bouncy. */
+    .cta-press {
+        position: relative;
+        overflow: hidden;
+        background: var(--accent-warm);
+        color: #fff;
+        transition:
+            background 0.3s ease,
+            transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.3s ease;
+        box-shadow: 0 1px 2px rgba(15, 28, 23, 0.12);
+    }
+
+    .cta-press:hover {
+        background: var(--accent-warm-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px -10px rgba(196, 80, 46, 0.6);
+    }
+
+    .cta-press::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            110deg,
+            transparent 20%,
+            rgba(255, 255, 255, 0.28) 50%,
+            transparent 80%
+        );
+        transform: translateX(-120%);
+        transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cta-press:hover::after {
+        transform: translateX(120%);
+    }
+
+    /* Underline that draws in from the left — used on editorial text links. */
+    .link-draw {
+        background-image: linear-gradient(var(--accent-warm), var(--accent-warm));
+        background-size: 0% 1px;
+        background-position: 0 100%;
+        background-repeat: no-repeat;
+        transition: background-size 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .link-draw:hover {
+        background-size: 100% 1px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .rise,
+        .wipe,
+        .rule-draw,
+        .stagger > *,
+        .cta-press,
+        .cta-press::after,
+        .lift,
+        .link-draw {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+            clip-path: none !important;
+            background-size: 100% 1px;
+        }
     }
 }

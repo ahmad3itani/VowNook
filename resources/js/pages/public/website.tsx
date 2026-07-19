@@ -104,13 +104,13 @@ type PageProps = {
 
 const THEMES = {
     classic: {
-        bg: '#fff8f3',
-        primary: '#775a19',
-        text: '#1e1b17',
+        bg: '#f5f4ee',
+        primary: '#1b4638',
+        text: '#12211b',
         surface: '#faf2ec',
-        dark: '#1e1b18',
-        muted: '#4c4640',
-        border: '#cec5bd',
+        dark: '#12211b',
+        muted: '#47534d',
+        border: '#d5d8d1',
     },
     modern: {
         bg: '#f9f9f9',
@@ -182,7 +182,7 @@ type ThemeKey = keyof typeof THEMES;
 const FALLBACK_HERO = '/images/wedding/hero.jpg';
 const FALLBACK_STORY = '/images/wedding/story.jpg';
 
-const serif = "font-['Playfair_Display']";
+const serif = "font-['Newsreader']";
 
 const longDate = new Intl.DateTimeFormat('en-CA', {
     weekday: 'long',
@@ -534,7 +534,7 @@ export default function PublicWebsite({
 
     return (
         <div
-            className="min-h-screen font-['DM_Sans'] antialiased"
+            className="min-h-screen font-['Instrument_Sans'] antialiased"
             style={{
                 ...cssVars,
                 background: 'var(--c-bg)',

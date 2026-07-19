@@ -60,7 +60,7 @@ export default function AdminSupportIndex({ tickets, filter, counts }: PageProps
                             type="button"
                             onClick={() => router.get('/admin/support', { status: t.value }, { preserveState: true, preserveScroll: true })}
                             className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-                                filter.status === t.value ? 'bg-[#775a19] text-white' : 'text-muted-foreground hover:bg-muted'
+                                filter.status === t.value ? 'bg-[#1b4638] text-white' : 'text-muted-foreground hover:bg-muted'
                             }`}
                         >
                             {t.label}

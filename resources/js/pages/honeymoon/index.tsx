@@ -227,7 +227,7 @@ function Brief({
     onSubmit: (e: FormEvent) => void;
 }) {
     return (
-        <Card className="border-[#775a19]/25 bg-[#fdf8ee]">
+        <Card className="border-[#1b4638]/25 bg-[#f7f7f2]">
             <CardContent className="py-6">
                 <form onSubmit={onSubmit} className="flex flex-col gap-4">
                     <div className="grid gap-2">
@@ -316,7 +316,7 @@ function Brief({
                             <Button
                                 type="submit"
                                 disabled={brief.processing}
-                                className="bg-[#775a19] hover:bg-[#634a14]"
+                                className="bg-[#1b4638] hover:bg-[#16382c]"
                             >
                                 {brief.processing ? (
                                     <Spinner />
@@ -364,10 +364,10 @@ function PackageCard({
 
     return (
         <Card
-            className={`relative overflow-visible ${meta.featured ? 'border-2 border-[#775a19]' : ''}`}
+            className={`relative overflow-visible ${meta.featured ? 'border-2 border-[#1b4638]' : ''}`}
         >
             {meta.featured && (
-                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#775a19] px-3 py-0.5 text-[10px] font-medium text-white">
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#1b4638] px-3 py-0.5 text-[10px] font-medium text-white">
                     Best for you
                 </span>
             )}
@@ -375,7 +375,7 @@ function PackageCard({
                 <p className="text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
                     {meta.label}
                 </p>
-                <p className="font-serif text-xl text-[#1e1b17]">
+                <p className="font-serif text-xl text-[#12211b]">
                     {pkg.destination}
                 </p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
@@ -384,7 +384,7 @@ function PackageCard({
 
                 <div className="mt-1 flex flex-col gap-1.5 border-t pt-3 text-sm">
                     <p className="flex items-center gap-2">
-                        <Plane className="size-3.5 shrink-0 text-[#775a19]" />
+                        <Plane className="size-3.5 shrink-0 text-[#1b4638]" />
                         <span className="text-muted-foreground">
                             {pkg.airport} ·
                         </span>
@@ -393,7 +393,7 @@ function PackageCard({
                         </span>
                     </p>
                     <p className="flex items-start gap-2">
-                        <Hotel className="mt-0.5 size-3.5 shrink-0 text-[#775a19]" />
+                        <Hotel className="mt-0.5 size-3.5 shrink-0 text-[#1b4638]" />
                         <span className="min-w-0">
                             <span className="block truncate">
                                 {pkg.hotel_name}
@@ -405,7 +405,7 @@ function PackageCard({
                     </p>
                     {nights > 0 && (
                         <p className="flex items-center gap-2 text-muted-foreground">
-                            <CalendarDays className="size-3.5 shrink-0 text-[#775a19]" />
+                            <CalendarDays className="size-3.5 shrink-0 text-[#1b4638]" />
                             {nights}-night trip · ~{money(perNight)}/night
                         </p>
                     )}
@@ -413,7 +413,7 @@ function PackageCard({
 
                 <div className="mt-auto flex items-baseline justify-between pt-3">
                     <span className="text-xs text-muted-foreground">Total</span>
-                    <span className="font-serif text-2xl text-[#775a19]">
+                    <span className="font-serif text-2xl text-[#1b4638]">
                         {money(pkg.total_cents)}
                     </span>
                 </div>
@@ -424,8 +424,8 @@ function PackageCard({
                     variant={chosen ? 'outline' : 'default'}
                     className={
                         chosen
-                            ? 'border-[#775a19] text-[#775a19]'
-                            : 'bg-[#775a19] hover:bg-[#634a14]'
+                            ? 'border-[#1b4638] text-[#1b4638]'
+                            : 'bg-[#1b4638] hover:bg-[#16382c]'
                     }
                 >
                     {choosing ? (
@@ -456,10 +456,10 @@ function LivePrice({
     return (
         <p className="text-sm">
             <span className="text-muted-foreground">{label} from </span>
-            <span className="font-semibold text-[#775a19]">
+            <span className="font-semibold text-[#1b4638]">
                 {money(live.price_cents)}
             </span>
-            <span className="ml-1.5 rounded-full bg-[#775a19]/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[#775a19] uppercase">
+            <span className="ml-1.5 rounded-full bg-[#1b4638]/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[#1b4638] uppercase">
                 live
             </span>
         </p>
@@ -509,13 +509,13 @@ function ChosenBooking({
     ].filter((b) => b.cents > 0);
 
     return (
-        <Card className="border-[#775a19]/30">
+        <Card className="border-[#1b4638]/30">
             <CardContent className="flex flex-col gap-5 py-6">
                 <div>
-                    <p className="text-xs tracking-[0.2em] text-[#775a19] uppercase">
+                    <p className="text-xs tracking-[0.2em] text-[#1b4638] uppercase">
                         Your honeymoon
                     </p>
-                    <h2 className="font-serif text-3xl text-[#1e1b17]">
+                    <h2 className="font-serif text-3xl text-[#12211b]">
                         {pkg.destination}
                     </h2>
                     <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -533,7 +533,7 @@ function ChosenBooking({
                                     key={i}
                                     className="flex gap-3 rounded-lg border p-3"
                                 >
-                                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#775a19]/10 text-xs font-semibold text-[#775a19]">
+                                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#1b4638]/10 text-xs font-semibold text-[#1b4638]">
                                         {i + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
@@ -545,7 +545,7 @@ function ChosenBooking({
                                         </p>
                                     </div>
                                     {d.spend_cents > 0 && (
-                                        <span className="shrink-0 text-sm text-[#775a19]">
+                                        <span className="shrink-0 text-sm text-[#1b4638]">
                                             {money(d.spend_cents)}
                                         </span>
                                     )}
@@ -572,7 +572,7 @@ function ChosenBooking({
                                             {x.name}
                                         </p>
                                         {x.est_cents > 0 && (
-                                            <span className="shrink-0 text-sm text-[#775a19]">
+                                            <span className="shrink-0 text-sm text-[#1b4638]">
                                                 {money(x.est_cents)}
                                             </span>
                                         )}
@@ -586,7 +586,7 @@ function ChosenBooking({
                                         href={x.url}
                                         target="_blank"
                                         rel="noopener noreferrer sponsored"
-                                        className="mt-1 w-fit text-xs font-medium text-[#775a19] hover:underline"
+                                        className="mt-1 w-fit text-xs font-medium text-[#1b4638] hover:underline"
                                     >
                                         Find &amp; book →
                                     </a>
@@ -616,14 +616,14 @@ function ChosenBooking({
                     ))}
                     <div className="mt-1 flex items-center justify-between border-t pt-2 text-sm font-semibold">
                         <span>Total</span>
-                        <span className="text-[#775a19]">
+                        <span className="text-[#1b4638]">
                             {money(pkg.total_cents)}
                         </span>
                     </div>
                 </div>
 
                 {/* Registry tie-in — the unique bit: guests fund the real trip */}
-                <div className="flex flex-col items-start gap-2 rounded-xl border border-[#775a19]/30 bg-[#fdf8ee] p-4">
+                <div className="flex flex-col items-start gap-2 rounded-xl border border-[#1b4638]/30 bg-[#f7f7f2] p-4">
                     <h3 className="text-sm font-medium">
                         Let your guests fund it
                     </h3>
@@ -635,7 +635,7 @@ function ChosenBooking({
                     {registryAdded ? (
                         <a
                             href="/registry"
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#775a19] hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1b4638] hover:underline"
                         >
                             <Check className="size-4" /> Added to your registry
                             — manage it
@@ -643,7 +643,7 @@ function ChosenBooking({
                     ) : (
                         <Button
                             onClick={fundWithRegistry}
-                            className="bg-[#775a19] hover:bg-[#634a14]"
+                            className="bg-[#1b4638] hover:bg-[#16382c]"
                         >
                             <Gift className="size-4" /> Add to our registry
                         </Button>
@@ -658,7 +658,7 @@ function ChosenBooking({
                             <LivePrice label="Flights" live={live?.flight} />
                             <Button
                                 asChild
-                                className="w-fit bg-[#775a19] hover:bg-[#634a14]"
+                                className="w-fit bg-[#1b4638] hover:bg-[#16382c]"
                             >
                                 <a
                                     href={flightsUrl}

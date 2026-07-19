@@ -127,8 +127,8 @@ const ELEMENT_ICON: Record<string, LucideIcon> = {
 };
 
 const RSVP_RING: Record<string, string> = {
-    attending: 'ring-[#775a19]',
-    maybe: 'ring-[#c5a059]',
+    attending: 'ring-[#1b4638]',
+    maybe: 'ring-[#6e9e8a]',
     declined: 'ring-[#c1b6a8]',
     pending: 'ring-[#e0d6c9]',
 };
@@ -248,7 +248,7 @@ export default function SeatingIndex({ weddingName, menu, tables, guests, elemen
             // Capture the canvas at 2× for crisp print quality
             const dataUrl = await toPng(canvasRef.current, {
                 pixelRatio: 2,
-                backgroundColor: '#efe7da',
+                backgroundColor: '#e4e8e0',
             });
 
             const [{ jsPDF }, { default: autoTable }] = await Promise.all([
@@ -967,7 +967,7 @@ return;
                 <SeatingInfographics stats={stats} />
 
                 {selectedGuestId !== null && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#8a651c]/40 bg-[#fed488]/15 px-4 py-2 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#1f5142]/40 bg-[#a8d5c2]/15 px-4 py-2 text-sm">
                         <span>
                             Seating <strong>{guests.find((g) => g.id === selectedGuestId)?.name}</strong> — tap an empty seat to place them.
                         </span>
@@ -982,20 +982,20 @@ return;
                     <aside className="flex flex-col lg:w-64">
                         <div className="flex flex-1 flex-col border border-border bg-card">
                             <div className="border-b border-border p-4">
-                                <p className="text-xs tracking-[0.2em] text-[#775a19] uppercase">Guests</p>
+                                <p className="text-xs tracking-[0.2em] text-[#1b4638] uppercase">Guests</p>
                                 <div className="relative mt-3">
                                     <Search className="absolute top-1/2 left-0 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <input
                                         value={guestSearch}
                                         onChange={(e) => setGuestSearch(e.target.value)}
                                         placeholder="Find a guest…"
-                                        className="w-full border-0 border-b border-border bg-transparent py-2 pl-6 text-sm focus:border-[#775a19] focus:ring-0"
+                                        className="w-full border-0 border-b border-border bg-transparent py-2 pl-6 text-sm focus:border-[#1b4638] focus:ring-0"
                                     />
                                 </div>
                             </div>
                             <div
                                 className={`flex flex-1 flex-col gap-2 overflow-y-auto p-4 ${
-                                    dropTarget === 'unseated' ? 'bg-[#fed488]/10' : ''
+                                    dropTarget === 'unseated' ? 'bg-[#a8d5c2]/10' : ''
                                 }`}
                                 onDragOver={(e) => {
                                     if (dragGuestId !== null) {
@@ -1022,14 +1022,14 @@ return;
                                             }
                                             className={`flex items-center gap-2 rounded px-3 py-2 text-sm active:cursor-grabbing ${
                                                 selectedGuestId === g.id
-                                                    ? 'bg-[#fed488]/40 ring-2 ring-[#8a651c]'
+                                                    ? 'bg-[#a8d5c2]/40 ring-2 ring-[#1f5142]'
                                                     : 'cursor-pointer bg-muted hover:bg-muted/70'
                                             }`}
                                         >
                                             <span
                                                 className={`size-2 shrink-0 rounded-full ${
                                                     g.rsvp_status === 'attending'
-                                                        ? 'bg-[#775a19]'
+                                                        ? 'bg-[#1b4638]'
                                                         : g.rsvp_status === 'declined'
                                                           ? 'bg-[#c1b6a8]'
                                                           : 'bg-[#e0d6c9]'
@@ -1113,7 +1113,7 @@ return;
                         <div
                             ref={canvasRef}
                             onPointerDown={clearSelection}
-                            className="relative w-full overflow-hidden rounded-xl border-2 border-[#b9ab97] bg-[#efe7da] bg-[radial-gradient(#c9bba6_1.2px,transparent_1.2px)] [background-size:22px_22px]"
+                            className="relative w-full overflow-hidden rounded-xl border-2 border-[#b9ab97] bg-[#e4e8e0] bg-[radial-gradient(#c9bba6_1.2px,transparent_1.2px)] [background-size:22px_22px]"
                             style={{ aspectRatio: aspect }}
                         >
                             <span className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 rounded bg-background/70 px-2 text-[10px] text-muted-foreground">
@@ -1157,7 +1157,7 @@ return;
                                         <div
                                             className={`flex size-full flex-col items-center justify-center gap-1 rounded-lg border-2 text-center text-xs font-medium transition-colors ${
                                                 selected
-                                                    ? 'border-[#775a19] bg-[#fed488]/50 text-[#5b4a1f] ring-2 ring-[#775a19]/40'
+                                                    ? 'border-[#1b4638] bg-[#a8d5c2]/50 text-[#5b4a1f] ring-2 ring-[#1b4638]/40'
                                                     : 'border-[#9c8f7d] bg-[#e6d8bd] text-[#5b4a1f]'
                                             }`}
                                         >
@@ -1283,11 +1283,11 @@ return;
                                                         title={who ? `Seat ${seat.n}: ${who.name}` : `Seat ${seat.n}`}
                                                         className={`flex items-center justify-center rounded-full border text-[9px] font-semibold transition-all ${
                                                             who
-                                                                ? `cursor-grab bg-[#775a19] text-white ring-2 ring-offset-1 ring-offset-[#efe7da] active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
+                                                                ? `cursor-grab bg-[#1b4638] text-white ring-2 ring-offset-1 ring-offset-[#e4e8e0] active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
                                                                 : 'border-2 border-[#9c8f7d] bg-white text-[#7d7468]'
                                                         } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''} ${
                                                             selectedGuestId !== null && !who
-                                                                ? 'cursor-pointer ring-2 ring-[#8a651c]/60'
+                                                                ? 'cursor-pointer ring-2 ring-[#1f5142]/60'
                                                                 : ''
                                                         }`}
                                                         style={{ width: geo.chair, height: geo.chair }}
@@ -1302,7 +1302,7 @@ return;
                                         <div
                                             className={`absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 bg-white shadow-md ${
                                                 selectedTableId === table.id
-                                                    ? 'border-[#775a19] ring-2 ring-[#775a19]/50'
+                                                    ? 'border-[#1b4638] ring-2 ring-[#1b4638]/50'
                                                     : 'border-[#3d3833]'
                                             }`}
                                             style={{
@@ -1405,7 +1405,7 @@ free++;
                                     </div>
 
                                     <div>
-                                        <p className="mb-2 text-xs tracking-widest text-[#775a19] uppercase">
+                                        <p className="mb-2 text-xs tracking-widest text-[#1b4638] uppercase">
                                             Seated here
                                         </p>
                                         <div className="flex flex-col gap-1.5">

@@ -73,7 +73,7 @@ export default function AdminAffiliates({ adoption, stay22, travelpayouts }: Pag
                         <CardContent className="flex flex-col gap-3 py-5">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Hotel className="size-5 text-[#775a19]" />
+                                    <Hotel className="size-5 text-[#1b4638]" />
                                     <h2 className="font-medium">Stay22 — hotels</h2>
                                 </div>
                                 <Badge variant={stay22.enabled ? 'default' : 'outline'}>
@@ -88,7 +88,7 @@ export default function AdminAffiliates({ adoption, stay22, travelpayouts }: Pag
                                 href={stay22.dashboard_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#775a19] hover:underline"
+                                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#1b4638] hover:underline"
                             >
                                 Open Stay22 Hub <ExternalLink className="size-3.5" />
                             </a>
@@ -100,7 +100,7 @@ export default function AdminAffiliates({ adoption, stay22, travelpayouts }: Pag
                         <CardContent className="flex flex-col gap-3 py-5">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Plane className="size-5 text-[#775a19]" />
+                                    <Plane className="size-5 text-[#1b4638]" />
                                     <h2 className="font-medium">Travelpayouts — flights</h2>
                                 </div>
                                 <Badge variant={travelpayouts.enabled ? 'default' : 'outline'}>
@@ -111,7 +111,7 @@ export default function AdminAffiliates({ adoption, stay22, travelpayouts }: Pag
                             {bal.connected && bal.amount !== null ? (
                                 <div>
                                     <p className="text-xs text-muted-foreground">Current balance</p>
-                                    <p className="text-2xl font-semibold text-[#775a19]">
+                                    <p className="text-2xl font-semibold text-[#1b4638]">
                                         {formatMoney(bal.amount, bal.currency)}
                                     </p>
                                 </div>
@@ -128,7 +128,7 @@ export default function AdminAffiliates({ adoption, stay22, travelpayouts }: Pag
                                 href={travelpayouts.dashboard_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#775a19] hover:underline"
+                                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#1b4638] hover:underline"
                             >
                                 Open Travelpayouts <ExternalLink className="size-3.5" />
                             </a>

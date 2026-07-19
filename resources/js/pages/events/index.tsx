@@ -117,7 +117,7 @@ export default function EventsIndex({ events, types }: { events: WeddingEvent[];
                         {events.map((ev) => (
                             <Card key={ev.id} className="overflow-hidden">
                                 <CardContent className="flex flex-wrap items-start gap-4 py-4">
-                                    <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-[#f6efe1] text-[#775a19]">
+                                    <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-[#eaede5] text-[#1b4638]">
                                         <CalendarDays className="size-5" />
                                     </div>
                                     <div className="min-w-0 flex-1 space-y-1">
@@ -127,7 +127,7 @@ export default function EventsIndex({ events, types }: { events: WeddingEvent[];
                                                 {TYPE_LABELS[ev.type] ?? ev.type}
                                             </span>
                                             {ev.is_rsvpable && (
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-[#f6efe1] px-2 py-0.5 text-xs text-[#775a19]">
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-[#eaede5] px-2 py-0.5 text-xs text-[#1b4638]">
                                                     <Users className="size-3" /> {ev.attending_count} attending
                                                 </span>
                                             )}

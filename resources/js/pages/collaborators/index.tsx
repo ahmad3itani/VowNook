@@ -187,7 +187,7 @@ export default function CollaboratorsIndex({ members, invitations, options, plan
                                 <button
                                     type="button"
                                     onClick={() => setCustomising((v) => !v)}
-                                    className="flex items-center gap-1 text-xs font-medium text-[#775a19] hover:underline"
+                                    className="flex items-center gap-1 text-xs font-medium text-[#1b4638] hover:underline"
                                 >
                                     <ChevronDown className={`size-3.5 transition-transform ${customising ? 'rotate-180' : ''}`} />
                                     Customize access
@@ -215,7 +215,7 @@ export default function CollaboratorsIndex({ members, invitations, options, plan
                     <CardContent className="flex flex-col divide-y p-0">
                         {members.map((member) => (
                             <div key={member.id} className="flex flex-wrap items-center gap-4 p-4">
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#fed488]/40 text-sm font-medium text-[#775a19] dark:bg-[#fed488]/15 dark:text-[#c5a059]">
+                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#a8d5c2]/40 text-sm font-medium text-[#1b4638] dark:bg-[#a8d5c2]/15 dark:text-[#6e9e8a]">
                                     {initials(member.name)}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -227,7 +227,7 @@ export default function CollaboratorsIndex({ members, invitations, options, plan
                                 </div>
 
                                 {member.is_owner ? (
-                                    <Badge className="gap-1 bg-[#fed488]/40 text-[#775a19] hover:bg-[#fed488]/40 dark:bg-[#fed488]/15 dark:text-[#c5a059]">
+                                    <Badge className="gap-1 bg-[#a8d5c2]/40 text-[#1b4638] hover:bg-[#a8d5c2]/40 dark:bg-[#a8d5c2]/15 dark:text-[#6e9e8a]">
                                         <Crown className="size-3.5" /> Owner
                                     </Badge>
                                 ) : (
@@ -331,7 +331,7 @@ export default function CollaboratorsIndex({ members, invitations, options, plan
                             <button
                                 type="button"
                                 onClick={() => setDraftAccess({ ...options.role_defaults[draftRole] })}
-                                className="self-start text-xs font-medium text-[#775a19] hover:underline"
+                                className="self-start text-xs font-medium text-[#1b4638] hover:underline"
                             >
                                 Reset to {labelFor(draftRole)} defaults
                             </button>

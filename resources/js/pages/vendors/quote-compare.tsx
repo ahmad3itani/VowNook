@@ -68,7 +68,7 @@ export default function QuoteCompare({ groups, quote_badge }: PageProps) {
                             </p>
                             <Link
                                 href="/vendors/marketplace"
-                                className="rounded-md bg-[#775a19] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                                className="rounded-md bg-[#1b4638] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                             >
                                 Browse marketplace
                             </Link>
@@ -82,7 +82,7 @@ export default function QuoteCompare({ groups, quote_badge }: PageProps) {
                                 {group.offers.map((offer) => (
                                     <Card
                                         key={offer.inquiry_id}
-                                        className={offer.is_accepted ? 'border-[#775a19]/40 bg-[#775a19]/5' : ''}
+                                        className={offer.is_accepted ? 'border-[#1b4638]/40 bg-[#1b4638]/5' : ''}
                                     >
                                         <CardContent className="space-y-3 py-4">
                                             <div className="flex items-start justify-between gap-2">
@@ -91,19 +91,19 @@ export default function QuoteCompare({ groups, quote_badge }: PageProps) {
                                                     {offer.vendor_slug && (
                                                         <Link
                                                             href={`/vendors/marketplace/${offer.vendor_slug}`}
-                                                            className="flex items-center gap-1 text-xs text-[#775a19] hover:underline"
+                                                            className="flex items-center gap-1 text-xs text-[#1b4638] hover:underline"
                                                         >
                                                             View profile <ExternalLink className="size-3" />
                                                         </Link>
                                                     )}
                                                 </div>
                                                 {offer.is_accepted && (
-                                                    <Badge className="bg-[#775a19] text-xs">Accepted</Badge>
+                                                    <Badge className="bg-[#1b4638] text-xs">Accepted</Badge>
                                                 )}
                                             </div>
 
                                             <div>
-                                                <p className="text-2xl font-bold text-[#775a19]">
+                                                <p className="text-2xl font-bold text-[#1b4638]">
                                                     {formatMoney(offer.total_cents)}
                                                 </p>
                                                 {offer.deposit_cents > 0 && (
@@ -132,7 +132,7 @@ export default function QuoteCompare({ groups, quote_badge }: PageProps) {
                                                 {offer.can_accept && (
                                                     <Button
                                                         size="sm"
-                                                        className="flex-1 bg-[#775a19] hover:bg-[#5c4414]"
+                                                        className="flex-1 bg-[#1b4638] hover:bg-[#123025]"
                                                         onClick={() => accept(offer.inquiry_id)}
                                                     >
                                                         <CheckCircle2 className="mr-1.5 size-4" />

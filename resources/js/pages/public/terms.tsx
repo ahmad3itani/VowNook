@@ -82,7 +82,7 @@ export default function Terms() {
 
             <DocSection n="07" title="Suspension & termination">
                 <p>
-                    You can close your account at any time (see the <Link href="/privacy" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">Privacy Policy</Link> for
+                    You can close your account at any time (see the <Link href="/privacy" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">Privacy Policy</Link> for
                     what happens to your data). We may suspend or remove accounts that breach these terms,
                     with notice where practicable.
                 </p>
@@ -105,7 +105,7 @@ export default function Terms() {
                     platform at least 14 days before they take effect.
                 </p>
                 <p>
-                    Questions? <Link href="/contact" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">Contact us</Link>.
+                    Questions? <Link href="/contact" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">Contact us</Link>.
                 </p>
             </DocSection>
         </PublicPageShell>

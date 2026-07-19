@@ -122,7 +122,7 @@ export default function Plan({
                 />
 
                 {comped_until && (
-                    <div className="rounded-lg border border-[#775a19]/30 bg-[#fed488]/15 px-4 py-3 text-sm text-[#775a19]">
+                    <div className="rounded-lg border border-[#1b4638]/30 bg-[#a8d5c2]/15 px-4 py-3 text-sm text-[#1b4638]">
                         Your <strong>{current}</strong> access is active until <strong>{comped_until}</strong>.
                     </div>
                 )}
@@ -130,7 +130,7 @@ export default function Plan({
                 {account_type === 'vendor' ? (
                     <div className="rounded-xl border border-border p-5">
                         <div className="flex items-center gap-2 font-medium">
-                            <Store className="size-4 text-[#775a19]" />
+                            <Store className="size-4 text-[#1b4638]" />
                             No subscription — you only pay when you book
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">
@@ -158,7 +158,7 @@ export default function Plan({
                                 className={cn(
                                     'flex flex-col rounded-xl border p-5',
                                     isCurrent
-                                        ? 'border-[#775a19] ring-1 ring-[#775a19]'
+                                        ? 'border-[#1b4638] ring-1 ring-[#1b4638]'
                                         : 'border-border',
                                 )}
                             >
@@ -167,7 +167,7 @@ export default function Plan({
                                         {tier.name}
                                     </span>
                                     {isCurrent && (
-                                        <Badge className="bg-[#fed488]/40 text-[#775a19] hover:bg-[#fed488]/40 dark:bg-[#fed488]/15 dark:text-[#c5a059]">
+                                        <Badge className="bg-[#a8d5c2]/40 text-[#1b4638] hover:bg-[#a8d5c2]/40 dark:bg-[#a8d5c2]/15 dark:text-[#6e9e8a]">
                                             Current
                                         </Badge>
                                     )}
@@ -184,7 +184,7 @@ export default function Plan({
                                 </div>
 
                                 {tier.key === 'premium' && referral_discount_eligible && !isCurrent && (
-                                    <p className="mt-2 rounded-md bg-[#fed488]/15 px-2 py-1 text-xs text-[#775a19] dark:bg-[#fed488]/10 dark:text-[#c5a059]">
+                                    <p className="mt-2 rounded-md bg-[#a8d5c2]/15 px-2 py-1 text-xs text-[#1b4638] dark:bg-[#a8d5c2]/10 dark:text-[#6e9e8a]">
                                         🎁 You were referred — $20 off applied automatically at checkout
                                     </p>
                                 )}
@@ -195,7 +195,7 @@ export default function Plan({
                                             key={f}
                                             className="flex items-center gap-2"
                                         >
-                                            <Check className="size-4 text-[#775a19]" />
+                                            <Check className="size-4 text-[#1b4638]" />
                                             {f}
                                         </li>
                                     ))}
@@ -223,7 +223,7 @@ export default function Plan({
                 {/* Redeem a promo code */}
                 <form onSubmit={redeem} className="rounded-xl border border-border p-5">
                     <div className="flex items-center gap-2 font-medium">
-                        <Ticket className="size-4 text-[#775a19]" />
+                        <Ticket className="size-4 text-[#1b4638]" />
                         Have a promo code?
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -246,7 +246,7 @@ export default function Plan({
                 {/* Referral program */}
                 <div className="rounded-xl border border-border p-5">
                     <div className="flex items-center gap-2 font-medium">
-                        <Gift className="size-4 text-[#775a19]" />
+                        <Gift className="size-4 text-[#1b4638]" />
                         Refer a friend, get {referral.reward_days} days of Premium
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">

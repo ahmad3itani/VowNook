@@ -53,7 +53,7 @@ export function PermissionMatrix({
                                             active
                                                 ? lvl.value === 'none'
                                                     ? 'bg-card text-muted-foreground shadow-sm'
-                                                    : 'bg-[#775a19] text-white shadow-sm'
+                                                    : 'bg-[#1b4638] text-white shadow-sm'
                                                 : 'text-muted-foreground hover:text-foreground'
                                         }`}
                                     >

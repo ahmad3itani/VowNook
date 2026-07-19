@@ -124,7 +124,7 @@ export default function CommunicationsIndex({
                 {/* Sent history */}
                 <section className="flex flex-col gap-3">
                     <h2 className="flex items-center gap-2 text-lg font-semibold">
-                        <Megaphone className="size-5 text-[#8a651c]" /> Sent messages
+                        <Megaphone className="size-5 text-[#1f5142]" /> Sent messages
                     </h2>
                     {history.length === 0 ? (
                         <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">Nothing sent yet.</CardContent></Card>

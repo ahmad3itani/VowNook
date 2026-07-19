@@ -86,7 +86,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
         <Card>
             <CardContent className="px-5">
                 <div className="text-sm text-muted-foreground">{label}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ? 'text-[#775a19]' : ''}`}>{value}</div>
+                <div className={`mt-1 text-2xl font-semibold tabular-nums ${accent ? 'text-[#1b4638]' : ''}`}>{value}</div>
             </CardContent>
         </Card>
     );

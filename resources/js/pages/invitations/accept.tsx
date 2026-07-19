@@ -26,11 +26,11 @@ type PageProps = {
 
 function Shell({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-[#faf6ef] p-6 text-[#191613]">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#f1f0ea] p-6 text-[#0f1c17]">
             <Link href="/" className="mb-8 font-serif text-lg tracking-wide">
-                VowNook <span className="text-[#8a651c]">Atelier</span>
+                VowNook <span className="text-[#1f5142]">Atelier</span>
             </Link>
-            <div className="w-full max-w-md rounded-2xl border border-[#e7ddcb] bg-white p-8 shadow-atelier-lg">
+            <div className="w-full max-w-md rounded-2xl border border-[#dce2d8] bg-white p-8 shadow-atelier-lg">
                 {children}
             </div>
         </div>
@@ -41,7 +41,7 @@ function Notice({ title, body }: { title: string; body: string }) {
     return (
         <Shell>
             <h1 className="font-serif text-2xl">{title}</h1>
-            <p className="mt-2 text-sm text-[#52493d]">{body}</p>
+            <p className="mt-2 text-sm text-[#4b5850]">{body}</p>
             <Button asChild className="mt-6">
                 <Link href="/">Go home</Link>
             </Button>
@@ -72,12 +72,12 @@ export default function InvitationAccept({ invitation, sections, auth_email, ema
     return (
         <Shell>
             <div className="flex flex-col items-center text-center">
-                <span className="flex size-12 items-center justify-center rounded-full bg-[#fed488]/40 text-[#8a651c]">
+                <span className="flex size-12 items-center justify-center rounded-full bg-[#a8d5c2]/40 text-[#1f5142]">
                     <CalendarHeart className="size-6" />
                 </span>
                 <h1 className="mt-4 font-serif text-2xl">You're invited to help plan</h1>
                 <p className="mt-1 text-lg font-medium">{invitation.wedding_name}</p>
-                <p className="mt-2 text-sm text-[#52493d]">
+                <p className="mt-2 text-sm text-[#4b5850]">
                     {invitation.inviter_name ? `${invitation.inviter_name} invited ` : 'You were invited as '}
                     <strong>{invitation.email}</strong> to join as a <strong>{invitation.role_label}</strong>.
                 </p>
@@ -85,9 +85,9 @@ export default function InvitationAccept({ invitation, sections, auth_email, ema
 
             {/* What they can access */}
             <div className="mt-6">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8a651c]">Your access</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#1f5142]">Your access</p>
                 {granted.length === 0 ? (
-                    <p className="text-sm text-[#52493d]">View-only access to shared sections.</p>
+                    <p className="text-sm text-[#4b5850]">View-only access to shared sections.</p>
                 ) : (
                     <div className="flex flex-wrap gap-1.5">
                         {granted.map((s) => {
@@ -95,9 +95,9 @@ export default function InvitationAccept({ invitation, sections, auth_email, ema
                             return (
                                 <span
                                     key={s.value}
-                                    className="inline-flex items-center gap-1 rounded-full border border-[#e7ddcb] bg-[#faf6ef] px-2.5 py-1 text-xs"
+                                    className="inline-flex items-center gap-1 rounded-full border border-[#dce2d8] bg-[#f1f0ea] px-2.5 py-1 text-xs"
                                 >
-                                    {edit ? <Pencil className="size-3 text-[#8a651c]" /> : <Eye className="size-3 text-[#52493d]" />}
+                                    {edit ? <Pencil className="size-3 text-[#1f5142]" /> : <Eye className="size-3 text-[#4b5850]" />}
                                     {s.label}
                                 </span>
                             );
@@ -113,7 +113,7 @@ export default function InvitationAccept({ invitation, sections, auth_email, ema
                         Accept invitation
                     </Button>
                 ) : auth_email ? (
-                    <div className="text-center text-sm text-[#52493d]">
+                    <div className="text-center text-sm text-[#4b5850]">
                         <p>
                             This invitation was sent to <strong>{invitation.email}</strong>, but you're signed in as{' '}
                             <strong>{auth_email}</strong>.
@@ -130,7 +130,7 @@ export default function InvitationAccept({ invitation, sections, auth_email, ema
                         <Button asChild variant="outline" className="w-full">
                             <Link href="/login">I already have an account</Link>
                         </Button>
-                        <p className="mt-1 text-center text-xs text-[#52493d]">
+                        <p className="mt-1 text-center text-xs text-[#4b5850]">
                             Use <strong>{invitation.email}</strong> so we can match your invitation.
                         </p>
                     </div>

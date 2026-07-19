@@ -59,11 +59,11 @@ export default function Register({ passwordRules }: Props) {
                                     onClick={() => setAccountType('couple')}
                                     className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
                                         accountType === 'couple'
-                                            ? 'border-[#775a19] bg-[#775a19]/5 ring-1 ring-[#775a19]'
+                                            ? 'border-[#1b4638] bg-[#1b4638]/5 ring-1 ring-[#1b4638]'
                                             : 'border-border hover:bg-muted'
                                     }`}
                                 >
-                                    <Heart className={`size-5 ${accountType === 'couple' ? 'text-[#775a19]' : 'text-muted-foreground'}`} />
+                                    <Heart className={`size-5 ${accountType === 'couple' ? 'text-[#1b4638]' : 'text-muted-foreground'}`} />
                                     <span className="text-sm font-medium">Couple</span>
                                     <span className="text-xs text-muted-foreground">Planning our wedding</span>
                                 </button>
@@ -72,11 +72,11 @@ export default function Register({ passwordRules }: Props) {
                                     onClick={() => setAccountType('vendor')}
                                     className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
                                         accountType === 'vendor'
-                                            ? 'border-[#775a19] bg-[#775a19]/5 ring-1 ring-[#775a19]'
+                                            ? 'border-[#1b4638] bg-[#1b4638]/5 ring-1 ring-[#1b4638]'
                                             : 'border-border hover:bg-muted'
                                     }`}
                                 >
-                                    <Store className={`size-5 ${accountType === 'vendor' ? 'text-[#775a19]' : 'text-muted-foreground'}`} />
+                                    <Store className={`size-5 ${accountType === 'vendor' ? 'text-[#1b4638]' : 'text-muted-foreground'}`} />
                                     <span className="text-sm font-medium">Vendor</span>
                                     <span className="text-xs text-muted-foreground">Offering services</span>
                                 </button>
@@ -85,11 +85,11 @@ export default function Register({ passwordRules }: Props) {
                                     onClick={() => setAccountType('planner')}
                                     className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
                                         accountType === 'planner'
-                                            ? 'border-[#775a19] bg-[#775a19]/5 ring-1 ring-[#775a19]'
+                                            ? 'border-[#1b4638] bg-[#1b4638]/5 ring-1 ring-[#1b4638]'
                                             : 'border-border hover:bg-muted'
                                     }`}
                                 >
-                                    <ClipboardList className={`size-5 ${accountType === 'planner' ? 'text-[#775a19]' : 'text-muted-foreground'}`} />
+                                    <ClipboardList className={`size-5 ${accountType === 'planner' ? 'text-[#1b4638]' : 'text-muted-foreground'}`} />
                                     <span className="text-sm font-medium">Planner</span>
                                     <span className="text-xs text-muted-foreground">Managing clients</span>
                                 </button>
@@ -170,7 +170,7 @@ export default function Register({ passwordRules }: Props) {
                                         type="checkbox"
                                         required
                                         tabIndex={5}
-                                        className="mt-0.5 size-4 shrink-0 rounded border-input accent-[#775a19]"
+                                        className="mt-0.5 size-4 shrink-0 rounded border-input accent-[#1b4638]"
                                     />
                                     <span>
                                         I agree to VowNook's{' '}
@@ -178,7 +178,7 @@ export default function Register({ passwordRules }: Props) {
                                             href="/terms"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="font-medium text-[#775a19] underline underline-offset-2"
+                                            className="font-medium text-[#1b4638] underline underline-offset-2"
                                         >
                                             Terms of Service
                                         </a>{' '}
@@ -187,7 +187,7 @@ export default function Register({ passwordRules }: Props) {
                                             href="/privacy"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="font-medium text-[#775a19] underline underline-offset-2"
+                                            className="font-medium text-[#1b4638] underline underline-offset-2"
                                         >
                                             Privacy Policy
                                         </a>

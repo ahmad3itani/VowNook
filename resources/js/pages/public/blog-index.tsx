@@ -32,14 +32,14 @@ function PostCard({ post }: { post: Card }) {
                         className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                 ) : (
-                    <div className="flex size-full items-center justify-center bg-gradient-to-br from-[#fed488]/30 to-[#8a651c]/10 font-serif text-3xl text-[#8a651c]/40">
+                    <div className="flex size-full items-center justify-center bg-gradient-to-br from-[#a8d5c2]/30 to-[#1f5142]/10 font-serif text-3xl text-[#1f5142]/40">
                         ✦
                     </div>
                 )}
             </div>
             <div className="flex flex-1 flex-col gap-2 p-5">
-                <span className="text-xs font-medium tracking-wide text-[#8a651c] uppercase">{post.category.label}</span>
-                <h2 className="font-serif text-lg leading-snug group-hover:text-[#8a651c]">{post.title}</h2>
+                <span className="text-xs font-medium tracking-wide text-[#1f5142] uppercase">{post.category.label}</span>
+                <h2 className="font-serif text-lg leading-snug group-hover:text-[#1f5142]">{post.title}</h2>
                 <p className="line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
                 <div className="mt-auto flex items-center gap-2 pt-2 text-xs text-muted-foreground">
                     <span>{post.published_label}</span>
@@ -58,7 +58,7 @@ export default function BlogIndex({ posts, categories, active_category }: PagePr
             <SiteHeader />
 
             <header className="mx-auto max-w-7xl px-4 pt-14 pb-8 text-center md:px-6">
-                <p className="text-xs font-semibold tracking-[0.2em] text-[#8a651c] uppercase">The Journal</p>
+                <p className="text-xs font-semibold tracking-[0.2em] text-[#1f5142] uppercase">The Journal</p>
                 <h1 className="mt-3 font-serif text-4xl md:text-5xl">Wedding planning, the calm way</h1>
                 <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
                     Honest, practical advice for planning a wedding in Ontario — real budgets, timelines, venue
@@ -71,7 +71,7 @@ export default function BlogIndex({ posts, categories, active_category }: PagePr
                 <Link
                     href="/blog"
                     className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-                        !active_category ? 'border-[#8a651c] bg-[#8a651c] text-white' : 'border-border text-muted-foreground hover:border-[#8a651c]/50'
+                        !active_category ? 'border-[#1f5142] bg-[#1f5142] text-white' : 'border-border text-muted-foreground hover:border-[#1f5142]/50'
                     }`}
                 >
                     All
@@ -81,7 +81,7 @@ export default function BlogIndex({ posts, categories, active_category }: PagePr
                         key={c.slug}
                         href={`/blog/category/${c.slug}`}
                         className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-                            active_category === c.slug ? 'border-[#8a651c] bg-[#8a651c] text-white' : 'border-border text-muted-foreground hover:border-[#8a651c]/50'
+                            active_category === c.slug ? 'border-[#1f5142] bg-[#1f5142] text-white' : 'border-border text-muted-foreground hover:border-[#1f5142]/50'
                         }`}
                     >
                         {c.label}
@@ -109,10 +109,10 @@ export default function BlogIndex({ posts, categories, active_category }: PagePr
                         Build your guest list, budget and timeline for free — then find trusted Ontario vendors.
                     </p>
                     <div className="mt-6 flex justify-center gap-3">
-                        <Link href="/register" className="rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-[#8a651c] hover:text-white">
+                        <Link href="/register" className="rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-[#1f5142] hover:text-white">
                             Start free
                         </Link>
-                        <Link href="/marketplace" className="rounded-full border border-border px-6 py-2.5 text-sm font-semibold transition-colors hover:border-[#8a651c]">
+                        <Link href="/marketplace" className="rounded-full border border-border px-6 py-2.5 text-sm font-semibold transition-colors hover:border-[#1f5142]">
                             Browse vendors
                         </Link>
                     </div>

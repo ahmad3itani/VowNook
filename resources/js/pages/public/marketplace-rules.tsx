@@ -33,7 +33,7 @@ export default function MarketplaceRules() {
                 <p>
                     Quotes, bookings and payments happen through VowNook so couples are protected and reviews stay
                     verifiable. Moving a platform-originated lead off-platform to avoid fees ("circumvention") is a
-                    breach of these rules and the <Link href="/vendor-agreement" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">Vendor Agreement</Link>.
+                    breach of these rules and the <Link href="/vendor-agreement" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">Vendor Agreement</Link>.
                 </p>
             </DocSection>
 
@@ -54,7 +54,7 @@ export default function MarketplaceRules() {
                     a manual check.
                 </p>
                 <p>
-                    Questions? <Link href="/contact" className="underline decoration-[#8a651c]/40 underline-offset-2 hover:text-[#8a651c]">Contact us</Link>.
+                    Questions? <Link href="/contact" className="underline decoration-[#1f5142]/40 underline-offset-2 hover:text-[#1f5142]">Contact us</Link>.
                 </p>
             </DocSection>
         </PublicPageShell>

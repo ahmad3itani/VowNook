@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { Reveal } from '@/components/motion/reveal';
 
-const fraunces = "font-['Fraunces']";
+const fraunces = "font-['Newsreader']";
 
 type Tool = {
     id: string;
@@ -179,17 +179,17 @@ const TOOLS: Tool[] = [
 
 const PLAN_STYLES: Record<Tool['plan'], string> = {
     Free: 'bg-[#eef4e8] text-[#42552f] border-[#cfdcbe]',
-    Atelier: 'bg-[#f6ecd7] text-[#8a651c] border-[#e6d4a8]',
+    Atelier: 'bg-[#f6ecd7] text-[#1f5142] border-[#bfd8cb]',
     Shop: 'bg-[#f3e7e2] text-[#a05c3f] border-[#e4c9bd]',
 };
 
 function BrowserFrame({ img, alt }: { img: string; alt: string }) {
     return (
-        <div className="overflow-hidden rounded-xl border border-[#191613]/10 bg-white shadow-[0_40px_80px_-40px_rgba(25,22,19,0.45)]">
-            <div className="flex items-center gap-2 border-b border-[#191613]/8 bg-[#f4efe6] px-4 py-2.5">
-                <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
-                <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
-                <span className="size-2.5 rounded-full bg-[#e0d6c4]" />
+        <div className="overflow-hidden rounded-xl border border-[#0f1c17]/10 bg-white shadow-[0_40px_80px_-40px_rgba(25,22,19,0.45)]">
+            <div className="flex items-center gap-2 border-b border-[#0f1c17]/8 bg-[#f4efe6] px-4 py-2.5">
+                <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
+                <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
+                <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
                 <span className="mx-auto flex h-5 w-1/2 items-center justify-center rounded bg-white/70 text-[10px] tracking-wide text-[#8c8478]">
                     vownook.com
                 </span>
@@ -201,27 +201,27 @@ function BrowserFrame({ img, alt }: { img: string; alt: string }) {
 
 export default function Features() {
     return (
-        <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
+        <div className="min-h-screen bg-[#f1f0ea] font-['Instrument_Sans'] text-[#0f1c17] antialiased selection:bg-[#7fb79e]/40">
             <Head title="Features" />
 
             {/* Header */}
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
+            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#0f1c17]/8 bg-[#f1f0ea]/85 backdrop-blur-md">
                 <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
                     <Link href="/" className="flex items-center gap-2.5" aria-label="VowNook home">
-                        <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+                        <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#0f1c17]/10" />
                         <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
                     </Link>
                     <div className="hidden items-center gap-8 md:flex">
                         {CHAPTERS.map((c) => (
-                            <a key={c.id} href={`#${c.id}`} className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">
+                            <a key={c.id} href={`#${c.id}`} className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">
                                 {c.label}
                             </a>
                         ))}
-                        <Link href="/pricing" className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">Pricing</Link>
+                        <Link href="/pricing" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">Pricing</Link>
                     </div>
                     <Link
                         href="/register"
-                        className="bg-[#191613] px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                        className="cta-press px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase"
                     >
                         Get started
                     </Link>
@@ -232,11 +232,11 @@ export default function Features() {
             <section className="px-5 pt-32 pb-14 md:px-12 md:pt-40 md:pb-20">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal>
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">The full tour</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">The full tour</p>
                         <h1 className={`${fraunces} max-w-3xl text-5xl leading-[1.02] font-light sm:text-6xl md:text-7xl`}>
-                            Every tool, shown <em className="text-[#8a651c]">exactly as it is.</em>
+                            Every tool, shown <em className="text-[#1f5142]">exactly as it is.</em>
                         </h1>
-                        <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-[#52493d]">
+                        <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-[#4b5850]">
                             These aren't mockups — every screenshot below is the real product with a real
                             wedding in it. This is what planning looks like inside VowNook, from the first
                             guest to the last thank-you note.
@@ -249,10 +249,10 @@ export default function Features() {
             {CHAPTERS.map((chapter, ci) => {
                 const tools = TOOLS.filter((t) => t.chapter === chapter.id);
                 return (
-                    <section key={chapter.id} id={chapter.id} className={`scroll-mt-24 px-5 py-14 md:px-12 md:py-20 ${ci % 2 === 1 ? '' : 'border-t border-[#191613]/10'}`}>
+                    <section key={chapter.id} id={chapter.id} className={`scroll-mt-24 px-5 py-14 md:px-12 md:py-20 ${ci % 2 === 1 ? '' : 'border-t border-[#0f1c17]/10'}`}>
                         <div className="mx-auto max-w-[1480px]">
                             <Reveal className="mb-12">
-                                <p className="mb-3 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">
+                                <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">
                                     Chapter {String(ci + 1).padStart(2, '0')}
                                 </p>
                                 <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>{chapter.label}</h2>
@@ -270,12 +270,12 @@ export default function Features() {
                                                     {tool.plan === 'Free' ? 'Included free' : tool.plan === 'Atelier' ? 'Atelier · $99 once' : 'Stationery shop'}
                                                 </span>
                                                 <h3 className={`${fraunces} mt-4 text-3xl font-light sm:text-4xl`}>{tool.name}</h3>
-                                                <p className="mt-1.5 text-[15px] font-medium text-[#8a651c]">{tool.tagline}</p>
-                                                <p className="mt-4 text-[15px] leading-relaxed text-[#52493d]">{tool.body}</p>
+                                                <p className="mt-1.5 text-[15px] font-medium text-[#1f5142]">{tool.tagline}</p>
+                                                <p className="mt-4 text-[15px] leading-relaxed text-[#4b5850]">{tool.body}</p>
                                                 <ul className="mt-5 space-y-2.5">
                                                     {tool.bullets.map((b) => (
-                                                        <li key={b} className="flex gap-2.5 text-[14px] text-[#3a352e]">
-                                                            <span className="mt-[7px] size-1.5 flex-none rounded-full bg-[#8a651c]" />
+                                                        <li key={b} className="flex gap-2.5 text-[14px] text-[#39433d]">
+                                                            <span className="mt-[7px] size-1.5 flex-none rounded-full bg-[#1f5142]" />
                                                             {b}
                                                         </li>
                                                     ))}
@@ -291,10 +291,10 @@ export default function Features() {
             })}
 
             {/* CTA */}
-            <section className="border-t border-[#191613]/10 bg-[#191613] px-5 py-20 text-center text-[#faf6ef] md:px-12 md:py-28">
+            <section className="border-t border-[#0f1c17]/10 bg-[#0f1c17] px-5 py-20 text-center text-[#f1f0ea] md:px-12 md:py-28">
                 <Reveal>
                     <h2 className={`${fraunces} mx-auto max-w-2xl text-4xl font-light sm:text-5xl`}>
-                        All of this starts <em className="text-[#e6d4a8]">free.</em>
+                        All of this starts <em className="text-[#bfd8cb]">free.</em>
                     </h2>
                     <p className="mx-auto mt-5 max-w-lg text-[15px] leading-relaxed text-[#cfc6b6]">
                         No credit card, no trial clock. Plan with every core tool free, and unlock the
@@ -303,13 +303,13 @@ export default function Features() {
                     <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
                         <Link
                             href="/register"
-                            className="inline-flex items-center gap-3 bg-[#e6d4a8] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#191613] uppercase transition-colors hover:bg-white"
+                            className="inline-flex items-center gap-3 bg-[#bfd8cb] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#0f1c17] uppercase transition-colors hover:bg-white"
                         >
                             Start planning free <ArrowRight className="size-3.5" />
                         </Link>
                         <Link
                             href="/pricing"
-                            className="inline-flex items-center gap-3 border border-white/25 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf6ef] uppercase transition-colors hover:border-white"
+                            className="inline-flex items-center gap-3 border border-white/25 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#f1f0ea] uppercase transition-colors hover:border-white"
                         >
                             See pricing
                         </Link>
@@ -318,14 +318,14 @@ export default function Features() {
             </section>
 
             {/* Footer */}
-            <footer className="border-t border-[#191613]/10 py-10">
-                <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-4 px-5 text-[13px] text-[#52493d] md:px-12">
+            <footer className="border-t border-[#0f1c17]/10 py-10">
+                <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-4 px-5 text-[13px] text-[#4b5850] md:px-12">
                     <span>© {new Date().getFullYear()} VowNook — made in Ontario.</span>
                     <div className="flex flex-wrap gap-6">
-                        <Link href="/how-it-works" className="hover:text-[#8a651c]">How it works</Link>
-                        <Link href="/pricing" className="hover:text-[#8a651c]">Pricing</Link>
-                        <Link href="/marketplace" className="hover:text-[#8a651c]">Marketplace</Link>
-                        <a href="/shop" className="hover:text-[#8a651c]">Shop</a>
+                        <Link href="/how-it-works" className="hover:text-[#1f5142]">How it works</Link>
+                        <Link href="/pricing" className="hover:text-[#1f5142]">Pricing</Link>
+                        <Link href="/marketplace" className="hover:text-[#1f5142]">Marketplace</Link>
+                        <a href="/shop" className="hover:text-[#1f5142]">Shop</a>
                     </div>
                 </div>
             </footer>

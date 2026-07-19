@@ -24,7 +24,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
             aria-checked={on}
             onClick={onClick}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors ${
-                on ? 'bg-[#775a19]' : 'bg-muted-foreground/30'
+                on ? 'bg-[#1b4638]' : 'bg-muted-foreground/30'
             }`}
         >
             <span
@@ -86,7 +86,7 @@ export default function AdminFeatures({ features }: PageProps) {
                                             </Badge>
                                         )}
                                         {state[f.key] && (
-                                            <Badge className="bg-[#775a19] text-[10px] uppercase tracking-wide text-white hover:bg-[#775a19]">
+                                            <Badge className="bg-[#1b4638] text-[10px] uppercase tracking-wide text-white hover:bg-[#1b4638]">
                                                 Free
                                             </Badge>
                                         )}
@@ -103,7 +103,7 @@ export default function AdminFeatures({ features }: PageProps) {
                 </Card>
 
                 <div className="flex max-w-3xl items-center gap-3">
-                    <Button onClick={save} disabled={!dirty || saving} className="bg-[#775a19] hover:bg-[#5f4714]">
+                    <Button onClick={save} disabled={!dirty || saving} className="bg-[#1b4638] hover:bg-[#5f4714]">
                         {saving ? 'Saving…' : 'Save changes'}
                     </Button>
                     {dirty && <span className="text-sm text-muted-foreground">You have unsaved changes.</span>}

@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 
-const fraunces = "font-['Fraunces']";
+const fraunces = "font-['Newsreader']";
 
 type Step = { n: string; title: string; body: string; detail: string[] };
 
@@ -137,16 +137,16 @@ function StepList({ steps }: { steps: Step[] }) {
             {steps.map((s) => (
                 <StaggerItem key={s.n} className="grid gap-5 md:grid-cols-12">
                     <div className="flex items-start gap-5 md:col-span-5">
-                        <span className={`${fraunces} text-4xl font-light text-[#8a651c]/50`}>{s.n}</span>
+                        <span className={`${fraunces} text-4xl font-light text-[#1f5142]/50`}>{s.n}</span>
                         <div>
                             <h3 className={`${fraunces} text-2xl font-light`}>{s.title}</h3>
-                            <p className="mt-2 text-[15px] leading-relaxed text-[#52493d]">{s.body}</p>
+                            <p className="mt-2 text-[15px] leading-relaxed text-[#4b5850]">{s.body}</p>
                         </div>
                     </div>
                     <ul className="space-y-2.5 md:col-span-6 md:col-start-7">
                         {s.detail.map((d) => (
-                            <li key={d} className="flex items-start gap-3 text-sm leading-relaxed text-[#52493d]">
-                                <span className="mt-2 size-1 shrink-0 rounded-full bg-[#8a651c]" />
+                            <li key={d} className="flex items-start gap-3 text-sm leading-relaxed text-[#4b5850]">
+                                <span className="mt-2 size-1 shrink-0 rounded-full bg-[#1f5142]" />
                                 {d}
                             </li>
                         ))}
@@ -159,26 +159,26 @@ function StepList({ steps }: { steps: Step[] }) {
 
 export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
     return (
-        <div className="min-h-screen bg-[#faf6ef] font-['DM_Sans'] text-[#191613] antialiased selection:bg-[#e9c176]/40">
+        <div className="min-h-screen bg-[#f1f0ea] font-['Instrument_Sans'] text-[#0f1c17] antialiased selection:bg-[#7fb79e]/40">
             {/* Description/canonical/OG are server-rendered in the blade head. */}
             <Head title="How it works" />
 
             {/* Header */}
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#191613]/8 bg-[#faf6ef]/85 backdrop-blur-md">
+            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#0f1c17]/8 bg-[#f1f0ea]/85 backdrop-blur-md">
                 <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
                     <Link href="/" className="flex items-center gap-2.5" aria-label="VowNook home">
-                        <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#191613]/10" />
+                        <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#0f1c17]/10" />
                         <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
                     </Link>
                     <div className="hidden items-center gap-9 md:flex">
-                        <a href="#couples" className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">For couples</a>
-                        <a href="#vendors" className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">For vendors</a>
-                        <a href="#faq" className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">FAQ</a>
-                        <Link href="/marketplace" className="text-[13px] tracking-wide text-[#52493d] hover:text-[#8a651c]">Marketplace</Link>
+                        <a href="#couples" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">For couples</a>
+                        <a href="#vendors" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">For vendors</a>
+                        <a href="#faq" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">FAQ</a>
+                        <Link href="/marketplace" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">Marketplace</Link>
                     </div>
                     <Link
                         href="/register"
-                        className="bg-[#191613] px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                        className="cta-press px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase"
                     >
                         Get started
                     </Link>
@@ -189,11 +189,11 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
             <section className="px-5 pt-32 pb-16 md:px-12 md:pt-40 md:pb-24">
                 <div className="mx-auto grid max-w-[1480px] items-end gap-12 md:grid-cols-12">
                     <Reveal className="md:col-span-6">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">The field guide</p>
+                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">The field guide</p>
                         <h1 className={`${fraunces} text-5xl leading-[1.02] font-light sm:text-6xl md:text-7xl`}>
-                            How it <em className="text-[#8a651c]">works.</em>
+                            How it <em className="text-[#1f5142]">works.</em>
                         </h1>
-                        <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-[#52493d]">
+                        <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-[#4b5850]">
                             One platform, two sides of the aisle: a planning studio for couples and a
                             marketplace where great vendors meet couples ready to book. Here is the whole
                             journey, step by step.
@@ -213,19 +213,19 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
             </section>
 
             {/* Couples */}
-            <section id="couples" className="border-t border-[#191613]/10 px-5 py-20 md:px-12 md:py-28">
+            <section id="couples" className="border-t border-[#0f1c17]/10 px-5 py-20 md:px-12 md:py-28">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mb-14">
-                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">For couples</p>
+                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">For couples</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            From "yes" to <em className="text-[#8a651c]">"I do"</em> — organised.
+                            From "yes" to <em className="text-[#1f5142]">"I do"</em> — organised.
                         </h2>
                     </Reveal>
                     <StepList steps={coupleSteps} />
                     <Reveal className="mt-14">
                         <Link
                             href="/register"
-                            className="inline-flex items-center gap-3 bg-[#191613] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                            className="inline-flex items-center gap-3 cta-press px-9 py-4 text-[11px] font-semibold tracking-[0.22em] uppercase"
                         >
                             Start planning — free
                             <ArrowRight className="size-4" />
@@ -235,12 +235,12 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
             </section>
 
             {/* Vendors */}
-            <section id="vendors" className="bg-[#191613] px-5 py-20 text-[#faf6ef] md:px-12 md:py-28">
+            <section id="vendors" className="bg-[#0f1c17] px-5 py-20 text-[#f1f0ea] md:px-12 md:py-28">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mb-14">
-                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#e9c176] uppercase">For vendors</p>
+                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#7fb79e] uppercase">For vendors</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            Leads you can <em className="text-[#e9c176]">actually close.</em>
+                            Leads you can <em className="text-[#7fb79e]">actually close.</em>
                         </h2>
                         <p className="mt-4 max-w-xl text-[15px] text-white/70">
                             No subscriptions. No 12-month contracts. You pay a capped success fee only when
@@ -252,7 +252,7 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                         {vendorSteps.map((s) => (
                             <StaggerItem key={s.n} className="grid gap-5 md:grid-cols-12">
                                 <div className="flex items-start gap-5 md:col-span-5">
-                                    <span className={`${fraunces} text-4xl font-light text-[#e9c176]/50`}>{s.n}</span>
+                                    <span className={`${fraunces} text-4xl font-light text-[#7fb79e]/50`}>{s.n}</span>
                                     <div>
                                         <h3 className={`${fraunces} text-2xl font-light`}>{s.title}</h3>
                                         <p className="mt-2 text-[15px] leading-relaxed text-white/70">{s.body}</p>
@@ -261,7 +261,7 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                                 <ul className="space-y-2.5 md:col-span-6 md:col-start-7">
                                     {s.detail.map((d) => (
                                         <li key={d} className="flex items-start gap-3 text-sm leading-relaxed text-white/70">
-                                            <span className="mt-2 size-1 shrink-0 rounded-full bg-[#e9c176]" />
+                                            <span className="mt-2 size-1 shrink-0 rounded-full bg-[#7fb79e]" />
                                             {d}
                                         </li>
                                     ))}
@@ -273,7 +273,7 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                     <Reveal className="mt-14">
                         <Link
                             href="/register?type=vendor"
-                            className="inline-flex items-center gap-3 bg-[#e9c176] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#191613] uppercase transition-colors hover:bg-[#faf6ef]"
+                            className="inline-flex items-center gap-3 bg-[#7fb79e] px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#0f1c17] uppercase transition-colors hover:bg-[#f1f0ea]"
                         >
                             List your business — free
                             <ArrowRight className="size-4" />
@@ -286,16 +286,16 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
             <section id="faq" className="px-5 py-20 md:px-12 md:py-28">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal className="mb-14">
-                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Questions, answered</p>
+                        <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Questions, answered</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
-                            The fine print, <em className="text-[#8a651c]">in plain words.</em>
+                            The fine print, <em className="text-[#1f5142]">in plain words.</em>
                         </h2>
                     </Reveal>
                     <Stagger className="grid gap-x-16 gap-y-10 md:grid-cols-2">
                         {faqs.map((f) => (
                             <StaggerItem key={f.q}>
                                 <h3 className="text-sm font-bold tracking-wide">{f.q}</h3>
-                                <p className="mt-2 text-sm leading-relaxed text-[#52493d]">{f.a}</p>
+                                <p className="mt-2 text-sm leading-relaxed text-[#4b5850]">{f.a}</p>
                             </StaggerItem>
                         ))}
                     </Stagger>
@@ -303,21 +303,21 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
             </section>
 
             {/* CTA + footer */}
-            <section className="border-t border-[#191613]/10 px-5 py-20 text-center md:py-24">
+            <section className="border-t border-[#0f1c17]/10 px-5 py-20 text-center md:py-24">
                 <Reveal>
                     <h2 className={`${fraunces} text-3xl font-light sm:text-4xl`}>
-                        Ready when <em className="text-[#8a651c]">you are.</em>
+                        Ready when <em className="text-[#1f5142]">you are.</em>
                     </h2>
                     <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                         <Link
                             href="/register"
-                            className="bg-[#191613] px-10 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf6ef] uppercase transition-colors hover:bg-[#8a651c]"
+                            className="cta-press px-10 py-4 text-[11px] font-semibold tracking-[0.22em] uppercase"
                         >
                             I'm planning a wedding
                         </Link>
                         <Link
                             href="/register?type=vendor"
-                            className="border border-[#191613] px-10 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#191613] uppercase transition-colors hover:bg-[#191613] hover:text-[#faf6ef]"
+                            className="border border-[#0f1c17] px-10 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#0f1c17] uppercase transition-colors hover:bg-[#0f1c17] hover:text-[#f1f0ea]"
                         >
                             I'm a vendor
                         </Link>
@@ -325,18 +325,18 @@ export default function HowItWorks({ faqs }: { faqs: Faq[] }) {
                 </Reveal>
             </section>
 
-            <footer className="border-t border-[#191613]/10 py-10">
+            <footer className="border-t border-[#0f1c17]/10 py-10">
                 <div className="mx-auto flex max-w-[1480px] flex-col items-center justify-between gap-4 px-5 md:flex-row md:px-12">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <img src="/images/brand/logo-mark.svg" alt="" className="size-8 rounded-md border border-[#191613]/10" />
+                        <img src="/images/brand/logo-mark.svg" alt="" className="size-8 rounded-md border border-[#0f1c17]/10" />
                         <span className={`${fraunces} text-xl`}>VowNook</span>
                     </Link>
-                    <div className="flex items-center gap-6 text-[13px] text-[#52493d]">
-                        <Link href="/terms" className="hover:text-[#8a651c]">Terms</Link>
-                        <Link href="/privacy" className="hover:text-[#8a651c]">Privacy</Link>
-                        <Link href="/contact" className="hover:text-[#8a651c]">Contact</Link>
+                    <div className="flex items-center gap-6 text-[13px] text-[#4b5850]">
+                        <Link href="/terms" className="hover:text-[#1f5142]">Terms</Link>
+                        <Link href="/privacy" className="hover:text-[#1f5142]">Privacy</Link>
+                        <Link href="/contact" className="hover:text-[#1f5142]">Contact</Link>
                     </div>
-                    <p className="text-[11px] tracking-[0.15em] text-[#52493d]/70 uppercase">
+                    <p className="text-[11px] tracking-[0.15em] text-[#4b5850]/70 uppercase">
                         © {new Date().getFullYear()} VowNook
                     </p>
                 </div>

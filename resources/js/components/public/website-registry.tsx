@@ -29,7 +29,7 @@ export type RegistryData = { funds: RegistryFund[]; items: RegistryItem[] };
 const money = (cents: number) =>
     new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(cents / 100);
 
-const serif = "font-['Playfair_Display']";
+const serif = "font-['Newsreader']";
 
 /** Public registry section on the wedding website — funds (pass-through) + items. */
 export function WebsiteRegistry({ registry, slug }: { registry: RegistryData; slug: string }) {

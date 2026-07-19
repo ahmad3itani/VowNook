@@ -17,7 +17,7 @@ export type SeatingStats = {
     fullest: { name: string; seated: number; capacity: number } | null;
 };
 
-const GOLD = '#8a651c';
+const GOLD = '#1f5142';
 
 function Kpi({
     icon: Icon,
@@ -34,7 +34,7 @@ function Kpi({
     progress?: number; // 0..1
     tone?: 'default' | 'warn' | 'ok';
 }) {
-    const accent = tone === 'warn' ? 'text-amber-600' : tone === 'ok' ? 'text-emerald-600' : 'text-[#8a651c]';
+    const accent = tone === 'warn' ? 'text-amber-600' : tone === 'ok' ? 'text-emerald-600' : 'text-[#1f5142]';
 
     return (
         <motion.div
@@ -108,12 +108,12 @@ export function SeatingInfographics({ stats }: { stats: SeatingStats }) {
             >
                 <div className="text-xs font-medium text-muted-foreground">Side balance</div>
                 <div className="mt-2 flex h-3 overflow-hidden rounded-full bg-muted">
-                    <div style={{ width: `${(stats.sides.partner_one / sideTotal) * 100}%`, backgroundColor: '#8a651c' }} />
+                    <div style={{ width: `${(stats.sides.partner_one / sideTotal) * 100}%`, backgroundColor: '#1f5142' }} />
                     <div style={{ width: `${(stats.sides.both / sideTotal) * 100}%`, backgroundColor: '#c9a84c' }} />
                     <div style={{ width: `${(stats.sides.partner_two / sideTotal) * 100}%`, backgroundColor: '#3d7a8c' }} />
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><span className="size-2 rounded-full" style={{ backgroundColor: '#8a651c' }} />Partner 1 · {stats.sides.partner_one}</span>
+                    <span className="flex items-center gap-1"><span className="size-2 rounded-full" style={{ backgroundColor: '#1f5142' }} />Partner 1 · {stats.sides.partner_one}</span>
                     <span className="flex items-center gap-1"><span className="size-2 rounded-full" style={{ backgroundColor: '#c9a84c' }} />Both · {stats.sides.both}</span>
                     <span className="flex items-center gap-1"><span className="size-2 rounded-full" style={{ backgroundColor: '#3d7a8c' }} />Partner 2 · {stats.sides.partner_two}</span>
                 </div>
@@ -127,7 +127,7 @@ export function SeatingInfographics({ stats }: { stats: SeatingStats }) {
                 className="rounded-xl border bg-card p-4 sm:col-span-2"
             >
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <Utensils className="size-3.5 text-[#8a651c]" />
+                    <Utensils className="size-3.5 text-[#1f5142]" />
                     Meal counts (attending)
                 </div>
                 {stats.meals.length === 0 ? (

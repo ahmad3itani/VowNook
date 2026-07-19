@@ -73,7 +73,7 @@ export default function SupportShow({ ticket }: PageProps) {
 
 function Bubble({ author, when, body, staff }: { author: string; when: string | null; body: string; staff: boolean }) {
     return (
-        <div className={`rounded-lg border p-4 ${staff ? 'border-[#775a19]/30 bg-[#775a19]/5' : 'bg-card'}`}>
+        <div className={`rounded-lg border p-4 ${staff ? 'border-[#1b4638]/30 bg-[#1b4638]/5' : 'bg-card'}`}>
             <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="font-medium">{author}</span>
                 <span className="text-muted-foreground">{fmt(when)}</span>

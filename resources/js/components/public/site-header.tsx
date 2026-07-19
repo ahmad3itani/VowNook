@@ -2,12 +2,12 @@ import { Link } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
-const fraunces = "font-['Fraunces']";
+const fraunces = "font-['Newsreader']";
 
 /**
  * Shared editorial header for the public marketplace surface (marketplace,
  * vendor profiles, programmatic city/category pages). Token-based so it adapts
- * to light/dark, with the Fraunces wordmark + gold accent for brand cohesion.
+ * to light/dark, with the Newsreader wordmark + forest accent for brand cohesion.
  * Collapses the nav into a tap-to-open menu on phones.
  */
 export function SiteHeader() {
@@ -40,7 +40,7 @@ export function SiteHeader() {
                     </Link>
                     <Link
                         href="/register"
-                        className="rounded-full bg-foreground px-5 py-2 text-[11px] font-semibold tracking-[0.15em] text-background uppercase transition-colors hover:bg-[#8a651c] hover:text-white"
+                        className="rounded-full bg-foreground px-5 py-2 text-[11px] font-semibold tracking-[0.15em] text-background uppercase transition-colors hover:bg-[#1f5142] hover:text-white"
                     >
                         Get started
                     </Link>

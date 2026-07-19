@@ -7,7 +7,7 @@ import {
 import { VendorCardData } from '@/components/marketplace/vendor-card';
 import { SiteHeader } from '@/components/public/site-header';
 
-const fraunces = "font-['Fraunces']";
+const fraunces = "font-['Newsreader']";
 
 type PageProps = {
     profiles: VendorCardData[];
@@ -29,9 +29,9 @@ export default function Marketplace({ profiles, categories, filters, total }: Pa
                 <section className="border-b border-border bg-gradient-to-b from-secondary/40 to-background px-4 py-14 md:py-20">
                     <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-12">
                         <div className="md:col-span-7">
-                            <p className="mb-3 text-[11px] tracking-[0.3em] text-[#8a651c] uppercase">Ontario wedding vendors</p>
+                            <p className="mb-3 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Ontario wedding vendors</p>
                             <h1 className={`${fraunces} max-w-3xl text-4xl leading-[1.05] font-light tracking-tight sm:text-5xl`}>
-                                Find your <em className="text-[#8a651c]">wedding people.</em>
+                                Find your <em className="text-[#1f5142]">wedding people.</em>
                             </h1>
                             <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
                                 Browse {total} reviewed Ontario vendor{total !== 1 ? 's' : ''} — photographers, venues, florists,

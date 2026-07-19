@@ -32,7 +32,7 @@ function fmt(iso: string | null): string {
 function actionTone(action: string): string {
     if (action.startsWith('admin.user.suspend')) return 'text-destructive';
     if (action.startsWith('admin.impersonate')) return 'text-violet-700 dark:text-violet-300';
-    if (action.startsWith('admin.')) return 'text-[#775a19]';
+    if (action.startsWith('admin.')) return 'text-[#1b4638]';
     return 'text-foreground';
 }
 
@@ -94,7 +94,7 @@ export default function AdminActivity({ logs, actions, filter }: PageProps) {
                                 href={link.url ?? '#'}
                                 preserveScroll
                                 className={`rounded px-3 py-1 text-xs ${
-                                    link.active ? 'bg-[#775a19] text-white' : link.url ? 'hover:bg-muted' : 'cursor-default text-muted-foreground/50'
+                                    link.active ? 'bg-[#1b4638] text-white' : link.url ? 'hover:bg-muted' : 'cursor-default text-muted-foreground/50'
                                 }`}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
