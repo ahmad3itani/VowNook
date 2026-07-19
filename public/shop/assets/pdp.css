@@ -1,7 +1,7 @@
 /* VowNook Shop — product detail pages (shared) */
 :root{
-  --bg:#ffffff;--warm:#f7f3ec;--warm-2:#f1ebe0;--ink:#1b1916;--ink-2:#3a352e;--muted:#6f665b;
-  --gold:#8a651c;--gold-soft:#c2a368;--line:#eae2d4;--line-2:#e0d6c4;--r:14px;
+  --bg:#ffffff;--warm:#f7f3ec;--warm-2:#f1ebe0;--ink:#1b1916;--ink-2:#39433d;--muted:#6f665b;
+  --gold:#1b4638;--gold-soft:#c2a368;--line:#eae2d4;--line-2:#cfd8d0;--r:14px;
   --shadow:0 40px 80px -52px rgba(40,30,15,.55);--shadow-sm:0 20px 40px -30px rgba(40,30,15,.4);
 }
 *{box-sizing:border-box}
@@ -22,7 +22,7 @@ img{max-width:100%;display:block}
 .btn-block{width:100%}
 
 .announce{background:var(--ink);color:#efe7d8;text-align:center;font-size:.8rem;letter-spacing:.04em;padding:9px 16px}
-.announce a{color:#e6d4a8;border-bottom:1px solid rgba(230,212,168,.35)}
+.announce a{color:#bfd8cb;border-bottom:1px solid rgba(230,212,168,.35)}
 
 header.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .nav-in{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;max-width:1160px;margin:0 auto}
@@ -114,7 +114,7 @@ header.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.88);bac
 .upsell .ph{width:86px;height:86px;border-radius:12px;overflow:hidden;flex:none}
 .upsell .ph img{width:100%;height:100%;object-fit:cover}
 .upsell h3{color:#fff;font-size:1.35rem;margin-bottom:4px}
-.upsell h3 em{font-style:italic;color:#e6d4a8}
+.upsell h3 em{font-style:italic;color:#bfd8cb}
 .upsell p{color:#cfc6b6;font-size:.88rem;margin:0}
 .upsell .pr{font-family:"Fraunces";font-size:1.5rem;white-space:nowrap}
 .upsell .pr .was{font-size:.85rem;color:#8c8478;text-decoration:line-through;margin-right:8px}

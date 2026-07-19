@@ -103,7 +103,7 @@ export default function AdminFeatures({ features }: PageProps) {
                 </Card>
 
                 <div className="flex max-w-3xl items-center gap-3">
-                    <Button onClick={save} disabled={!dirty || saving} className="bg-[#1b4638] hover:bg-[#5f4714]">
+                    <Button onClick={save} disabled={!dirty || saving} className="bg-[#1b4638] hover:bg-[#1b4638]">
                         {saving ? 'Saving…' : 'Save changes'}
                     </Button>
                     {dirty && <span className="text-sm text-muted-foreground">You have unsaved changes.</span>}

@@ -186,7 +186,7 @@ const PLAN_STYLES: Record<Tool['plan'], string> = {
 function BrowserFrame({ img, alt }: { img: string; alt: string }) {
     return (
         <div className="overflow-hidden rounded-xl border border-[#0f1c17]/10 bg-white shadow-[0_40px_80px_-40px_rgba(25,22,19,0.45)]">
-            <div className="flex items-center gap-2 border-b border-[#0f1c17]/8 bg-[#f4efe6] px-4 py-2.5">
+            <div className="flex items-center gap-2 border-b border-[#0f1c17]/8 bg-[#eef1eb] px-4 py-2.5">
                 <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
                 <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
                 <span className="size-2.5 rounded-full bg-[#cfd8d0]" />

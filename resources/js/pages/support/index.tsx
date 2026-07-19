@@ -104,7 +104,7 @@ function AskAi() {
                     <Button
                         type="submit"
                         disabled={loading || !question.trim()}
-                        className="bg-[#1f5142] hover:bg-[#6f5016]"
+                        className="bg-[#1f5142] hover:bg-[#1b4638]"
                     >
                         {loading ? 'Thinking…' : <Send className="size-4" />}
                     </Button>

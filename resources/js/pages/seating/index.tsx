@@ -1157,8 +1157,8 @@ return;
                                         <div
                                             className={`flex size-full flex-col items-center justify-center gap-1 rounded-lg border-2 text-center text-xs font-medium transition-colors ${
                                                 selected
-                                                    ? 'border-[#1b4638] bg-[#a8d5c2]/50 text-[#5b4a1f] ring-2 ring-[#1b4638]/40'
-                                                    : 'border-[#9c8f7d] bg-[#e6d8bd] text-[#5b4a1f]'
+                                                    ? 'border-[#1b4638] bg-[#a8d5c2]/50 text-[#1b4638] ring-2 ring-[#1b4638]/40'
+                                                    : 'border-[#9c8f7d] bg-[#e6d8bd] text-[#1b4638]'
                                             }`}
                                         >
                                             <Icon className="size-4 shrink-0" />
@@ -1284,7 +1284,7 @@ return;
                                                         className={`flex items-center justify-center rounded-full border text-[9px] font-semibold transition-all ${
                                                             who
                                                                 ? `cursor-grab bg-[#1b4638] text-white ring-2 ring-offset-1 ring-offset-[#e4e8e0] active:cursor-grabbing ${RSVP_RING[who.rsvp_status] ?? 'ring-transparent'}`
-                                                                : 'border-2 border-[#9c8f7d] bg-white text-[#7d7468]'
+                                                                : 'border-2 border-[#9c8f7d] bg-white text-[#6b756e]'
                                                         } ${isTarget ? 'scale-125 ring-2 ring-primary' : ''} ${
                                                             selectedGuestId !== null && !who
                                                                 ? 'cursor-pointer ring-2 ring-[#1f5142]/60'

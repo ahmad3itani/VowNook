@@ -18,7 +18,7 @@ export default function Suspended() {
                     please get in touch and our team will look into it.
                 </p>
                 <div className="flex gap-3">
-                    <Link href="/contact" className="rounded-lg bg-[#1f5142] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#735015]">
+                    <Link href="/contact" className="rounded-lg bg-[#1f5142] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1b4638]">
                         Contact support
                     </Link>
                     <Link href="/" className="rounded-lg border border-[#d5d8d1] px-5 py-2.5 text-sm font-medium hover:bg-white">

@@ -497,7 +497,7 @@ export default function Welcome() {
                                 key={f.title}
                                 className="group bg-[#f1f0ea] p-7 transition-colors duration-300 hover:bg-white"
                             >
-                                <div className="flex size-11 items-center justify-center rounded-full bg-[#f0e6d2] text-[#1f5142] transition-transform duration-300 group-hover:-translate-y-0.5">
+                                <div className="flex size-11 items-center justify-center rounded-full bg-[#e2e8e2] text-[#1f5142] transition-transform duration-300 group-hover:-translate-y-0.5">
                                     <f.icon className="size-5" />
                                 </div>
                                 <h3 className={`${fraunces} mt-4 text-xl font-medium`}>{f.title}</h3>
@@ -568,7 +568,7 @@ export default function Welcome() {
 
                         <div className="mx-auto mt-8 max-w-5xl">
                             <div className="overflow-hidden rounded-xl border border-[#0f1c17]/10 bg-white shadow-[0_50px_100px_-45px_rgba(25,22,19,0.5)]">
-                                <div className="flex items-center gap-2 border-b border-[#0f1c17]/8 bg-[#f4efe6] px-4 py-2.5">
+                                <div className="flex items-center gap-2 border-b border-[#0f1c17]/8 bg-[#eef1eb] px-4 py-2.5">
                                     <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
                                     <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
                                     <span className="size-2.5 rounded-full bg-[#cfd8d0]" />
