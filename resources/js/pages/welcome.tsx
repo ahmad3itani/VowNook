@@ -22,7 +22,7 @@ import {
     Wallet,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { BudgetInstrument, type BudgetModel } from '@/components/marketing/budget-instrument';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
@@ -201,6 +201,51 @@ function Wordmark({ className = '' }: { className?: string }) {
     );
 }
 
+/**
+ * The page's structural signature.
+ *
+ * A left rail carries the chapter number and a short italic label while the
+ * content sits offset in the right column. Every section uses it, so the page
+ * reads as one composed system instead of a stack of centred blocks — which was
+ * the tell that made the old layout feel machine-made. Nothing here is centred
+ * on purpose: the consistent left edge is what makes it feel typeset.
+ */
+function Rail({
+    n,
+    label,
+    children,
+    className = '',
+    tone = 'light',
+}: {
+    n: string;
+    label: ReactNode;
+    children: ReactNode;
+    className?: string;
+    tone?: 'light' | 'dark';
+}) {
+    const muted = tone === 'dark' ? 'text-white/55' : 'text-[#4b5850]';
+
+    return (
+        <div
+            className={`mx-auto grid max-w-[1480px] gap-8 lg:grid-cols-[7rem_minmax(0,1fr)] lg:gap-12 ${className}`}
+        >
+            <div className="hidden lg:block">
+                <div className="sticky top-32">
+                    <span
+                        aria-hidden
+                        className={`block h-px w-12 ${tone === 'dark' ? 'bg-[#7fb79e]' : 'bg-[#c4502e]'}`}
+                    />
+                    <p className={`eyebrow mt-4 ${muted}`}>{n}</p>
+                    <p className={`${fraunces} mt-2 text-[15px] leading-snug italic ${muted}`}>
+                        {label}
+                    </p>
+                </div>
+            </div>
+            <div className="min-w-0">{children}</div>
+        </div>
+    );
+}
+
 export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
     const { auth } = usePage().props;
     const authed = !!auth?.user;
@@ -365,86 +410,104 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
             </div>
 
             {/* ── 01 · For couples ───────────────────────────────────────── */}
-            <section id="couples" className="overflow-hidden px-5 py-24 md:px-12 md:py-36">
-                <div className="mx-auto grid max-w-[1480px] items-center gap-14 md:grid-cols-12">
-                    <Reveal className="relative md:col-span-5">
-                        <div className="relative z-10 -rotate-1 bg-white p-3 shadow-[0_30px_60px_-20px_rgba(25,22,19,0.35)]">
+            <section id="couples" className="overflow-hidden px-5 py-24 md:px-12 md:py-32">
+                <Rail
+                    n="N°02"
+                    label={
+                        <>
+                            For
+                            <br />
+                            couples
+                        </>
+                    }
+                >
+                    <Reveal>
+                        <h2 className={`${fraunces} max-w-2xl text-4xl leading-[1.05] font-light sm:text-5xl md:text-[3.4rem]`}>
+                            Every detail, <em className="text-[#1f5142]">composed.</em>
+                        </h2>
+                        <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-[#4b5850]">
+                            Guest lists, seating, budget, timeline, a wedding website your guests will
+                            actually visit — one calm studio instead of eleven spreadsheets.
+                        </p>
+                    </Reveal>
+
+                    {/* Text column leads; the photograph sits offset to the right
+                        as supporting evidence rather than as the headline act. */}
+                    <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+                        <div>
+                            <Stagger className="grid gap-x-10 gap-y-8 border-t border-[#0f1c17]/10 pt-8 sm:grid-cols-2">
+                                {coupleFeatures.map((f) => (
+                                    <StaggerItem key={f.title} className="group">
+                                        <f.icon className="mb-3 size-5 text-[#1f5142]" />
+                                        <h3 className="text-sm font-bold tracking-wide">{f.title}</h3>
+                                        <p className="mt-1.5 text-sm leading-relaxed text-[#4b5850]">{f.body}</p>
+                                    </StaggerItem>
+                                ))}
+                            </Stagger>
+
+                            <Reveal delay={0.2} className="mt-10 flex flex-wrap items-center gap-6">
+                                <Link
+                                    href={authed ? dashboard() : register()}
+                                    className="cta-press px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase"
+                                >
+                                    Start planning
+                                </Link>
+                                <a
+                                    href={DEMO}
+                                    className="group flex items-center gap-1.5 text-sm text-[#4b5850] underline-offset-4 hover:text-[#1f5142] hover:underline"
+                                >
+                                    See a live wedding site
+                                    <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                </a>
+                            </Reveal>
+                        </div>
+
+                        <Reveal className="relative hidden lg:block">
                             <img
                                 src={IMG.tablescape}
                                 alt="A candlelit wedding reception tablescape an hour before guests arrive"
                                 className="aspect-[3/4] w-full object-cover"
                                 loading="lazy"
                             />
-                            <p className={`${fraunces} px-2 pt-3 pb-1 text-xs italic text-[#4b5850]`}>
+                            <p className={`${fraunces} mt-3 border-t border-[#0f1c17]/12 pt-2 text-xs text-[#4b5850] italic`}>
                                 The long table, an hour before everyone arrived.
                             </p>
-                        </div>
-                        <div className="absolute -top-10 -left-6 z-0 hidden h-full w-full border border-[#1f5142]/25 md:block" />
-                        <span className={`${fraunces} pointer-events-none absolute -top-16 -right-2 z-20 text-[120px] leading-none font-light text-[#1f5142]/15 select-none md:text-[170px]`}>
-                            01
-                        </span>
-                    </Reveal>
-
-                    <div className="md:col-span-6 md:col-start-7">
-                        <Reveal>
-                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">For couples</p>
-                            <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
-                                Every detail, <em className="text-[#1f5142]">composed.</em>
-                            </h2>
-                            <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-[#4b5850]">
-                                Guest lists, seating, budget, timeline, a wedding website your guests will
-                                actually visit — one calm studio instead of eleven spreadsheets.
-                            </p>
-                        </Reveal>
-
-                        <Stagger className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
-                            {coupleFeatures.map((f) => (
-                                <StaggerItem key={f.title} className="group">
-                                    <f.icon className="mb-3 size-5 text-[#1f5142]" />
-                                    <h3 className="text-sm font-bold tracking-wide">{f.title}</h3>
-                                    <p className="mt-1.5 text-sm leading-relaxed text-[#4b5850]">{f.body}</p>
-                                </StaggerItem>
-                            ))}
-                        </Stagger>
-
-                        <Reveal delay={0.2} className="mt-10 flex flex-wrap items-center gap-6">
-                            <Link
-                                href={authed ? dashboard() : register()}
-                                className="cta-press px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase"
-                            >
-                                Start planning
-                            </Link>
-                            <a href={DEMO} className="group flex items-center gap-1.5 text-sm text-[#4b5850] underline-offset-4 hover:text-[#1f5142] hover:underline">
-                                See a live wedding site
-                                <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                            </a>
                         </Reveal>
                     </div>
-                </div>
+                </Rail>
             </section>
 
             {/* ── The complete suite (NEW) ───────────────────────────────── */}
-            <section id="suite" className="overflow-hidden border-t border-[#0f1c17]/10 bg-[#eaede5] px-5 py-24 md:px-12 md:py-36">
-                <div className="mx-auto max-w-[1480px]">
-                    <Reveal className="mx-auto max-w-3xl text-center">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">New · The complete suite</p>
-                        <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+            <section id="suite" className="overflow-hidden border-t border-[#0f1c17]/10 bg-[#eaede5] px-5 py-24 md:px-12 md:py-32">
+                <Rail
+                    n="N°03"
+                    label={
+                        <>
+                            The whole
+                            <br />
+                            celebration
+                        </>
+                    }
+                >
+                    <Reveal className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+                        <h2 className={`${fraunces} max-w-2xl text-4xl leading-[1.05] font-light sm:text-5xl md:text-[3.4rem]`}>
                             From the first “yes” to the <em className="text-[#1f5142]">last thank-you note.</em>
                         </h2>
-                        <p className="mt-6 text-[15px] leading-relaxed text-[#4b5850]">
-                            VowNook now carries the whole celebration — a gift registry, a multi-day schedule with
-                            per-event RSVPs, hotel room blocks, branded save-the-dates with open-tracking, guest
-                            messaging, print-ready stationery, thank-you tracking, and a free <strong className="font-semibold text-[#0f1c17]">name.vownook.com</strong> wedding website.
+                        <p className="text-[15px] leading-relaxed text-[#4b5850]">
+                            The whole celebration, not just the ceremony — registry, multi-day schedule with
+                            per-event RSVPs, room blocks, save-the-dates with open-tracking, guest messaging,
+                            print-ready stationery, thank-you tracking and a free{' '}
+                            <strong className="font-semibold text-[#0f1c17]">name.vownook.com</strong> website.
                         </p>
                     </Reveal>
 
-                    {/* Full-bleed editorial band */}
-                    <Reveal className="mt-14">
-                        <div className="relative overflow-hidden rounded-sm">
+                    {/* Editorial band */}
+                    <Reveal className="mt-12">
+                        <div className="relative overflow-hidden">
                             <img
                                 src={IMG.reception}
                                 alt="Guests toasting at a golden-hour outdoor wedding reception"
-                                className="h-[300px] w-full object-cover md:h-[460px]"
+                                className="h-[280px] w-full object-cover md:h-[420px]"
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0f1c17]/70 via-transparent to-transparent" />
@@ -486,16 +549,16 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                         ))}
                     </Stagger>
 
-                    <Reveal delay={0.15} className="mt-12 text-center">
+                    <Reveal delay={0.15} className="mt-12">
                         <Link
                             href={authed ? dashboard() : register()}
-                            className="inline-flex items-center gap-3 bg-[#1f5142] px-9 py-4 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#0f1c17]"
+                            className="group inline-flex items-center gap-3 border-b border-[#1f5142] pb-1 text-[11px] font-semibold tracking-[0.2em] text-[#1f5142] uppercase"
                         >
                             Build your wedding suite
-                            <ArrowRight className="size-4" />
+                            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                         </Link>
                     </Reveal>
-                </div>
+                </Rail>
             </section>
 
             {/* ── Product showcase: real screenshots ─────────────────────── */}
@@ -567,21 +630,28 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
             </section>
 
             {/* ── 02 · The marketplace (dark chapter) ────────────────────── */}
-            <section className="relative overflow-hidden bg-[#0f1c17] px-5 py-24 text-[#f1f0ea] md:px-12 md:py-36">
-                <span className={`${fraunces} pointer-events-none absolute top-10 left-6 text-[140px] leading-none font-light text-white/5 select-none md:text-[220px]`}>
-                    02
-                </span>
-
-                <div className="relative mx-auto grid max-w-[1480px] gap-16 md:grid-cols-12">
+            <section className="relative overflow-hidden bg-[#0f1c17] px-5 py-24 text-[#f1f0ea] md:px-12 md:py-32">
+                <Rail
+                    n="N°04"
+                    tone="dark"
+                    label={
+                        <>
+                            The
+                            <br />
+                            marketplace
+                        </>
+                    }
+                    className="relative"
+                >
+                <div className="grid gap-16 md:grid-cols-12">
                     <div className="md:col-span-5">
                         <Reveal>
-                            <p className="mb-4 text-[11px] tracking-[0.3em] text-[#7fb79e] uppercase">The marketplace</p>
-                            <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+                            <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-[3.4rem]`}>
                                 Real vendors. Real quotes.
                                 <br />
                                 <em className="text-[#7fb79e]">No guesswork.</em>
                             </h2>
-                            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/70">
+                            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/70">
                                 Every listing is reviewed before it goes live. Send one inquiry with your date
                                 and guest count, then weigh the offers side by side — terms, deposits and all.
                             </p>
@@ -627,31 +697,39 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                         </Reveal>
                     </div>
                 </div>
+                </Rail>
             </section>
 
             {/* ── 03 · For vendors ───────────────────────────────────────── */}
-            <section id="vendors" className="relative overflow-hidden px-5 py-24 md:px-12 md:py-36">
-                <span className={`${fraunces} pointer-events-none absolute -top-6 right-6 text-[140px] leading-none font-light text-[#1f5142]/10 select-none md:text-[220px]`}>
-                    03
-                </span>
-
-                <div className="relative mx-auto max-w-[1480px]">
-                    <Reveal className="max-w-2xl">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">For vendors</p>
-                        <h2 className={`${fraunces} text-4xl leading-[1.05] font-light sm:text-5xl md:text-6xl`}>
+            <section id="vendors" className="relative overflow-hidden px-5 py-24 md:px-12 md:py-32">
+                <Rail
+                    n="N°05"
+                    label={
+                        <>
+                            For
+                            <br />
+                            vendors
+                        </>
+                    }
+                >
+                    <Reveal className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+                        <h2 className={`${fraunces} max-w-2xl text-4xl leading-[1.05] font-light sm:text-5xl md:text-[3.4rem]`}>
                             Your craft, in front of couples <em className="text-[#1f5142]">ready to book.</em>
                         </h2>
-                        <p className="mt-6 text-[15px] leading-relaxed text-[#4b5850]">
-                            Build a portfolio page with packages and availability, receive structured inquiries
-                            instead of cold DMs, and reply with offers that win — all from one business dashboard.
+                        <p className="text-[15px] leading-relaxed text-[#4b5850]">
+                            A portfolio page with packages and availability, structured inquiries instead of
+                            cold DMs, and offers that win — from one business dashboard.
                         </p>
                     </Reveal>
 
-                    <Stagger className="mt-14 grid gap-px overflow-hidden border border-[#0f1c17]/10 bg-[#0f1c17]/10 sm:grid-cols-3">
+                    {/* Figures set left and large, like a printed rate card. */}
+                    <Stagger className="mt-12 grid gap-px overflow-hidden border border-[#0f1c17]/10 bg-[#0f1c17]/10 sm:grid-cols-3">
                         {vendorStats.map((s) => (
-                            <StaggerItem key={s.label} className="bg-[#f1f0ea] p-10 text-center sm:p-12">
-                                <p className={`${fraunces} text-5xl font-light text-[#1f5142] sm:text-6xl`}>{s.value}</p>
-                                <p className="mt-3 text-sm text-[#4b5850]">{s.label}</p>
+                            <StaggerItem key={s.label} className="bg-[#f1f0ea] p-8 sm:p-10">
+                                <p className={`${fraunces} tabular text-5xl font-light text-[#1f5142] sm:text-6xl`}>
+                                    {s.value}
+                                </p>
+                                <p className="mt-3 text-sm leading-relaxed text-[#4b5850]">{s.label}</p>
                             </StaggerItem>
                         ))}
                     </Stagger>
@@ -659,19 +737,28 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                     <Reveal delay={0.15} className="mt-10 flex flex-wrap items-center gap-6">
                         <Link
                             href="/register?type=vendor"
-                            className="bg-[#1f5142] px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] text-white uppercase transition-colors hover:bg-[#0f1c17]"
+                            className="cta-press px-8 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase"
                         >
                             List your business — free
                         </Link>
                         <p className="text-sm text-[#4b5850]">Reviewed and published, usually within a day.</p>
                     </Reveal>
-                </div>
+                </Rail>
             </section>
 
             {/* ── How it works ───────────────────────────────────────────── */}
             <section className="border-y border-[#0f1c17]/10 bg-[#e7e9e2] px-5 py-24 md:px-12 md:py-32">
-                <div className="mx-auto max-w-[1480px]">
-                    <Reveal className="mb-16 text-center">
+                <Rail
+                    n="N°06"
+                    label={
+                        <>
+                            How it
+                            <br />
+                            works
+                        </>
+                    }
+                >
+                    <Reveal className="mb-14">
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
                             How the room <em className="text-[#1f5142]">comes together</em>
                         </h2>
@@ -707,14 +794,22 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                             </Stagger>
                         </div>
                     </div>
-                </div>
+                </Rail>
             </section>
 
             {/* ── Pricing ────────────────────────────────────────────────── */}
-            <section id="pricing" className="px-5 py-24 md:px-12 md:py-36">
-                <div className="mx-auto max-w-[1480px]">
-                    <Reveal className="mb-16">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Memberships</p>
+            <section id="pricing" className="px-5 py-24 md:px-12 md:py-32">
+                <Rail
+                    n="N°07"
+                    label={
+                        <>
+                            What it
+                            <br />
+                            costs
+                        </>
+                    }
+                >
+                    <Reveal className="mb-14">
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
                             Choose your <em className="text-[#1f5142]">level of ceremony.</em>
                         </h2>
@@ -765,20 +860,29 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                             </div>
                         ))}
                     </div>
-                </div>
+                </Rail>
             </section>
 
             {/* ── FAQ (organic + AI search) ──────────────────────────────── */}
             <section className="border-t border-[#0f1c17]/10 bg-[#eaede5] px-5 py-24 md:px-12 md:py-32">
-                <div className="mx-auto grid max-w-[1480px] gap-14 md:grid-cols-12">
+                <Rail
+                    n="N°08"
+                    label={
+                        <>
+                            Good to
+                            <br />
+                            know
+                        </>
+                    }
+                >
+                <div className="grid gap-14 md:grid-cols-12">
                     <Reveal className="md:col-span-4">
-                        <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Good to know</p>
                         <h2 className={`${fraunces} text-4xl font-light sm:text-5xl`}>
                             Questions, <em className="text-[#1f5142]">answered.</em>
                         </h2>
-                        <p className="mt-6 text-sm leading-relaxed text-[#4b5850]">
+                        <p className="mt-5 text-sm leading-relaxed text-[#4b5850]">
                             Everything couples and vendors ask before they begin. Still curious?{' '}
-                            <Link href="/contact" className="text-[#1f5142] underline-offset-4 hover:underline">Talk to us.</Link>
+                            <Link href="/contact" className="link-draw text-[#1f5142]">Talk to us.</Link>
                         </p>
                     </Reveal>
 
@@ -798,6 +902,7 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                         </Stagger>
                     </div>
                 </div>
+                </Rail>
             </section>
 
             {/* ── Final CTA ──────────────────────────────────────────────── */}
