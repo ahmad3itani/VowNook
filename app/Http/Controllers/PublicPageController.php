@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Budget\BudgetAllocator;
+use App\Support\OntarioCities;
 use App\Support\Seo;
+use App\Support\Seo\LocalCosts;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,14 +17,65 @@ use Inertia\Response;
  */
 class PublicPageController extends Controller
 {
+    /**
+     * Featured metros for the homepage budget instrument. Deliberately the ten
+     * with the most search demand rather than all 42 — the selector stays
+     * scannable and the payload stays small.
+     */
+    private const HERO_CITIES = [
+        'toronto', 'ottawa', 'mississauga', 'hamilton', 'niagara',
+        'kitchener-waterloo', 'london', 'barrie', 'muskoka', 'windsor',
+    ];
+
     public function home(): Response
     {
-        return Inertia::render('welcome')->withViewData(['seo' => Seo::make(
+        return Inertia::render('welcome', [
+            // Powers the hero instrument: the visitor gets a real allocation,
+            // priced for their city, before they ever create an account.
+            'budgetModel' => [
+                ...BudgetAllocator::clientModel(),
+                'bands' => BudgetAllocator::bands(),
+                'cities' => $this->heroCities(),
+            ],
+        ])->withViewData(['seo' => Seo::make(
             title: 'Wedding Planning Studio & Ontario Vendor Marketplace',
-            description: 'Plan every detail of your wedding for free, discover trusted Ontario vendors, compare real quotes and book — all in one calm workspace.',
+            description: 'Bring your budget — see exactly what an Ontario wedding costs in your city, then plan it and book trusted vendors free.',
             canonical: url('/'),
             image: url('/images/landing/hero.jpg'),
         )]);
+    }
+
+    /**
+     * @return list<array{slug:string, name:string, index:float, costs:list<array{noun:string, display:string}>}>
+     */
+    private function heroCities(): array
+    {
+        $allocator = new BudgetAllocator;
+        $costs = new LocalCosts;
+
+        $out = [];
+        foreach (self::HERO_CITIES as $slug) {
+            $name = OntarioCities::name($slug);
+
+            if ($name === null) {
+                continue;
+            }
+
+            $out[] = [
+                'slug' => $slug,
+                'name' => $name,
+                'index' => $allocator->cityIndex($slug),
+                // Real per-category ranges for this city, straight from the same
+                // engine the /wedding-{category}/{city} pages use — so the hero
+                // can never quote a number the rest of the site contradicts.
+                'costs' => array_map(
+                    fn (array $row) => ['noun' => $row['noun'], 'display' => $row['display']],
+                    $costs->table($slug),
+                ),
+            ];
+        }
+
+        return $out;
     }
 
     public function howItWorks(): Response

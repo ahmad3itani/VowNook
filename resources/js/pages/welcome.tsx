@@ -23,6 +23,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { BudgetInstrument, type BudgetModel } from '@/components/marketing/budget-instrument';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
 
@@ -200,7 +201,7 @@ function Wordmark({ className = '' }: { className?: string }) {
     );
 }
 
-export default function Welcome() {
+export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
     const { auth } = usePage().props;
     const authed = !!auth?.user;
     const [menuOpen, setMenuOpen] = useState(false);
@@ -295,92 +296,55 @@ export default function Welcome() {
                 )}
             </header>
 
-            {/* ── Hero ───────────────────────────────────────────────────── */}
-            <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
-                <motion.img
-                    src={IMG.hero}
-                    alt="A couple laughing mid-dance at a golden-hour wedding reception"
-                    className="absolute inset-0 size-full object-cover"
-                    initial={{ scale: 1.12 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 16, ease: 'easeOut' }}
-                    fetchPriority="high"
+            {/*
+              ── Hero: an instrument, not a photograph ──────────────────────
+              Every competitor here opens on a stock image and a soft line of
+              copy — Zola's homepage and this one used to be structurally the
+              same page. The visitor now does something in the first viewport
+              instead of scrolling past a poem to find out what we are, and the
+              thing they do is the one asset no competitor has: real Ontario
+              cost data. Composition is deliberately offset rather than centred.
+            */}
+            <section className="relative overflow-hidden pt-28 pb-14 md:pt-36 md:pb-20">
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 h-[460px] bg-gradient-to-b from-[#e7e9e2] via-[#e7e9e2]/60 to-transparent"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1c17]/85 via-[#0f1c17]/25 to-[#0f1c17]/30" />
-
-                {/* Editorial issue stamp */}
-                <motion.div
-                    className="absolute top-28 right-6 hidden rotate-90 items-center gap-3 text-[10px] tracking-[0.4em] text-white/60 uppercase md:flex"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.2, duration: 1 }}
-                >
-                    <span className="h-px w-10 bg-white/40" />
-                    The Wedding Suite — N°01
-                </motion.div>
-
-                <div className="relative z-10 mx-auto w-full max-w-[1480px] px-5 pb-16 md:px-12 md:pb-20">
-                    <motion.p
-                        className="mb-5 text-[11px] tracking-[0.35em] text-[#7fb79e] uppercase"
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.9, delay: 0.2 }}
-                    >
-                        Planning studio · Vendor marketplace · Wedding websites
-                    </motion.p>
-                    <motion.h1
-                        className={`${fraunces} max-w-5xl text-[clamp(2.4rem,11vw,6.5rem)] leading-[0.95] font-light text-white`}
-                        initial={{ opacity: 0, y: 28 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                        Where weddings
-                        <br />
-                        <em className="font-normal text-[#7fb79e]">find their people.</em>
-                    </motion.h1>
-
-                    <motion.div
-                        className="mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.9, delay: 0.6 }}
-                    >
-                        <p className="max-w-md text-[15px] leading-relaxed text-white/85">
-                            Plan every detail in one calm workspace — guests, seating, budget, a wedding website,
-                            registry and more — then discover trusted vendors and compare real quotes, all in one place.
-                        </p>
-                        {/* Conversion hotspot. The persimmon CTA is the only
-                            warm colour in the viewport, so the eye lands on it
-                            before anything else; the secondary action stays a
-                            ghost button so it never competes. The risk-reversal
-                            line sits directly beneath, where hesitation peaks. */}
-                        <div>
-                            <div className="flex flex-col gap-3 sm:flex-row">
-                                <Link
-                                    href={authed ? dashboard() : register()}
-                                    className="cta-press group flex items-center justify-center gap-3 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] uppercase"
-                                >
-                                    <span className="relative z-10 flex items-center gap-3">
-                                        {authed ? 'Open your studio' : 'Start planning — free'}
-                                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                                    </span>
-                                </Link>
-                                <Link
-                                    href="/marketplace"
-                                    className="flex items-center justify-center gap-3 border border-white/40 px-9 py-4 text-[11px] font-semibold tracking-[0.22em] text-white uppercase transition-colors hover:bg-white hover:text-[#0f1c17]"
-                                >
-                                    Explore vendors
-                                </Link>
-                            </div>
-                            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] tracking-[0.14em] text-white/60 uppercase">
-                                <span>Free forever</span>
-                                <span aria-hidden className="text-white/25">·</span>
-                                <span>No credit card</span>
-                                <span aria-hidden className="text-white/25">·</span>
-                                <span>Ontario vendors, vetted</span>
+                <div className="relative mx-auto grid max-w-[1480px] gap-8 px-5 md:px-12 lg:grid-cols-[7rem_minmax(0,1fr)] lg:gap-12">
+                    {/* Left rail — the editorial marker that breaks the centred grid. */}
+                    <div className="hidden lg:block">
+                        <div className="sticky top-32">
+                            <span className="rule-draw block h-px w-12 bg-[#c4502e]" />
+                            <p className="eyebrow mt-4 text-[#4b5850]">N°01</p>
+                            <p className={`${fraunces} mt-2 text-[15px] leading-snug text-[#4b5850] italic`}>
+                                The budget
+                                <br />
+                                instrument
                             </p>
                         </div>
-                    </motion.div>
+                    </div>
+
+                    <div className="rise">
+                        <BudgetInstrument
+                            model={budgetModel}
+                            ctaHref={authed ? dashboard() : register()}
+                        />
+
+                        <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-[12px] text-[#4b5850]">
+                            <span className="tabular">
+                                <span className="text-[#0f1c17]">42</span> Ontario cities priced
+                            </span>
+                            <span className="tabular">
+                                <span className="text-[#0f1c17]">12</span> vendor categories
+                            </span>
+                            <span>
+                                Reviews tied to real bookings — <span className="text-[#0f1c17]">no pay-to-play</span>
+                            </span>
+                            <Link href="/marketplace" className="link-draw ml-auto text-[#1b4638]">
+                                Or browse the marketplace →
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </section>
 

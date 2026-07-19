@@ -91,6 +91,32 @@ class BudgetAllocator
     }
 
     /**
+     * The compact model the marketing hero's budget instrument needs so it can
+     * compute an allocation in the browser with no round trip — the whole point
+     * of the instrument is that it answers instantly as you type.
+     *
+     * The client arithmetic mirrors {@see allocate()} and {@see realism()}:
+     * amount = total x share, and typical = (fixed + perGuest x guests) x index.
+     * Both are plain multiplication, so there is no rounding to drift out of
+     * sync — but if either formula changes here, update the hero to match.
+     *
+     * @return array{fixed_cents:int, per_guest_cents:int, split:list<array{label:string, share:float}>}
+     */
+    public static function clientModel(): array
+    {
+        $split = [];
+        foreach (self::SPLIT as $label => [$share, $categories]) {
+            $split[] = ['label' => $label, 'share' => $share];
+        }
+
+        return [
+            'fixed_cents' => self::FIXED_CENTS,
+            'per_guest_cents' => self::PER_GUEST_CENTS,
+            'split' => $split,
+        ];
+    }
+
+    /**
      * Split a total across the standard categories.
      *
      * @return list<array{label: string, percent: float, amount_cents: int, vendor_categories: list<string>}>
