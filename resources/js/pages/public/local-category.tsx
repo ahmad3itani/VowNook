@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, ChevronRight, MapPin } from 'lucide-react';
 import { RelatedGuides, type Guide } from '@/components/marketing/related-guides';
+import { SiteHeader } from '@/components/public/site-header';
 import { VendorCard, type VendorCardData } from '@/components/marketplace/vendor-card';
 
 const fraunces = "font-['Newsreader']";
@@ -23,29 +24,12 @@ type Props = {
     faqs: Faq[];
 };
 
-function PublicNav() {
-    return (
-        <header className="border-b border-[#0f1c17]/8 bg-[#f1f0ea]/85 backdrop-blur-md">
-            <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
-                <Link href="/" className={`${fraunces} text-[20px] font-medium tracking-tight`}>
-                    VowNook <span className="italic font-light text-[#1f5142]">Atelier</span>
-                </Link>
-                <div className="flex items-center gap-4 text-[13px]">
-                    <Link href="/marketplace" className="text-[#4b5850] hover:text-[#1f5142]">Marketplace</Link>
-                    <Link href="/register" className="cta-press px-5 py-2 text-[11px] font-medium tracking-[0.18em] uppercase">
-                        Get started
-                    </Link>
-                </div>
-            </nav>
-        </header>
-    );
-}
 
 export default function LocalCategory({ category, vendors, cities, total, cost, other_categories, guides, intro_html, faqs }: Props) {
     return (
         <div className="min-h-screen bg-[#f1f0ea] font-['Instrument_Sans'] text-[#0f1c17]">
             <Head title={`${category.noun} in Ontario`} />
-            <PublicNav />
+            <SiteHeader />
 
             <section className="px-5 pt-14 pb-10 md:px-12 md:pt-20">
                 <div className="mx-auto max-w-[1480px]">

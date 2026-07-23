@@ -14,17 +14,16 @@ import {
     MailCheck,
     MailOpen,
     Megaphone,
-    Menu,
     PenLine,
     Plane,
     Printer,
     Users,
     Wallet,
-    X,
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { BudgetInstrument, type BudgetModel } from '@/components/marketing/budget-instrument';
 import { Rail } from '@/components/marketing/rail';
+import { SiteHeader } from '@/components/public/site-header';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { dashboard, login, register } from '@/routes';
 
@@ -205,7 +204,6 @@ function Wordmark({ className = '' }: { className?: string }) {
 export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
     const { auth } = usePage().props;
     const authed = !!auth?.user;
-    const [menuOpen, setMenuOpen] = useState(false);
     const [showcaseIdx, setShowcaseIdx] = useState(0);
 
     return (
@@ -220,82 +218,7 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
                 .wfa-marquee:hover { animation-play-state: paused; }
             `}</style>
 
-            {/* ── Header ─────────────────────────────────────────────────── */}
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#0f1c17]/8 bg-[#f1f0ea]/85 backdrop-blur-md">
-                <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-3.5 md:px-12">
-                    <Wordmark />
-                    <div className="hidden items-center gap-9 md:flex">
-                        <a href="#couples" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            For couples
-                        </a>
-                        <a href="#suite" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            The suite
-                        </a>
-                        <Link href="/marketplace" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            Marketplace
-                        </Link>
-                        <a href="/shop" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            Shop
-                        </a>
-                        <Link href="/features" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            Features
-                        </Link>
-                        <a href="#vendors" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            For vendors
-                        </a>
-                        <a href="#pricing" className="text-[13px] tracking-wide text-[#4b5850] transition-colors hover:text-[#1f5142]">
-                            Pricing
-                        </a>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {authed ? (
-                            <Link
-                                href={dashboard()}
-                                className="cta-press px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase md:px-6"
-                            >
-                                Dashboard
-                            </Link>
-                        ) : (
-                            <>
-                                <Link href={login()} className="hidden text-[13px] text-[#4b5850] hover:text-[#1f5142] sm:block">
-                                    Sign in
-                                </Link>
-                                <Link
-                                    href={register()}
-                                    className="cta-press px-5 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase md:px-6"
-                                >
-                                    Get started
-                                </Link>
-                            </>
-                        )}
-                        <button
-                            type="button"
-                            onClick={() => setMenuOpen((o) => !o)}
-                            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-                            aria-expanded={menuOpen}
-                            className="flex size-10 items-center justify-center text-[#0f1c17] md:hidden"
-                        >
-                            {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
-                        </button>
-                    </div>
-                </nav>
-
-                {/* Mobile menu */}
-                {menuOpen && (
-                    <div className="flex flex-col border-t border-[#0f1c17]/8 bg-[#f1f0ea] px-5 py-2 md:hidden">
-                        <a href="#couples" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">For couples</a>
-                        <a href="#suite" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">The suite</a>
-                        <Link href="/marketplace" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Marketplace</Link>
-                        <a href="/shop" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Shop</a>
-                        <Link href="/features" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Features</Link>
-                        <a href="#vendors" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">For vendors</a>
-                        <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Pricing</a>
-                        {!authed && (
-                            <Link href={login()} onClick={() => setMenuOpen(false)} className="py-2.5 text-sm tracking-wide text-[#4b5850]">Sign in</Link>
-                        )}
-                    </div>
-                )}
-            </header>
+            <SiteHeader />
 
             {/*
               ── Hero: an instrument, not a photograph ──────────────────────
@@ -306,7 +229,7 @@ export default function Welcome({ budgetModel }: { budgetModel: BudgetModel }) {
               thing they do is the one asset no competitor has: real Ontario
               cost data. Composition is deliberately offset rather than centred.
             */}
-            <section className="relative overflow-hidden pt-28 pb-14 md:pt-36 md:pb-20">
+            <section className="relative overflow-hidden pt-14 pb-14 md:pt-20 md:pb-20">
                 <div
                     aria-hidden
                     className="pointer-events-none absolute inset-x-0 top-0 h-[460px] bg-gradient-to-b from-[#e7e9e2] via-[#e7e9e2]/60 to-transparent"

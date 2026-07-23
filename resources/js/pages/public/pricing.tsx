@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, Check } from 'lucide-react';
+import { SiteHeader } from '@/components/public/site-header';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 
 const fraunces = "font-['Newsreader']";
@@ -41,29 +42,10 @@ export default function Pricing({ faqs }: { faqs: Faq[] }) {
             <Head title="Pricing" />
 
             {/* Header */}
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-[#0f1c17]/8 bg-[#f1f0ea]/85 backdrop-blur-md">
-                <nav className="mx-auto flex max-w-[1480px] items-center justify-between px-5 py-4 md:px-12">
-                    <Link href="/" className="flex items-center gap-2.5" aria-label="VowNook home">
-                        <img src="/images/brand/logo-mark.svg" alt="" className="size-9 rounded-md border border-[#0f1c17]/10" />
-                        <span className={`${fraunces} text-[22px] font-medium tracking-tight`}>VowNook</span>
-                    </Link>
-                    <div className="hidden items-center gap-9 md:flex">
-                        <a href="#couples" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">For couples</a>
-                        <a href="#planners" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">For planners</a>
-                        <a href="#vendors" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">For vendors</a>
-                        <Link href="/how-it-works" className="text-[13px] tracking-wide text-[#4b5850] hover:text-[#1f5142]">How it works</Link>
-                    </div>
-                    <Link
-                        href="/register"
-                        className="cta-press px-6 py-2.5 text-[11px] font-medium tracking-[0.18em] uppercase"
-                    >
-                        Get started
-                    </Link>
-                </nav>
-            </header>
+            <SiteHeader />
 
             {/* Hero */}
-            <section className="px-5 pt-32 pb-12 md:px-12 md:pt-40 md:pb-16">
+            <section className="px-5 pt-14 pb-12 md:px-12 md:pt-20 md:pb-16">
                 <div className="mx-auto max-w-[1480px]">
                     <Reveal>
                         <p className="mb-4 text-[11px] tracking-[0.3em] text-[#1f5142] uppercase">Pricing</p>
