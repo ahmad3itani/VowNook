@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\VendorCategory;
+use App\Models\BlogPost;
 use App\Models\LocalContent;
 use App\Models\VendorProfile;
 use App\Support\Markdown;
@@ -26,6 +27,24 @@ use Inertia\Response;
 class PublicLocalController extends Controller
 {
     private const INDEX_THRESHOLD = 3;
+
+    /**
+     * Blog guides relevant to each vendor category. Linking the transactional
+     * ranking pages (/wedding-photographers/toronto) to the informational
+     * guides ("how to choose a wedding photographer") builds a topic cluster
+     * Google understands, and passes authority from the homepage-linked hubs
+     * into the guides. Universal guides below are appended to every category.
+     */
+    private const CATEGORY_GUIDES = [
+        'photography' => ['how-to-choose-a-wedding-photographer-ontario'],
+        'venue' => ['questions-to-ask-wedding-venue', 'how-much-does-a-wedding-venue-cost-ontario'],
+        'planner' => ['how-much-does-a-wedding-planner-cost-ontario'],
+    ];
+
+    private const UNIVERSAL_GUIDES = [
+        'how-much-does-a-wedding-cost-in-ontario',
+        'ontario-wedding-planning-timeline',
+    ];
 
     public function __construct(protected MarketplaceCatalog $catalog) {}
 
@@ -82,6 +101,7 @@ class PublicLocalController extends Controller
             'total' => $vendors->count(),
             'cost' => $cost,
             'other_categories' => $this->otherCategoryLinks($cat, null),
+            'guides' => $this->relatedGuides($cat),
             'intro_html' => $content?->intro ? Markdown::toHtml($content->intro) : null,
             'faqs' => $content?->faqs ?? [],
         ])->withViewData(['seo' => $seo]);
@@ -153,6 +173,7 @@ class PublicLocalController extends Controller
             'cost' => $cost,
             'other_cities' => $otherCities,
             'other_categories' => $this->otherCategoryLinks($cat, $city),
+            'guides' => $this->relatedGuides($cat),
             'hub_url' => route('local.category', $cat->seoSlug()),
             'intro_html' => $content?->intro ? Markdown::toHtml($content->intro) : null,
             'faqs' => $content?->faqs ?? [],
@@ -278,6 +299,46 @@ class PublicLocalController extends Controller
     }
 
     /** Links to the same city across other categories (or the hubs when no city). */
+    /**
+     * Up to three published guides relevant to this category — category-specific
+     * first, then the universal cost + timeline guides — for the "Related
+     * reading" block. Deduped, and quietly skips any slug that isn't published.
+     *
+     * @return list<array{title:string, url:string, excerpt:string}>
+     */
+    private function relatedGuides(VendorCategory $category): array
+    {
+        $slugs = array_values(array_unique([
+            ...(self::CATEGORY_GUIDES[$category->value] ?? []),
+            ...self::UNIVERSAL_GUIDES,
+        ]));
+
+        $posts = BlogPost::query()
+            ->published()
+            ->whereIn('slug', $slugs)
+            ->get(['slug', 'title', 'excerpt'])
+            ->keyBy('slug');
+
+        // Preserve the intended order (category-specific before universal).
+        $out = [];
+        foreach ($slugs as $slug) {
+            $post = $posts->get($slug);
+            if ($post === null) {
+                continue;
+            }
+            $out[] = [
+                'title' => $post->title,
+                'url' => route('blog.show', $post->slug),
+                'excerpt' => (string) $post->excerpt,
+            ];
+            if (count($out) === 3) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
     private function otherCategoryLinks(VendorCategory $current, ?string $city): array
     {
         return collect(VendorCategory::seoCases())

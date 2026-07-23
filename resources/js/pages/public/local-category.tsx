@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, ChevronRight, MapPin } from 'lucide-react';
+import { RelatedGuides, type Guide } from '@/components/marketing/related-guides';
 import { VendorCard, type VendorCardData } from '@/components/marketplace/vendor-card';
 
 const fraunces = "font-['Newsreader']";
@@ -18,6 +19,7 @@ type Props = {
     cost: Cost | null;
     other_categories: CatLink[];
     intro_html: string | null;
+    guides: Guide[];
     faqs: Faq[];
 };
 
@@ -39,7 +41,7 @@ function PublicNav() {
     );
 }
 
-export default function LocalCategory({ category, vendors, cities, total, cost, other_categories, intro_html, faqs }: Props) {
+export default function LocalCategory({ category, vendors, cities, total, cost, other_categories, guides, intro_html, faqs }: Props) {
     return (
         <div className="min-h-screen bg-[#f1f0ea] font-['Instrument_Sans'] text-[#0f1c17]">
             <Head title={`${category.noun} in Ontario`} />
@@ -144,6 +146,8 @@ export default function LocalCategory({ category, vendors, cities, total, cost, 
                     </div>
                 </div>
             </section>
+
+            <RelatedGuides guides={guides} />
 
             {/* FAQ */}
             {faqs.length > 0 && (

@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, ChevronRight, MapPin } from 'lucide-react';
+import { RelatedGuides, type Guide } from '@/components/marketing/related-guides';
 import { VendorCard, type VendorCardData } from '@/components/marketplace/vendor-card';
 
 const fraunces = "font-['Newsreader']";
@@ -19,6 +20,7 @@ type Props = {
     other_categories: LinkItem[];
     hub_url: string;
     intro_html: string | null;
+    guides: Guide[];
     faqs: Faq[];
 };
 
@@ -49,6 +51,7 @@ export default function LocalCity({
     cost,
     other_cities,
     other_categories,
+    guides,
     hub_url,
     intro_html,
     faqs,
@@ -177,6 +180,8 @@ export default function LocalCity({
                     </div>
                 </div>
             </section>
+
+            <RelatedGuides guides={guides} />
 
             {/* FAQ */}
             {faqs.length > 0 && (
